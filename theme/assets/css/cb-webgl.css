@@ -1,0 +1,341 @@
+/* =========================================================================
+   cb-webgl.css — Coldwell Banker WebGL scrolltelling layer
+   Canvas + custom cursor + scene overlay + legacy fallback handling.
+
+   GOLDEN RULE: when <html> does NOT have .cb-webgl-on, this file changes
+   NOTHING. The legacy DOM/CSS fallback (static AI images as CSS backgrounds
+   on .cb-stage-bg, native cursor, normal pointer events) must remain fully
+   intact and unaffected. Every selector below is scoped under html.cb-webgl-on.
+
+   Brand tokens (do not invent colors):
+     navy        #012169   accent #1F69FF  (CB Bright Blue — the WebGL accent,
+     navy-mid    #1B3C55   cream  #F0EBE0   rerouted from gold #C9A84C per BRAND.md)
+     navy-dark   #0A1730   white  #FFFFFF
+   ========================================================================= */
+
+/* -------------------------------------------------------------------------
+   1. Canvas — full-viewport fixed background layer (z-index:0)
+   ------------------------------------------------------------------------- */
+html.cb-webgl-on #cb-webgl,
+html.cb-webgl-on canvas#cb-webgl {
+  position: fixed;
+  inset: 0;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  display: block;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: #0A1730; /* navy-dark — avoids any flash before first frame */
+  /* Canvas is purely decorative; the DOM overlay carries all interaction. */
+  pointer-events: none;
+  /* The canvas itself must let mouse-move reach it for parallax: it sits
+     beneath the overlay, which forwards events via pointer-events:none. */
+}
+
+/* The canvas element created by THREE inside the #cb-webgl host (in case the
+   host is a wrapper rather than the <canvas> itself). */
+html.cb-webgl-on #cb-webgl canvas {
+  position: fixed;
+  inset: 0;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  display: block;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  pointer-events: none;
+}
+
+/* -------------------------------------------------------------------------
+   2. Hide the legacy static media — it is the fallback.
+      .cb-stage-bg carries the AI images as CSS backgrounds in the non-WebGL
+      path. Under WebGL it must be invisible (the canvas replaces it) but it
+      stays in the DOM so disabling .cb-webgl-on instantly restores it.
+   ------------------------------------------------------------------------- */
+html.cb-webgl-on .cb-stage-bg,
+html.cb-webgl-on .cb-stage-bg img,
+html.cb-webgl-on .cb-stage-bg picture,
+html.cb-webgl-on .cb-stage-bg video,
+html.cb-webgl-on .cb-stage-bg .cb-stage-bg-media {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* -------------------------------------------------------------------------
+   3. Scene overlay — the DOM scrolltelling copy, above the canvas (z-index:2).
+      Non-interactive wrappers pass mouse events through to the canvas so
+      parallax keeps responding; only genuinely interactive children capture.
+   ------------------------------------------------------------------------- */
+html.cb-webgl-on .cb-scroll-scenes,
+html.cb-webgl-on .cb-scroll-scenes .cb-scene,
+html.cb-webgl-on .cb-scroll-scenes .cb-scene-inner,
+html.cb-webgl-on .cb-scroll-scenes .cb-scene-content {
+  position: relative;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* Interactive children re-enable pointer events so they remain clickable. */
+html.cb-webgl-on .cb-scroll-scenes .cb-btn,
+html.cb-webgl-on .cb-scroll-scenes a,
+html.cb-webgl-on .cb-scroll-scenes input,
+html.cb-webgl-on .cb-scroll-scenes button,
+html.cb-webgl-on .cb-scroll-scenes select,
+html.cb-webgl-on .cb-scroll-scenes textarea,
+html.cb-webgl-on .cb-scroll-scenes label,
+html.cb-webgl-on .cb-scroll-scenes .cb-property-card,
+html.cb-webgl-on .cb-scroll-scenes [data-cursor] {
+  pointer-events: auto;
+}
+
+/* -------------------------------------------------------------------------
+   4. Custom cursor — gold dot (instant) + ring (lerped). The native cursor is
+      hidden ONLY under .cb-webgl-on. CBCursor positions these via transform.
+   ------------------------------------------------------------------------- */
+html.cb-webgl-on,
+html.cb-webgl-on * {
+  cursor: none;
+}
+
+html.cb-webgl-on .cb-cursor-dot,
+html.cb-webgl-on .cb-cursor-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 2147483647;       /* always on top of everything */
+  pointer-events: none;       /* never intercept */
+  will-change: transform, opacity;
+  /* CBCursor sets translate(x,y) and centering via translate(-50%,-50%). */
+  transform: translate3d(-50%, -50%, 0);
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+/* Dot — 6px solid gold, follows pointer instantly. */
+html.cb-webgl-on .cb-cursor-dot {
+  width: 6px;
+  height: 6px;
+  margin: 0;
+  border-radius: 50%;
+  background: #1F69FF;                 /* CB Bright Blue (rerouted from gold per BRAND.md) */
+  opacity: 1;
+  transition: opacity 0.18s ease;
+}
+
+/* Ring — 32px, 1.5px gold border @50%, scaled/positioned by JS (lerp 0.10). */
+html.cb-webgl-on .cb-cursor-ring {
+  width: 32px;
+  height: 32px;
+  margin: 0;
+  border-radius: 50%;
+  border: 1.5px solid rgba(31, 105, 255, 0.5);   /* CB Bright Blue @ 50% */
+  background: transparent;
+  opacity: 1;
+  transition: border-color 0.25s ease, opacity 0.25s ease;
+}
+
+/* Ring label (optional "View" / "Open" from data-cursor). */
+html.cb-webgl-on .cb-cursor-ring .cb-cursor-label,
+html.cb-webgl-on .cb-cursor-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-family: "Josefin Sans", "Roboto", sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #1F69FF;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+}
+
+/* Hover state — JS adds .is-hover to the ring (and/or dot) over interactives.
+   Ring scales up 1.6×, dot fades, label appears. JS composes scale into its
+   transform; this class is a styling hook for color/opacity transitions. */
+html.cb-webgl-on .cb-cursor-dot.is-hover,
+html.cb-webgl-on .cb-cursor-dot.cb-cursor--hover {
+  opacity: 0;
+}
+html.cb-webgl-on .cb-cursor-ring.is-hover .cb-cursor-label,
+html.cb-webgl-on .cb-cursor-ring.cb-cursor--hover .cb-cursor-label {
+  opacity: 1;
+}
+
+/* Dark-scene tint — main.js toggles html[data-cb-dark="1"]; CBCursor may also
+   add .cb-cursor--dark. Ring/dot shift to cream/white for legibility. */
+html.cb-webgl-on[data-cb-dark="1"] .cb-cursor-dot,
+html.cb-webgl-on .cb-cursor-dot.cb-cursor--dark {
+  background: #FFFFFF;
+}
+html.cb-webgl-on[data-cb-dark="1"] .cb-cursor-ring,
+html.cb-webgl-on .cb-cursor-ring.cb-cursor--dark {
+  border-color: rgba(255, 255, 255, 0.6);   /* white @ 60% */
+}
+html.cb-webgl-on[data-cb-dark="1"] .cb-cursor-label,
+html.cb-webgl-on .cb-cursor-ring.cb-cursor--dark .cb-cursor-label {
+  color: #F0EBE0;   /* cream */
+}
+
+/* -------------------------------------------------------------------------
+   5. Reduced motion — no custom cursor, restore the native one.
+      The page should already be in the fallback path (canvas never inits),
+      but guard CSS-side too: never hide the system cursor, never draw ours.
+   ------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  html.cb-webgl-on,
+  html.cb-webgl-on * {
+    cursor: auto;
+  }
+  html.cb-webgl-on .cb-cursor-dot,
+  html.cb-webgl-on .cb-cursor-ring {
+    display: none !important;
+  }
+}
+
+/* Coarse pointer (touch) — no custom cursor; let the system handle input. */
+@media (pointer: coarse) {
+  html.cb-webgl-on,
+  html.cb-webgl-on * {
+    cursor: auto;
+  }
+  html.cb-webgl-on .cb-cursor-dot,
+  html.cb-webgl-on .cb-cursor-ring {
+    display: none !important;
+  }
+}
+
+/* -------------------------------------------------------------------------
+   6. SCENE LEGIBILITY UNDER WEBGL  (ported from the approved showcase)
+      Still scoped entirely under html.cb-webgl-on, so the live front page and
+      every other page are untouched (GOLDEN RULE above still holds).
+
+      The theme's scenes were authored to sit over CSS gradient atmospheres —
+      some light, some dark — using per-scene text colors. Over the WebGL
+      imagery we need ONE consistent, legible treatment: let the canvas show
+      through, lay a soft radial scrim behind the copy, and lift the headline /
+      lead copy to light tones. Components that carry their own surface (action,
+      community, blog, listing cards; the Property-Watch glass panel) are left
+      exactly as the theme styles them.
+   ------------------------------------------------------------------------- */
+
+/* 6a. Reveal the canvas: the scenes' own gradient/navy backgrounds must go
+       transparent so the fixed #cb-webgl behind them is visible. */
+html.cb-webgl-on .cb-scene {
+  background-image: none;
+  background-color: transparent;
+}
+
+/* 6b. Legibility scrim behind every scene's copy. Sits above the canvas
+       (the whole scene is z-index:2) but beneath .cb-scene__inner (z-index:3).
+       Kept subtle so the cinematic imagery still reads through. */
+html.cb-webgl-on .cb-scene::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(120% 90% at 50% 50%,
+    rgba(5, 11, 28, 0.55) 0%,
+    rgba(5, 11, 28, 0.30) 45%,
+    rgba(5, 11, 28, 0.08) 100%);
+}
+/* Scenes whose WebGL image is already dark (legacy starfield, connect bokeh,
+   door threshold) need a lighter scrim so they don't read as a flat block. */
+html.cb-webgl-on .cb-scene--dark::before,
+html.cb-webgl-on .cb-scene--legacy::before,
+html.cb-webgl-on .cb-scene--close::before,
+html.cb-webgl-on .cb-scene--door::before {
+  background: radial-gradient(120% 90% at 50% 50%,
+    rgba(5, 11, 28, 0.40) 0%,
+    rgba(5, 11, 28, 0.16) 60%,
+    rgba(5, 11, 28, 0.00) 100%);
+}
+
+/* 6c. Lift the copy that sits DIRECTLY on the imagery to light tones.
+       (Card titles/body keep their own dark-on-white treatment.) */
+/* Eyebrows: the plain (non --light) variant is bright-blue, authored for the
+   light gradient scenes; over the dark scrim it reads low-contrast. Lift every
+   eyebrow to the same soft blue the --light variant already uses. */
+html.cb-webgl-on .cb-eyebrow {
+  color: var(--cb-tide);
+}
+html.cb-webgl-on .cb-scene__title {
+  color: var(--cb-white);
+  text-shadow: 0 4px 30px rgba(0, 0, 0, 0.40);
+}
+html.cb-webgl-on .cb-scene__lead {
+  color: rgba(255, 255, 255, 0.88);
+}
+html.cb-webgl-on .cb-hero__subtitle {
+  color: rgba(255, 255, 255, 0.88);
+}
+/* NOTE: do NOT recolor .cb-stat__label here. The .cb-stat cards keep their own
+   white surface (style.css), which Section 6a does not transparentize, so the
+   theme's dark smoky label stays readable on the white card. A light override
+   here would be white-on-white (invisible). */
+
+/* 6d. The DOM Concho-River SVG and the CSS door panels are Version-A devices;
+       the WebGL build draws its own 3D river + doors, so hide the DOM ones to
+       avoid a double image. (Door panels are already display:none without
+       .cb-cinematic; this is belt-and-braces.) */
+html.cb-webgl-on .cb-river,
+html.cb-webgl-on .cb-scene__door {
+  display: none;
+}
+
+/* 6e. The fixed scene-progress rail is a Version-A device (shown only under
+       .cb-cinematic); keep it hidden under WebGL — the scroll itself is the nav. */
+html.cb-webgl-on .cb-scene-nav {
+  display: none;
+}
+
+/* 6f. The #cb-webgl canvas is position:fixed; z-index:0, so it paints over any
+       later STATIC content. The footer is static, so lift it (and the photo
+       credits, already z-index:3 in the stage) onto its own layer above the
+       canvas — otherwise it would be hidden behind the backdrop at page end.
+       The fixed header is z-index:1000 and already clears the canvas. */
+html.cb-webgl-on .cb-footer {
+  position: relative;
+  z-index: 2;
+  background: var(--cb-navy-dark, #0A1730);
+}
+
+/* 6g. The optional Customizer hero <video>/scrim is a Version-A device; the
+       WebGL arrival scene supplies its own moving backdrop, so hide the DOM
+       video to avoid a doubled hero. */
+html.cb-webgl-on .cb-hero-video,
+html.cb-webgl-on .cb-hero-video__scrim {
+  display: none;
+}
+
+/* -------------------------------------------------------------------------
+   7. OVERLAY HEADER for the Home 2 preview (body-class scoped, all modes).
+      The preview is not the front page, so header.php won't add
+      .cb-header--transparent. Replicate the transparent-overlay treatment via
+      the body class (added by the preview loader) so the fixed header sits over
+      the cinematic hero; the theme's header.js still toggles .cb-header--scrolled
+      to the solid state on scroll for legibility over the lighter scenes.
+      Loaded only on the preview page, so no other page is affected.
+   ------------------------------------------------------------------------- */
+body.cb-page--home2-preview .cb-header:not(.cb-header--scrolled) {
+  background: transparent;
+  border-bottom-color: rgba(255, 255, 255, 0.1);
+}
+body.cb-page--home2-preview .cb-header:not(.cb-header--scrolled) .cb-nav__link {
+  color: var(--cb-white);
+}
+body.cb-page--home2-preview .cb-header:not(.cb-header--scrolled) .cb-header__logo-img {
+  filter: none;
+}

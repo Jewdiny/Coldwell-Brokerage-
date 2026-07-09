@@ -1,0 +1,342 @@
+/* ==========================================================================
+   FLEXMLS IDX STYLE OVERRIDES
+   Reskins the Flexmls plugin output to match our luxury theme
+   ========================================================================== */
+
+/* Container reset */
+.cb-flexmls-listings,
+.cb-flexmls-search,
+.cb-flexmls-links {
+  font-family: var(--font-body);
+}
+
+/* Wrapper for Flexmls listings - force grid layout */
+.cb-flexmls-listings .fmc-listing-summary,
+.cb-flexmls-listings ul.fmc-listings,
+.cb-flexmls-listings .fmc-results,
+.cb-flexmls-listings .fmc-results-list {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.cb-flexmls-listings--luxury .fmc-listing-summary,
+.cb-flexmls-listings--luxury ul.fmc-listings,
+.cb-flexmls-listings--luxury .fmc-results-list {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+@media (max-width: 1024px) {
+  .cb-flexmls-listings .fmc-listing-summary,
+  .cb-flexmls-listings ul.fmc-listings,
+  .cb-flexmls-listings .fmc-results-list,
+  .cb-flexmls-listings--luxury .fmc-listing-summary,
+  .cb-flexmls-listings--luxury ul.fmc-listings,
+  .cb-flexmls-listings--luxury .fmc-results-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .cb-flexmls-listings .fmc-listing-summary,
+  .cb-flexmls-listings ul.fmc-listings,
+  .cb-flexmls-listings .fmc-results-list,
+  .cb-flexmls-listings--luxury .fmc-listing-summary,
+  .cb-flexmls-listings--luxury ul.fmc-listings,
+  .cb-flexmls-listings--luxury .fmc-results-list {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Style each listing card to match our cb-property-card design */
+.cb-flexmls-listings li,
+.cb-flexmls-listings .fmc-listing,
+.cb-flexmls-listings .fmc-listing-card {
+  background: var(--cb-white);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  border: 1px solid rgba(0,0,0,0.04);
+  transition: all var(--transition-slow);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cb-flexmls-listings li:hover,
+.cb-flexmls-listings .fmc-listing:hover,
+.cb-flexmls-listings .fmc-listing-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 20px 40px rgba(1,33,105,0.12);
+  border-color: rgba(197,164,78,0.3);
+}
+
+/* Listing photos */
+.cb-flexmls-listings img,
+.cb-flexmls-listings .fmc-listing-photo,
+.cb-flexmls-listings .fmc-photo {
+  width: 100% !important;
+  height: auto;
+  aspect-ratio: 16/10;
+  object-fit: cover;
+  display: block;
+  border-radius: 16px 16px 0 0;
+  transition: transform var(--transition-luxury);
+}
+
+.cb-flexmls-listings li:hover img {
+  transform: scale(1.04);
+}
+
+/* Listing price */
+.cb-flexmls-listings .fmc-listing-price,
+.cb-flexmls-listings .fmc-price,
+.cb-flexmls-listings .fmc-listing-list-price {
+  font-family: var(--font-heading);
+  font-size: 1.375rem;
+  font-weight: 700;
+  color: var(--cb-navy);
+  letter-spacing: 0.01em;
+}
+
+/* Listing address */
+.cb-flexmls-listings .fmc-listing-address,
+.cb-flexmls-listings .fmc-address {
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--cb-navy);
+  line-height: 1.3;
+}
+
+.cb-flexmls-listings .fmc-listing-city-state {
+  font-size: 0.8125rem;
+  color: var(--cb-text-muted);
+  margin-bottom: 0.75rem;
+}
+
+/* Listing details (beds/baths/sqft) */
+.cb-flexmls-listings .fmc-listing-details,
+.cb-flexmls-listings .fmc-details {
+  display: flex;
+  gap: 1rem;
+  font-size: 0.8125rem;
+  color: var(--cb-text-muted);
+  padding-top: 0.875rem;
+  margin-top: 0.875rem;
+  border-top: 1px solid var(--cb-gray-100);
+  font-weight: 500;
+}
+
+.cb-flexmls-listings .fmc-listing-details strong,
+.cb-flexmls-listings .fmc-details strong,
+.cb-flexmls-listings .fmc-listing-beds,
+.cb-flexmls-listings .fmc-listing-baths,
+.cb-flexmls-listings .fmc-listing-sqft {
+  color: var(--cb-text);
+  font-weight: 600;
+}
+
+/* Listing body text */
+.cb-flexmls-listings .fmc-listing-body,
+.cb-flexmls-listings .fmc-listing-info,
+.cb-flexmls-listings .fmc-listing-content {
+  padding: 1.25rem 1.5rem 1.5rem;
+}
+
+/* Status/badge labels */
+.cb-flexmls-listings .fmc-listing-status,
+.cb-flexmls-listings .fmc-status,
+.cb-flexmls-listings .fmc-badge {
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(10px);
+  color: var(--cb-navy);
+  padding: 0.375rem 0.875rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-radius: 999px;
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  z-index: 2;
+}
+
+/* Links */
+.cb-flexmls-listings a {
+  color: var(--cb-navy);
+  text-decoration: none;
+}
+
+.cb-flexmls-listings a:hover {
+  color: var(--cb-gold);
+}
+
+/* Search form styling */
+.cb-flexmls-search form,
+.cb-flexmls-search .fmc-search-form {
+  background: var(--cb-white);
+  padding: 1.5rem;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+}
+
+.cb-flexmls-search input[type="text"],
+.cb-flexmls-search input[type="number"],
+.cb-flexmls-search input[type="email"],
+.cb-flexmls-search input[type="tel"],
+.cb-flexmls-search select,
+.cb-flexmls-search textarea {
+  width: 100%;
+  padding: 0.875rem 1rem;
+  font-family: var(--font-body);
+  font-size: 0.9375rem;
+  border: 1px solid var(--cb-gray-300);
+  background: var(--cb-white);
+  color: var(--cb-text);
+  outline: none;
+  border-radius: 8px;
+  transition: border-color var(--transition-base);
+}
+
+.cb-flexmls-search input:focus,
+.cb-flexmls-search select:focus,
+.cb-flexmls-search textarea:focus {
+  border-color: var(--cb-gold);
+  box-shadow: 0 0 0 3px rgba(197,164,78,0.15);
+}
+
+.cb-flexmls-search button,
+.cb-flexmls-search input[type="submit"],
+.cb-flexmls-search .fmc-search-button {
+  background: var(--cb-gold);
+  color: var(--cb-white);
+  padding: 0.875rem 2rem;
+  font-family: var(--font-body);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  border: 2px solid var(--cb-gold);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all var(--transition-base);
+}
+
+.cb-flexmls-search button:hover,
+.cb-flexmls-search input[type="submit"]:hover {
+  background: var(--cb-navy);
+  border-color: var(--cb-navy);
+}
+
+/* IDX Custom Links */
+.cb-flexmls-links ul,
+.cb-flexmls-links .fmc-idx-links,
+.cb-flexmls-links .fmc-custom-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0.75rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.cb-flexmls-links li {
+  background: var(--cb-white);
+  border: 1px solid var(--cb-gray-100);
+  border-radius: 8px;
+  transition: all var(--transition-base);
+  list-style: none;
+}
+
+.cb-flexmls-links li:hover {
+  border-color: var(--cb-gold);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+}
+
+.cb-flexmls-links a {
+  display: block;
+  padding: 1rem 1.25rem;
+  color: var(--cb-navy);
+  text-decoration: none;
+  font-weight: 500;
+  font-size: 0.9375rem;
+}
+
+.cb-flexmls-links a:hover {
+  color: var(--cb-gold);
+}
+
+/* Listing detail page (full property view) */
+.fmc-listing-details-page,
+.fmc-property-details {
+  font-family: var(--font-body);
+}
+
+.fmc-listing-details-page h1,
+.fmc-listing-details-page h2,
+.fmc-property-details h1 {
+  font-family: var(--font-heading);
+  color: var(--cb-navy);
+}
+
+.fmc-listing-details-page .fmc-price,
+.fmc-property-details .fmc-price {
+  font-family: var(--font-heading);
+  color: var(--cb-gold);
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+/* Pagination */
+.fmc-pagination,
+.cb-flexmls-listings .fmc-pagination {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 2rem;
+}
+
+.fmc-pagination a,
+.fmc-pagination span {
+  padding: 0.5rem 1rem;
+  background: var(--cb-white);
+  border: 1px solid var(--cb-gray-300);
+  color: var(--cb-navy);
+  font-size: 0.875rem;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: all var(--transition-fast);
+}
+
+.fmc-pagination a:hover,
+.fmc-pagination .current {
+  background: var(--cb-navy);
+  color: var(--cb-white);
+  border-color: var(--cb-navy);
+}
+
+/* Loading indicator */
+.fmc-loading {
+  text-align: center;
+  padding: 3rem;
+  color: var(--cb-text-muted);
+}
+
+/* Disclaimer/MLS attribution text */
+.fmc-disclaimer,
+.fmc-idx-disclaimer,
+.fmc-mls-disclaimer {
+  font-size: 0.75rem;
+  color: var(--cb-text-muted);
+  margin-top: 2rem;
+  padding: 1rem;
+  background: var(--cb-off-white);
+  border-radius: 8px;
+  text-align: center;
+}

@@ -1,0 +1,394 @@
+/* =========================================================================
+   cb-office.css — Coldwell Banker "Office" homepage concept (Home 4 preview)
+
+   The best of Home 2 + Home 3: a cinematic WebGL 3D dust-nebula backdrop
+   (assets/js/cb-office/office.js, Three.js) + a custom cursor, behind floating
+   glass info-cards that FORM from / CRUMBLE into that same 3D dust field.
+
+   SCOPING: selectors target .cb-office-* classes that exist ONLY on the Home 4
+   template, so loading this file never touches the live front page, Home 2, or
+   Home 3. The hidden form/crumble states are gated under html.cb-office-on, so
+   with no JS / no WebGL / reduced-motion every card renders static and legible.
+
+   Smoothness lesson carried over from Home 3: NO backdrop-filter anywhere — a
+   semi-opaque navy fill gives the frosted look without re-blurring every frame.
+   ========================================================================= */
+
+/* -------------------------------------------------------------------------
+   1. Page field + WebGL canvas + cinematic vignette + cursor
+   ------------------------------------------------------------------------- */
+body.cb-page--home5-preview {
+  background: radial-gradient(130% 115% at 50% -5%,
+                #16409c 0%, #0c2a72 30%, #071c52 58%, #040c2c 100%) fixed;
+  color: #fff;
+}
+
+.cb-office-stage {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Full-viewport fixed WebGL canvas; revealed only once the context starts. */
+#cb-office-canvas { display: none; }
+html.cb-office-on #cb-office-canvas {
+  display: block;
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Cinematic edge vignette over the particle field, beneath the cards. */
+.cb-office-vignette { display: none; }
+html.cb-office-on .cb-office-vignette {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(120% 100% at 50% 42%, transparent 38%, rgba(3, 9, 26, .55) 100%);
+}
+
+/* Content above the canvas + vignette. */
+.cb-office-scenes { position: relative; z-index: 1; }
+
+/* Lift the static footer above the fixed canvas. */
+html.cb-office-on .cb-footer {
+  position: relative;
+  z-index: 2;
+  background: var(--cb-midnight, #0A1730);
+}
+
+/* Custom cursor: hide the native one only while office is active (cursor.js
+   draws the dot/ring with inline styles). Restore it for touch / reduced-motion. */
+html.cb-office-on, html.cb-office-on * { cursor: none; }
+@media (prefers-reduced-motion: reduce) {
+  html.cb-office-on, html.cb-office-on * { cursor: auto; }
+}
+@media (pointer: coarse) {
+  html.cb-office-on, html.cb-office-on * { cursor: auto; }
+}
+
+/* -------------------------------------------------------------------------
+   2. Sections — natural document flow (tall live content just works).
+   ------------------------------------------------------------------------- */
+.cb-office-section {
+  position: relative;
+  padding: clamp(5rem, 12vh, 9rem) 1.5rem;
+}
+.cb-office-section--hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  padding-top: clamp(7rem, 16vh, 11rem);
+}
+.cb-office-section--center .cb-office-section__inner {
+  align-items: center;
+  text-align: center;
+}
+.cb-office-section__inner {
+  max-width: 1160px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: clamp(1.5rem, 4vh, 2.75rem);
+}
+.cb-office-section--hero .cb-office-section__inner { max-width: 880px; }
+
+/* -------------------------------------------------------------------------
+   3. Card grids
+   ------------------------------------------------------------------------- */
+.cb-office-grid { width: 100%; display: grid; gap: clamp(1rem, 2vw, 1.6rem); }
+.cb-office-grid--2 { grid-template-columns: repeat(2, 1fr); }
+.cb-office-grid--3 { grid-template-columns: repeat(3, 1fr); }
+.cb-office-grid--4 { grid-template-columns: repeat(4, 1fr); }
+@media (max-width: 960px) {
+  .cb-office-grid--3, .cb-office-grid--4 { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+  .cb-office-grid--2, .cb-office-grid--3, .cb-office-grid--4 { grid-template-columns: 1fr; }
+}
+
+/* -------------------------------------------------------------------------
+   4. Glass card. Float on __inner; form/crumble transform on the outer card.
+   ------------------------------------------------------------------------- */
+.cb-office-card {
+  position: relative;
+  display: block;
+  color: #fff;
+  text-decoration: none;
+  transition: opacity .7s cubic-bezier(.22,.61,.36,1),
+              transform .7s cubic-bezier(.22,.61,.36,1),
+              filter .7s cubic-bezier(.22,.61,.36,1);
+}
+html.cb-office-on .cb-office-card.is-crumbling,
+html.cb-office-on .cb-office-card.is-forming {
+  will-change: opacity, transform, filter;
+}
+
+.cb-office-card__inner {
+  position: relative;
+  padding: clamp(1.4rem, 2.4vw, 2.1rem);
+  border-radius: 18px;
+  background: linear-gradient(150deg, rgba(30, 55, 115, .58), rgba(9, 23, 58, .54));
+  border: 1px solid rgba(184, 207, 234, .22);
+  box-shadow: 0 24px 60px rgba(4, 12, 35, .45),
+              inset 0 1px 0 rgba(255,255,255,.14);
+  overflow: hidden;
+}
+.cb-office-card__inner::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 40%;
+  background: linear-gradient(180deg, rgba(255,255,255,.10), transparent);
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html.cb-office-on .cb-office-card.is-formed .cb-office-card__inner {
+    animation: cb-office-float var(--fl-dur, 9s) ease-in-out var(--fl-delay, 0s) infinite;
+  }
+}
+@keyframes cb-office-float {
+  0%, 100% { transform: translate3d(0, calc(var(--fl-y, 12px) * -0.5), 0) rotate(calc(var(--fl-rot, 0deg) * -1)); }
+  50%      { transform: translate3d(0, var(--fl-y, 12px), 0) rotate(var(--fl-rot, 0deg)); }
+}
+
+a.cb-office-card:hover .cb-office-card__inner,
+a.cb-office-card:focus-visible .cb-office-card__inner {
+  border-color: rgba(31, 105, 255, .55);
+  box-shadow: 0 30px 70px rgba(4, 12, 35, .55),
+              0 0 0 1px rgba(31, 105, 255, .25),
+              inset 0 1px 0 rgba(255,255,255,.18);
+}
+
+/* -------------------------------------------------------------------------
+   5. Form-from-dust / crumble states (gated under html.cb-office-on)
+   ------------------------------------------------------------------------- */
+html.cb-office-on .cb-office-card {
+  opacity: 0;
+  transform: translate3d(0, 40px, 0) scale(.94);
+  filter: blur(4px);
+}
+html.cb-office-on .cb-office-card.is-formed {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+  filter: blur(0);
+}
+html.cb-office-on .cb-office-card.is-crumbling {
+  opacity: 0;
+  transform: translate3d(0, -46px, 0) scale(1.06);
+  filter: blur(8px) brightness(1.4);
+  transition-duration: .9s;
+}
+/* A11y safety net: never keep a keyboard-focused card invisible (it can receive
+   focus below the fold before the IntersectionObserver forms it). */
+html.cb-office-on .cb-office-card:focus-within {
+  opacity: 1 !important;
+  transform: none !important;
+  filter: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  html.cb-office-on .cb-office-card {
+    opacity: 1 !important; transform: none !important; filter: none !important; transition: none !important;
+  }
+}
+
+/* -------------------------------------------------------------------------
+   6. Typography
+   ------------------------------------------------------------------------- */
+.cb-office-eyebrow {
+  display: block;
+  font-family: var(--font-subheader, 'Josefin Sans', sans-serif);
+  font-size: .8rem; font-weight: 600; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--cb-tide, #B8CFEA);
+  margin-bottom: .85rem;
+}
+.cb-office-h1 {
+  font-family: var(--font-heading, sans-serif);
+  font-weight: 600; font-size: clamp(2.4rem, 6vw, 4.6rem); line-height: 1.02; letter-spacing: -.02em;
+  margin: 0; color: #fff;
+}
+.cb-office-h2 {
+  font-family: var(--font-heading, sans-serif);
+  font-weight: 600; font-size: clamp(1.7rem, 3.4vw, 2.7rem); line-height: 1.08; letter-spacing: -.015em;
+  margin: 0; color: #fff;
+}
+.cb-office-h2--sm { font-size: clamp(1.4rem, 2.4vw, 1.9rem); }
+.cb-office-h3 {
+  font-family: var(--font-heading, sans-serif);
+  font-weight: 600; font-size: 1.22rem; line-height: 1.2; margin: 0 0 .5rem; color: #fff;
+}
+.cb-office-h3 a { color: inherit; text-decoration: none; }
+.cb-office-h3 a:hover { color: var(--cb-tide, #B8CFEA); }
+.cb-office-p {
+  font-family: var(--font-body, sans-serif);
+  font-size: 1rem; line-height: 1.6; margin: .85rem 0 0; color: rgba(255,255,255,.82);
+}
+.cb-office-card--head { max-width: 820px; align-self: flex-start; }
+.cb-office-card--head .cb-office-p { max-width: 46ch; }
+
+/* -------------------------------------------------------------------------
+   7. Card variants
+   ------------------------------------------------------------------------- */
+.cb-office-card--chip .cb-office-card__inner { padding: .8rem 1.3rem; display: inline-block; }
+.cb-office-card--chip { align-self: flex-start; }
+.cb-office-card--chip .cb-office-eyebrow { margin-bottom: 0; }
+.cb-office-coords {
+  display: block; margin-top: .35rem;
+  font-family: var(--font-body, sans-serif); font-size: .82rem; letter-spacing: .04em;
+  color: rgba(255,255,255,.7);
+}
+.cb-office-card--title .cb-office-card__inner,
+.cb-office-card--lead .cb-office-card__inner {
+  background: linear-gradient(150deg, rgba(24, 48, 104, .50), rgba(8, 21, 54, .44));
+}
+.cb-office-card--lead { max-width: 620px; align-self: flex-start; }
+.cb-office-card--title { align-self: flex-start; max-width: 100%; }
+.cb-office-sub {
+  font-family: var(--font-body, sans-serif);
+  font-size: clamp(1.05rem, 1.5vw, 1.25rem); line-height: 1.55; margin: 0; color: rgba(255,255,255,.85);
+}
+
+.cb-office-card--ghost { align-self: flex-start; }
+.cb-office-card--ghost .cb-office-card__inner {
+  background: none; border: none; box-shadow: none; padding: .25rem;
+}
+.cb-office-card--ghost .cb-office-card__inner::before { display: none; }
+.cb-office-cue {
+  display: inline-flex; align-items: center; gap: .8rem;
+  font-family: var(--font-subheader, sans-serif); font-size: .82rem; letter-spacing: .14em; text-transform: uppercase;
+  color: rgba(255,255,255,.7);
+}
+.cb-office-cue__line { position: relative; width: 52px; height: 1px; background: rgba(255,255,255,.3); overflow: hidden; }
+.cb-office-cue__line span {
+  position: absolute; inset: 0; width: 40%;
+  background: var(--cb-bright-blue, #1F69FF);
+  animation: cb-office-cue 2.4s ease-in-out infinite;
+}
+@keyframes cb-office-cue { 0% { transform: translateX(-100%); } 100% { transform: translateX(280%); } }
+
+.cb-office-icon {
+  width: 48px; height: 48px; display: flex; align-items: center; justify-content: center;
+  border-radius: 12px; margin-bottom: 1rem;
+  background: rgba(31, 105, 255, .16); border: 1px solid rgba(31, 105, 255, .3);
+  color: var(--cb-tide, #B8CFEA);
+}
+.cb-office-icon svg { width: 24px; height: 24px; }
+.cb-office-go {
+  display: inline-flex; align-items: center; gap: .4rem; margin-top: 1rem;
+  font-family: var(--font-subheader, sans-serif); font-size: .8rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--cb-bright-blue, #1F69FF);
+}
+.cb-office-go svg { width: 14px; height: 14px; transform: rotate(-90deg); }
+.cb-office-card--action .cb-office-card__inner { height: 100%; }
+
+.cb-office-card--stat .cb-office-card__inner { text-align: center; height: 100%; }
+.cb-office-stat__num {
+  font-family: var(--font-heading, sans-serif); font-weight: 700; font-size: clamp(2.2rem, 4vw, 3.2rem); line-height: 1; color: #fff;
+}
+.cb-office-stat__label {
+  margin-top: .6rem; font-family: var(--font-subheader, sans-serif); font-size: .82rem; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--cb-tide, #B8CFEA);
+}
+
+.cb-office-card--cta { width: 100%; max-width: 720px; }
+.cb-office-section--center .cb-office-card--cta { margin: 0 auto; text-align: center; }
+.cb-office-card--cta .cb-office-card__inner { padding: clamp(2rem, 4vw, 3.2rem); }
+.cb-office-card--cta .cb-btn, .cb-office-card--watch .cb-btn { margin-top: 1.4rem; }
+.cb-office-card--cta-row .cb-office-card__inner {
+  background: none; border: none; box-shadow: none; padding: .25rem;
+}
+.cb-office-card--cta-row .cb-office-card__inner::before { display: none; }
+.cb-office-card--cta-row { width: 100%; }
+.cb-office-section:not(.cb-office-section--center) .cb-office-card--cta-row .cb-office-card__inner { text-align: left; }
+
+.cb-office-watch__form { display: flex; gap: .6rem; margin-top: 1.2rem; flex-wrap: wrap; }
+.cb-office-watch__input {
+  flex: 1 1 200px; min-width: 0; padding: .8rem 1rem; border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.08); color: #fff;
+  font-family: var(--font-body, sans-serif);
+}
+.cb-office-watch__input::placeholder { color: rgba(255,255,255,.55); }
+.cb-office-watch__input:focus { outline: none; border-color: var(--cb-bright-blue, #1F69FF); background: rgba(255,255,255,.12); }
+.cb-office-watch__note { font-size: .78rem; color: rgba(255,255,255,.55); margin-top: .7rem; }
+
+.cb-office-card--community .cb-office-card__inner { padding: 0; height: 260px; display: flex; align-items: flex-end; }
+.cb-office-community__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform .8s ease; }
+a.cb-office-card--community:hover .cb-office-community__img { transform: scale(1.06); }
+.cb-office-community__overlay {
+  position: relative; z-index: 1; width: 100%; padding: 1.3rem;
+  background: linear-gradient(0deg, rgba(5,11,28,.85), rgba(5,11,28,.15) 70%, transparent);
+}
+.cb-office-community__overlay .cb-office-h3 { margin-bottom: .2rem; }
+.cb-office-card--community .cb-office-go { margin-top: .2rem; }
+
+.cb-office-card--blog .cb-office-card__inner { padding: 0; height: 100%; display: flex; flex-direction: column; }
+.cb-office-blog__image { aspect-ratio: 16 / 10; overflow: hidden; }
+.cb-office-blog__image img { width: 100%; height: 100%; object-fit: cover; transition: transform .8s ease; }
+.cb-office-card--blog:hover .cb-office-blog__image img { transform: scale(1.05); }
+.cb-office-blog__body { padding: 1.3rem; flex: 1; }
+.cb-office-blog__cat {
+  display: inline-block; font-family: var(--font-subheader, sans-serif); font-size: .72rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--cb-bright-blue, #1F69FF); margin-bottom: .6rem;
+}
+.cb-office-blog__meta { display: block; margin-top: .9rem; font-size: .8rem; color: rgba(255,255,255,.55); }
+
+.cb-office-card--frame { width: 100%; }
+.cb-office-card--frame .cb-office-card__inner {
+  background: rgba(8, 20, 46, .42);
+  border: 1px solid rgba(184,207,234,.16);
+  padding: clamp(1rem, 2vw, 1.6rem);
+}
+html.cb-office-on .cb-office-card--frame.is-formed .cb-office-card__inner,
+html.cb-office-on .cb-office-card--frame .cb-office-card__inner { animation: none !important; }
+html.cb-office-on .cb-office-card--frame.is-crumbling {
+  filter: brightness(1.12);
+  transform: translate3d(0, -24px, 0) scale(1.01);
+}
+
+.cb-office-card--mark { width: 100%; }
+.cb-office-card--mark .cb-office-card__inner { text-align: center; padding: clamp(2rem, 4vw, 3rem); }
+.cb-office-mark__logo { width: 120px; height: auto; margin: 0 auto .8rem; filter: brightness(0) invert(1); opacity: .92; }
+.cb-office-mark__tag {
+  font-family: var(--font-subheader, sans-serif); letter-spacing: .12em; text-transform: uppercase; font-size: .85rem;
+  color: var(--cb-tide, #B8CFEA); margin: 0;
+}
+.cb-office-mark__line { font-family: var(--font-accent, serif); font-style: italic; color: rgba(255,255,255,.7); margin: .35rem 0 0; }
+
+/* -------------------------------------------------------------------------
+   8. Section progress rail
+   ------------------------------------------------------------------------- */
+.cb-office-nav {
+  position: fixed; top: 50%; right: 1.4rem; transform: translateY(-50%); z-index: 30;
+  display: flex; flex-direction: column; gap: .9rem;
+}
+.cb-office-nav__dot {
+  position: relative; width: 11px; height: 11px; padding: 0; border-radius: 50%;
+  border: 1px solid rgba(255,255,255,.45); background: transparent; cursor: pointer;
+  transition: background .3s ease, border-color .3s ease, transform .3s ease;
+}
+.cb-office-nav__dot.is-active { background: var(--cb-bright-blue, #1F69FF); border-color: var(--cb-bright-blue, #1F69FF); transform: scale(1.25); }
+.cb-office-nav__label {
+  position: absolute; right: 22px; top: 50%; transform: translateY(-50%); white-space: nowrap;
+  font-family: var(--font-subheader, sans-serif); font-size: .72rem; letter-spacing: .1em; text-transform: uppercase;
+  color: #fff; background: rgba(5,11,28,.7); padding: .25rem .6rem; border-radius: 6px;
+  opacity: 0; pointer-events: none; transition: opacity .25s ease;
+}
+.cb-office-nav__dot:hover .cb-office-nav__label { opacity: 1; }
+html.cb-office-on .cb-office-nav__dot { cursor: none; }
+@media (max-width: 900px) { .cb-office-nav { display: none; } }
+
+/* -------------------------------------------------------------------------
+   9. Overlay header for the preview (body-class scoped)
+   ------------------------------------------------------------------------- */
+body.cb-page--home5-preview .cb-header:not(.cb-header--scrolled) {
+  background: transparent;
+  border-bottom-color: rgba(255,255,255,.1);
+}
+body.cb-page--home5-preview .cb-header:not(.cb-header--scrolled) .cb-nav__link { color: var(--cb-white, #fff); }
+body.cb-page--home5-preview .cb-header:not(.cb-header--scrolled) .cb-header__logo-img { filter: none; }

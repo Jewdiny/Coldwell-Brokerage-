@@ -1,0 +1,547 @@
+/* ==========================================================================
+   CB LEGACY — CINEMATIC SCROLL HOMEPAGE
+   Loaded only on the front page (see functions.php).
+
+   Two modes:
+   • DEFAULT / STACKED — no JS, mobile, or prefers-reduced-motion. Each scene
+     is a normal full-bleed section carrying its own gradient atmosphere; all
+     .cb-scene__reveal content is visible. This is the accessible baseline.
+   • CINEMATIC — html.cb-cinematic (desktop, fine pointer, motion allowed).
+     A fixed background canvas crossfades between scenes while home.js pins the
+     hero/legacy/door/value beats and scrubs their transitions.
+
+   Brand: consumes existing tokens from style.css only (no new color values).
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   1. SCENE ATMOSPHERES (gradient "imagery", defined once, reused by both the
+   stacked scene backgrounds and the cinematic canvas layers via --atmos-N)
+   -------------------------------------------------------------------------- */
+.cb-scroll-stage {
+  position: relative;
+
+  /* 0 · Arrival — dusk, aerial over the Concho Valley */
+  --atmos-0:
+    radial-gradient(100% 55% at 50% 116%, rgba(255, 176, 92, 0.20) 0%, rgba(255, 176, 92, 0) 60%),
+    radial-gradient(80% 60% at 82% 4%, rgba(65, 143, 222, 0.28) 0%, rgba(65, 143, 222, 0) 52%),
+    radial-gradient(120% 90% at 50% 130%, rgba(31, 105, 255, 0.34) 0%, rgba(31, 105, 255, 0) 55%),
+    linear-gradient(180deg, #050B1C 0%, #0A1730 46%, #012169 100%);
+
+  /* 1 · Welcome — bright Concho Valley day */
+  --atmos-1:
+    radial-gradient(90% 70% at 50% -12%, #FFFFFF 0%, rgba(255, 255, 255, 0) 55%),
+    linear-gradient(180deg, #F2F7FC 0%, #DCE6F1 58%, #C6D6E8 100%);
+
+  /* 2 · Listings — pale, lets property cards breathe */
+  --atmos-2:
+    radial-gradient(85% 65% at 82% 8%, rgba(184, 207, 234, 0.55) 0%, rgba(184, 207, 234, 0) 55%),
+    linear-gradient(180deg, #FFFFFF 0%, #EDF3FB 100%);
+
+  /* 3 · Legacy — deep navy depth */
+  --atmos-3:
+    radial-gradient(85% 70% at 14% 18%, rgba(31, 105, 255, 0.30) 0%, rgba(31, 105, 255, 0) 55%),
+    radial-gradient(85% 85% at 92% 96%, rgba(1, 33, 105, 0.65) 0%, rgba(1, 33, 105, 0) 60%),
+    linear-gradient(155deg, #0A1730 0%, #0A1730 38%, #03081A 100%);
+
+  /* 4 · Door — dark with a warm threshold glow */
+  --atmos-4:
+    radial-gradient(58% 58% at 50% 58%, rgba(255, 196, 128, 0.30) 0%, rgba(255, 150, 80, 0.05) 36%, rgba(255, 150, 80, 0) 62%),
+    linear-gradient(180deg, #060C1E 0%, #0A1730 52%, #071436 100%);
+
+  /* 5 · Communities — light map field for the river line-draw */
+  --atmos-5:
+    radial-gradient(70% 70% at 50% 36%, rgba(218, 225, 232, 0.65) 0%, rgba(218, 225, 232, 0) 70%),
+    linear-gradient(180deg, #F7FAFE 0%, #DEE8F3 100%);
+
+  /* 6 · Value — confident brand blue */
+  --atmos-6:
+    radial-gradient(90% 80% at 82% 18%, rgba(65, 143, 222, 0.42) 0%, rgba(65, 143, 222, 0) 55%),
+    linear-gradient(150deg, #012169 0%, #0A1730 100%);
+
+  /* 7 · Close — golden-hour dusk */
+  --atmos-7:
+    radial-gradient(100% 58% at 50% 122%, rgba(255, 176, 92, 0.22) 0%, rgba(255, 176, 92, 0) 60%),
+    radial-gradient(70% 60% at 18% 8%, rgba(31, 105, 255, 0.22) 0%, rgba(31, 105, 255, 0) 55%),
+    linear-gradient(180deg, #0A1730 0%, #070E22 60%, #03081A 100%);
+}
+
+/* Map atmospheres to scenes (stacked) and canvas layers (cinematic) */
+.cb-scene--hero,        .cb-stage-bg__layer--arrival     { --atmos: var(--atmos-0); }
+.cb-scene--welcome,     .cb-stage-bg__layer--welcome     { --atmos: var(--atmos-1); }
+.cb-scene--listings,    .cb-stage-bg__layer--listings    { --atmos: var(--atmos-2); }
+.cb-scene--legacy,      .cb-stage-bg__layer--legacy      { --atmos: var(--atmos-3); }
+.cb-scene--door,        .cb-stage-bg__layer--door        { --atmos: var(--atmos-4); }
+.cb-scene--communities, .cb-stage-bg__layer--communities { --atmos: var(--atmos-5); }
+.cb-scene--value,       .cb-stage-bg__layer--value       { --atmos: var(--atmos-6); }
+.cb-scene--close,       .cb-stage-bg__layer--close       { --atmos: var(--atmos-7); }
+
+/* --------------------------------------------------------------------------
+   2. SCENE LAYOUT (shared by both modes)
+   -------------------------------------------------------------------------- */
+.cb-scroll-scenes { position: relative; z-index: 1; }
+
+.cb-scene {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  padding: calc(var(--header-height) + 3.5rem) 0 4rem;
+  overflow: hidden;
+  background-color: #0A1730;
+  background-image: var(--atmos, none);
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+/* Content-dense scenes top-align so tall content never clips under the header */
+.cb-scene--welcome,
+.cb-scene--listings,
+.cb-scene--communities,
+.cb-scene--close { align-items: flex-start; }
+
+.cb-scene__inner { position: relative; z-index: 3; width: 100%; }
+.cb-scene--hero .cb-scene__inner { max-width: 940px; margin: 0 auto; padding: 0 1.5rem; }
+
+.cb-scene__head { text-align: center; max-width: 780px; margin: 0 auto 3.25rem; }
+.cb-scene__head--sm { margin-top: 4.5rem; margin-bottom: 2rem; }
+.cb-scene__title {
+  font-size: clamp(2rem, 4.6vw, 3.6rem);
+  line-height: 1.06;
+  letter-spacing: -0.02em;
+  color: var(--cb-blue);
+  margin-bottom: 1.25rem;
+}
+.cb-scene__title--light { color: var(--cb-white); }
+.cb-scene__title--sm { font-size: clamp(1.5rem, 3vw, 2.25rem); }
+.cb-scene__lead {
+  font-size: clamp(1.05rem, 1.5vw, 1.3rem);
+  color: var(--cb-smoky);
+  line-height: 1.62;
+  margin: 0 auto;
+  max-width: 640px;
+}
+.cb-scene__lead--light { color: rgba(255, 255, 255, 0.82); }
+.cb-scene__cta { text-align: center; margin-top: 3rem; }
+
+/* Eyebrow */
+.cb-eyebrow {
+  display: inline-block;
+  font-family: var(--font-subheader);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--cb-bright-blue);
+  margin-bottom: 1.1rem;
+}
+.cb-eyebrow--light { color: var(--cb-tide); }
+
+/* --------------------------------------------------------------------------
+   3. FIXED BACKGROUND CANVAS (cinematic only)
+   -------------------------------------------------------------------------- */
+.cb-stage-bg { display: none; }
+.cb-cinematic .cb-stage-bg {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden; /* clip the hero depth-zoom scale */
+  pointer-events: none;
+}
+.cb-stage-bg__layer {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  background-color: #0A1730;
+  background-image: var(--atmos);
+  background-size: cover;
+  background-position: center;
+  will-change: opacity, transform;
+}
+.cb-stage-bg__layer.is-active { opacity: 1; }
+/* Real media (photo/video) fills the layer; the tint is a readable scrim. */
+.cb-stage-bg__photo {
+  position: absolute;
+  inset: 0;
+  background-image: var(--scene-photo);
+  background-size: cover;
+  background-position: center;
+}
+.cb-stage-bg__video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.cb-stage-bg__tint {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(5, 11, 28, 0.26) 0%, rgba(5, 11, 28, 0.30) 45%, rgba(5, 11, 28, 0.50) 100%);
+}
+.cb-stage-bg__vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(125% 105% at 50% 45%, transparent 52%, rgba(3, 8, 26, 0.55) 100%);
+}
+.cb-stage-bg__grain {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.05;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+/* In cinematic mode the scenes ride over the fixed canvas */
+.cb-cinematic .cb-scene { background-image: none; background-color: transparent; }
+.cb-cinematic { scroll-behavior: auto; } /* Lenis owns the scroll */
+
+/* --------------------------------------------------------------------------
+   4. REVEAL CONTRACT
+   Visible by default (accessible). Hidden only when JS is driving cinematic.
+   -------------------------------------------------------------------------- */
+.cb-scene__reveal { opacity: 1; transform: none; }
+.cb-cinematic .cb-scene__reveal { opacity: 0; will-change: transform, opacity; }
+
+/* --------------------------------------------------------------------------
+   5. SCENE 0 — ARRIVAL (hero)
+   -------------------------------------------------------------------------- */
+.cb-scene--hero { text-align: center; color: var(--cb-white); }
+.cb-hero-mark { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem; }
+.cb-hero-mark .cb-eyebrow { margin-bottom: 0; }
+.cb-hero-mark__coords {
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+}
+.cb-scene--hero .cb-hero__title {
+  color: var(--cb-white);
+  font-size: clamp(2.75rem, 7vw, 6rem);
+  line-height: 1.02;
+  letter-spacing: -0.025em;
+  margin-bottom: 1.5rem;
+  text-shadow: 0 2px 50px rgba(0, 0, 0, 0.4);
+}
+.cb-scene--hero .cb-hero__subtitle {
+  font-size: clamp(1.05rem, 1.6vw, 1.35rem);
+  color: rgba(255, 255, 255, 0.85);
+  max-width: 620px;
+  margin: 0 auto;
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+/* Optional hero background video (Customizer → Hero → "Hero Video URL (MP4)").
+   Sits above the gradient atmosphere, under the headline; a scrim keeps text
+   readable over any footage. Reduced-motion users get the gradient instead. */
+.cb-hero-video { position: absolute; inset: 0; z-index: 1; overflow: hidden; }
+.cb-hero-video video { width: 100%; height: 100%; object-fit: cover; }
+.cb-hero-video__scrim {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  background: linear-gradient(180deg, rgba(5, 11, 28, 0.45) 0%, rgba(10, 23, 48, 0.55) 55%, rgba(1, 33, 105, 0.62) 100%);
+}
+@media (prefers-reduced-motion: reduce) {
+  .cb-hero-video { display: none; }
+}
+
+/* Scroll cue */
+.cb-scroll-cue {
+  position: absolute;
+  bottom: 2.25rem;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  color: rgba(255, 255, 255, 0.7);
+}
+.cb-scroll-cue__text { font-size: 0.68rem; letter-spacing: 0.2em; text-transform: uppercase; }
+.cb-scroll-cue__line { position: relative; width: 1px; height: 54px; overflow: hidden; background: rgba(255, 255, 255, 0.22); }
+.cb-scroll-cue__line span {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 45%;
+  background: linear-gradient(180deg, rgba(31, 105, 255, 0), var(--cb-bright-blue));
+  animation: cb-scroll-cue 1.9s cubic-bezier(0.45, 0, 0.2, 1) infinite;
+}
+@keyframes cb-scroll-cue { 0% { transform: translateY(-120%); } 100% { transform: translateY(260%); } }
+
+/* --------------------------------------------------------------------------
+   6. SCENE 1 — WELCOME / QUICK ACTIONS
+   -------------------------------------------------------------------------- */
+.cb-scene--welcome { color: var(--cb-text); }
+.cb-action-card__go {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-top: 1.1rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--cb-bright-blue);
+}
+.cb-action-card__go svg { width: 14px; height: 14px; transform: rotate(-90deg); transition: transform var(--transition-base); }
+.cb-action-card:hover .cb-action-card__go svg { transform: rotate(-90deg) translateY(5px); }
+
+/* --------------------------------------------------------------------------
+   7. SCENE 2 — LISTINGS
+   -------------------------------------------------------------------------- */
+.cb-scene--listings { color: var(--cb-text); }
+.cb-listings-frame { margin-top: 0.5rem; }
+
+/* --------------------------------------------------------------------------
+   8. SCENE 3 — LEGACY / STATS
+   -------------------------------------------------------------------------- */
+.cb-scene--legacy { color: var(--cb-white); }
+.cb-scene--legacy .cb-stats { margin-top: 1rem; }
+/* Stat cards keep the site's white "bubble" look; number stays bright-blue
+   (default), label reverts to dark so both read on the white card. */
+.cb-scene--legacy .cb-stat__label { color: var(--cb-smoky); }
+.cb-scene--legacy .cb-stat { position: relative; }
+.cb-scene--legacy .cb-stat::after {
+  content: "";
+  display: block;
+  width: 34px;
+  height: 3px;
+  margin: 1rem auto 0;
+  background: var(--cb-bright-blue);
+  border-radius: 2px;
+  opacity: 0.85;
+}
+
+/* --------------------------------------------------------------------------
+   9. SCENE 4 — DOOR / "FIND YOUR HOME" CTA
+   -------------------------------------------------------------------------- */
+.cb-scene--door { color: var(--cb-white); text-align: center; }
+.cb-cta-block { max-width: 720px; margin: 0 auto; text-align: center; }
+.cb-cta-block__title {
+  font-size: clamp(2.25rem, 5vw, 4rem);
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--cb-white);
+  margin-bottom: 1.25rem;
+}
+.cb-cta-block__lead {
+  font-size: clamp(1.05rem, 1.5vw, 1.25rem);
+  color: rgba(255, 255, 255, 0.82);
+  line-height: 1.6;
+  margin: 0 auto 2rem;
+  max-width: 560px;
+}
+/* The two parting door panels (cinematic only) */
+.cb-scene__door { display: none; }
+/* z-index 4 sits above the scene content (z-index 3) so the closed panels
+   fully cover the CTA, then part to reveal it during the pinned scrub. */
+.cb-cinematic .cb-scene__door { display: block; position: absolute; inset: 0; z-index: 4; pointer-events: none; }
+.cb-scene__door-panel {
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 50.5%;
+  background: linear-gradient(180deg, #0A1730 0%, #03081A 100%);
+  box-shadow: inset 0 0 90px rgba(0, 0, 0, 0.55);
+}
+.cb-scene__door-panel--l { left: 0; border-right: 1px solid rgba(31, 105, 255, 0.45); }
+.cb-scene__door-panel--r { right: 0; border-left: 1px solid rgba(31, 105, 255, 0.45); }
+
+/* --------------------------------------------------------------------------
+   10. SCENE 5 — COMMUNITIES + CONCHO RIVER LINE-DRAW
+   -------------------------------------------------------------------------- */
+.cb-scene--communities { color: var(--cb-text); }
+.cb-river {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  width: 100%;
+  height: 100%;
+  color: rgba(31, 105, 255, 0.22);
+  pointer-events: none;
+}
+.cb-river__path { stroke-dasharray: 1; stroke-dashoffset: 0; }      /* drawn by default */
+.cb-river__path--alt { color: rgba(65, 143, 222, 0.18); }
+.cb-cinematic .cb-river__path { stroke-dashoffset: 1; }              /* JS draws on scroll */
+
+/* --------------------------------------------------------------------------
+   11. SCENE 6 — VALUE / "WHAT'S MY HOME WORTH?" + PROPERTY WATCH
+   -------------------------------------------------------------------------- */
+.cb-scene--value { color: var(--cb-white); }
+.cb-cta-block--split {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 3.5rem;
+  align-items: center;
+  max-width: var(--container-width);
+  text-align: left;
+}
+.cb-cta-block--split .cb-cta-block__title,
+.cb-cta-block--split .cb-cta-block__lead { margin-left: 0; margin-right: 0; }
+.cb-watch {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  box-shadow: var(--shadow-lg);
+}
+.cb-watch__title { color: var(--cb-white); font-size: 1.4rem; margin-bottom: 0.5rem; }
+.cb-watch__desc { color: rgba(255, 255, 255, 0.78); font-size: 0.95rem; line-height: 1.55; margin-bottom: 1.25rem; }
+.cb-watch__form { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.cb-watch__input {
+  flex: 1 1 200px;
+  padding: 0.85rem 1.15rem;
+  border-radius: var(--radius-pill);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.96);
+  color: var(--cb-text);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+}
+.cb-watch__input:focus { outline: none; box-shadow: var(--shadow-glow); border-color: var(--cb-bright-blue); }
+.cb-watch__note { color: rgba(255, 255, 255, 0.5); font-size: 0.74rem; margin-top: 0.75rem; }
+.cb-watch.is-done .cb-watch__form { display: none; }
+
+/* --------------------------------------------------------------------------
+   12. SCENE 7 — CLOSE (testimonials + blog + brand sign-off)
+   -------------------------------------------------------------------------- */
+.cb-scene--close { color: var(--cb-white); }
+.cb-scene--close .cb-tt-frame {
+  background: rgba(255, 255, 255, 0.97);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  box-shadow: var(--shadow-lg);
+}
+.cb-close-blog { margin-top: 1rem; }
+.cb-close-mark { text-align: center; margin-top: 4.5rem; }
+.cb-close-mark__logo {
+  width: 132px;
+  height: auto;
+  margin: 0 auto 1.25rem;
+  background: rgba(255, 255, 255, 0.95);
+  padding: 0.9rem 1.15rem;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+.cb-close-mark__tag {
+  font-family: var(--font-subheader);
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--cb-white);
+  margin-bottom: 0.35rem;
+}
+.cb-close-mark__line { color: rgba(255, 255, 255, 0.6); font-family: var(--font-accent); font-style: italic; font-size: 1.05rem; }
+
+/* --------------------------------------------------------------------------
+   13. SCENE PROGRESS RAIL (cinematic only)
+   -------------------------------------------------------------------------- */
+.cb-scene-nav { display: none; }
+.cb-cinematic .cb-scene-nav {
+  display: flex;
+  position: fixed;
+  right: 1.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 50;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+.cb-scene-nav__dot {
+  position: relative;
+  width: 11px; height: 11px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.45);
+  background: transparent;
+  cursor: pointer;
+  transition: transform var(--transition-base), background var(--transition-base), border-color var(--transition-base), box-shadow var(--transition-base);
+}
+.cb-scene-nav__dot.is-active {
+  background: var(--cb-bright-blue);
+  border-color: var(--cb-bright-blue);
+  transform: scale(1.25);
+  box-shadow: 0 0 0 4px rgba(31, 105, 255, 0.18);
+}
+.cb-scene-nav__label {
+  position: absolute;
+  right: 1.7rem;
+  top: 50%;
+  transform: translateY(-50%) translateX(6px);
+  white-space: nowrap;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--cb-white);
+  background: rgba(10, 23, 48, 0.82);
+  padding: 0.28rem 0.65rem;
+  border-radius: var(--radius-pill);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--transition-base), transform var(--transition-base);
+}
+.cb-scene-nav__dot:hover .cb-scene-nav__label,
+.cb-scene-nav__dot:focus-visible .cb-scene-nav__label { opacity: 1; transform: translateY(-50%) translateX(0); }
+/* Switch dot colour over light scenes for contrast (JS toggles the modifier) */
+.cb-scene-nav--on-light .cb-scene-nav__dot { border-color: rgba(10, 23, 48, 0.4); }
+.cb-scene-nav--on-light .cb-scene-nav__dot.is-active { background: var(--cb-blue); border-color: var(--cb-blue); box-shadow: 0 0 0 4px rgba(1, 33, 105, 0.14); }
+
+/* --------------------------------------------------------------------------
+   14. RESPONSIVE / STACKED REFINEMENTS
+   -------------------------------------------------------------------------- */
+@media (max-width: 1024px) {
+  .cb-scene { min-height: auto; padding: calc(var(--header-height) + 2.5rem) 0 3.5rem; align-items: flex-start; }
+  .cb-scene--hero { min-height: 88vh; align-items: center; }
+  .cb-scroll-cue { display: none; }
+}
+@media (max-width: 768px) {
+  .cb-cta-block--split { grid-template-columns: 1fr; gap: 2rem; text-align: center; }
+  .cb-watch { text-align: left; }
+  .cb-scene__head { margin-bottom: 2.25rem; }
+}
+
+/* Belt-and-braces: if scripting is unavailable, force all content visible */
+@media (scripting: none) {
+  .cb-scene__reveal { opacity: 1 !important; transform: none !important; }
+  .cb-stage-bg, .cb-scene-nav, .cb-scene__door { display: none !important; }
+}
+
+/* ------------------------------------------------------------------ *
+ * Image credits (CC BY-SA attribution for San Angelo photography).
+ * Subtle band beneath the final scene; sits above the footer.
+ * ------------------------------------------------------------------ */
+.cb-photo-credits {
+  position: relative;
+  z-index: 3;
+  margin: 0;
+  padding: 0.85rem 1.25rem;
+  background: var(--cb-midnight, #0A1730);
+  text-align: center;
+}
+.cb-photo-credits p {
+  margin: 0 auto;
+  max-width: 70rem;
+  font-family: var(--font-body, sans-serif);
+  font-size: 0.72rem;
+  line-height: 1.5;
+  letter-spacing: 0.01em;
+  color: rgba(240, 245, 251, 0.55);
+}
+.cb-photo-credits a {
+  color: rgba(240, 245, 251, 0.78);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(240, 245, 251, 0.22);
+  transition: color var(--transition-luxury, 0.3s ease), border-color var(--transition-luxury, 0.3s ease);
+}
+.cb-photo-credits a:hover,
+.cb-photo-credits a:focus-visible {
+  color: var(--cb-bright-blue, #1F69FF);
+  border-color: var(--cb-bright-blue, #1F69FF);
+}
