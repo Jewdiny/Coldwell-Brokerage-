@@ -1,0 +1,385 @@
+/* =========================================================================
+   cb-corridor.css — Coldwell Banker "Corridor Walkthrough" (Home 7 preview)
+
+   A scroll-driven hallway experience: Three.js dust-nebula + wireframe
+   corridor behind floating glass content cards that form from / crumble
+   into the particle field. Each corridor-section corresponds to one of
+   the 8 content sections (Arrival, Welcome, Listings, Legacy, Buy,
+   Communities, Sell, Connect).
+
+   SCOPING: selectors target .cb-corridor-* classes that exist ONLY on
+   the Home 7 template. Form/crumble states gated under html.cb-corridor-on.
+   Without JS / WebGL / reduced-motion, every card renders static and legible.
+
+   No backdrop-filter — semi-opaque navy fill gives the frosted look.
+   ========================================================================= */
+
+/* -------------------------------------------------------------------------
+   1. Page field + WebGL canvas + cinematic vignette
+   ------------------------------------------------------------------------- */
+body.cb-page--home7-preview {
+  background: radial-gradient(130% 115% at 50% -5%,
+                #16409c 0%, #0c2a72 30%, #071c52 58%, #040c2c 100%) fixed;
+  color: #fff;
+}
+
+.cb-corridor-stage {
+  position: relative;
+  overflow: hidden;
+}
+
+/* Full-viewport fixed WebGL canvas; revealed only once the context starts. */
+#cb-corridor-canvas { display: none; }
+html.cb-corridor-on #cb-corridor-canvas {
+  display: block;
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Cinematic edge vignette over the particle field, beneath the cards. */
+.cb-corridor-vignette { display: none; }
+html.cb-corridor-on .cb-corridor-vignette {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(120% 100% at 50% 42%, transparent 38%, rgba(3, 9, 26, .55) 100%);
+}
+
+/* Content above the canvas + vignette. */
+.cb-corridor-scenes { position: relative; z-index: 1; }
+
+/* Lift the static footer above the fixed canvas. */
+html.cb-corridor-on .cb-footer {
+  position: relative;
+  z-index: 2;
+  background: var(--cb-midnight, #0A1730);
+}
+
+/* Custom cursor: hide the native one only while corridor is active. */
+html.cb-corridor-on, html.cb-corridor-on * { cursor: none; }
+@media (prefers-reduced-motion: reduce) {
+  html.cb-corridor-on, html.cb-corridor-on * { cursor: auto; }
+}
+@media (pointer: coarse) {
+  html.cb-corridor-on, html.cb-corridor-on * { cursor: auto; }
+}
+
+/* -------------------------------------------------------------------------
+   2. Sections — natural document flow (tall live content just works).
+   ------------------------------------------------------------------------- */
+.cb-corridor-section {
+  position: relative;
+  padding: clamp(5rem, 12vh, 9rem) 1.5rem;
+}
+.cb-corridor-section--hero {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  padding-top: clamp(7rem, 16vh, 11rem);
+}
+.cb-corridor-section--center .cb-corridor-section__inner {
+  align-items: center;
+  text-align: center;
+}
+.cb-corridor-section__inner {
+  max-width: 1160px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: clamp(1.5rem, 4vh, 2.75rem);
+}
+.cb-corridor-section--hero .cb-corridor-section__inner { max-width: 880px; }
+
+/* -------------------------------------------------------------------------
+   3. Card grids
+   ------------------------------------------------------------------------- */
+.cb-corridor-grid { width: 100%; display: grid; gap: clamp(1rem, 2vw, 1.6rem); }
+.cb-corridor-grid--2 { grid-template-columns: repeat(2, 1fr); }
+.cb-corridor-grid--3 { grid-template-columns: repeat(3, 1fr); }
+.cb-corridor-grid--4 { grid-template-columns: repeat(4, 1fr); }
+@media (max-width: 960px) {
+  .cb-corridor-grid--3, .cb-corridor-grid--4 { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+  .cb-corridor-grid--2, .cb-corridor-grid--3, .cb-corridor-grid--4 { grid-template-columns: 1fr; }
+}
+
+/* -------------------------------------------------------------------------
+   4. Glass card. Float on __inner; form/crumble transform on the outer card.
+   ------------------------------------------------------------------------- */
+.cb-corridor-card {
+  position: relative;
+  display: block;
+  color: #fff;
+  text-decoration: none;
+  transition: opacity .7s cubic-bezier(.22,.61,.36,1),
+              transform .7s cubic-bezier(.22,.61,.36,1),
+              filter .7s cubic-bezier(.22,.61,.36,1);
+}
+html.cb-corridor-on .cb-corridor-card.is-crumbling,
+html.cb-corridor-on .cb-corridor-card.is-forming {
+  will-change: opacity, transform, filter;
+}
+
+.cb-corridor-card__inner {
+  position: relative;
+  padding: clamp(1.4rem, 2.4vw, 2.1rem);
+  border-radius: 18px;
+  background: linear-gradient(150deg, rgba(30, 55, 115, .58), rgba(9, 23, 58, .54));
+  border: 1px solid rgba(184, 207, 234, .22);
+  box-shadow: 0 24px 60px rgba(4, 12, 35, .45),
+              inset 0 1px 0 rgba(255,255,255,.14);
+  overflow: hidden;
+}
+.cb-corridor-card__inner::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 40%;
+  background: linear-gradient(180deg, rgba(255,255,255,.10), transparent);
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html.cb-corridor-on .cb-corridor-card.is-formed .cb-corridor-card__inner {
+    animation: cb-corridor-float var(--fl-dur, 9s) ease-in-out var(--fl-delay, 0s) infinite;
+  }
+}
+@keyframes cb-corridor-float {
+  0%, 100% { transform: translate3d(0, calc(var(--fl-y, 12px) * -0.5), 0) rotate(calc(var(--fl-rot, 0deg) * -1)); }
+  50%      { transform: translate3d(0, var(--fl-y, 12px), 0) rotate(var(--fl-rot, 0deg)); }
+}
+
+a.cb-corridor-card:hover .cb-corridor-card__inner,
+a.cb-corridor-card:focus-visible .cb-corridor-card__inner {
+  border-color: rgba(31, 105, 255, .55);
+  box-shadow: 0 30px 70px rgba(4, 12, 35, .55),
+              0 0 0 1px rgba(31, 105, 255, .25),
+              inset 0 1px 0 rgba(255,255,255,.18);
+}
+
+/* -------------------------------------------------------------------------
+   5. Form-from-dust / crumble states (gated under html.cb-corridor-on)
+   ------------------------------------------------------------------------- */
+html.cb-corridor-on .cb-corridor-card {
+  opacity: 0;
+  transform: translate3d(0, 40px, 0) scale(.94);
+  filter: blur(4px);
+}
+html.cb-corridor-on .cb-corridor-card.is-formed {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+  filter: blur(0);
+}
+html.cb-corridor-on .cb-corridor-card.is-crumbling {
+  opacity: 0;
+  transform: translate3d(0, -46px, 0) scale(1.06);
+  filter: blur(8px) brightness(1.4);
+  transition-duration: .9s;
+}
+/* A11y safety net: never keep a keyboard-focused card invisible. */
+html.cb-corridor-on .cb-corridor-card:focus-within {
+  opacity: 1 !important;
+  transform: none !important;
+  filter: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  html.cb-corridor-on .cb-corridor-card {
+    opacity: 1 !important; transform: none !important; filter: none !important; transition: none !important;
+  }
+}
+
+/* -------------------------------------------------------------------------
+   6. Typography
+   ------------------------------------------------------------------------- */
+.cb-corridor-eyebrow {
+  display: block;
+  font-family: var(--font-subheader, 'Josefin Sans', sans-serif);
+  font-size: .8rem; font-weight: 600; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--cb-tide, #B8CFEA);
+  margin-bottom: .85rem;
+}
+.cb-corridor-h1 {
+  font-family: var(--font-heading, sans-serif);
+  font-weight: 600; font-size: clamp(2.4rem, 6vw, 4.6rem); line-height: 1.02; letter-spacing: -.02em;
+  margin: 0; color: #fff;
+}
+.cb-corridor-h2 {
+  font-family: var(--font-heading, sans-serif);
+  font-weight: 600; font-size: clamp(1.7rem, 3.4vw, 2.7rem); line-height: 1.08; letter-spacing: -.015em;
+  margin: 0; color: #fff;
+}
+.cb-corridor-h2--sm { font-size: clamp(1.4rem, 2.4vw, 1.9rem); }
+.cb-corridor-h3 {
+  font-family: var(--font-heading, sans-serif);
+  font-weight: 600; font-size: 1.22rem; line-height: 1.2; margin: 0 0 .5rem; color: #fff;
+}
+.cb-corridor-h3 a { color: inherit; text-decoration: none; }
+.cb-corridor-h3 a:hover { color: var(--cb-tide, #B8CFEA); }
+.cb-corridor-p {
+  font-family: var(--font-body, sans-serif);
+  font-size: 1rem; line-height: 1.6; margin: .85rem 0 0; color: rgba(255,255,255,.82);
+}
+.cb-corridor-card--head { max-width: 820px; align-self: flex-start; }
+.cb-corridor-card--head .cb-corridor-p { max-width: 46ch; }
+
+/* -------------------------------------------------------------------------
+   7. Card variants
+   ------------------------------------------------------------------------- */
+.cb-corridor-card--chip .cb-corridor-card__inner { padding: .8rem 1.3rem; display: inline-block; }
+.cb-corridor-card--chip { align-self: flex-start; }
+.cb-corridor-card--chip .cb-corridor-eyebrow { margin-bottom: 0; }
+.cb-corridor-coords {
+  display: block; margin-top: .35rem;
+  font-family: var(--font-body, sans-serif); font-size: .82rem; letter-spacing: .04em;
+  color: rgba(255,255,255,.7);
+}
+.cb-corridor-card--title .cb-corridor-card__inner,
+.cb-corridor-card--lead .cb-corridor-card__inner {
+  background: linear-gradient(150deg, rgba(24, 48, 104, .50), rgba(8, 21, 54, .44));
+}
+.cb-corridor-card--lead { max-width: 620px; align-self: flex-start; }
+.cb-corridor-card--title { align-self: flex-start; max-width: 100%; }
+.cb-corridor-sub {
+  font-family: var(--font-body, sans-serif);
+  font-size: clamp(1.05rem, 1.5vw, 1.25rem); line-height: 1.55; margin: 0; color: rgba(255,255,255,.85);
+}
+
+.cb-corridor-card--ghost { align-self: flex-start; }
+.cb-corridor-card--ghost .cb-corridor-card__inner {
+  background: none; border: none; box-shadow: none; padding: .25rem;
+}
+.cb-corridor-card--ghost .cb-corridor-card__inner::before { display: none; }
+.cb-corridor-cue {
+  display: inline-flex; align-items: center; gap: .8rem;
+  font-family: var(--font-subheader, sans-serif); font-size: .82rem; letter-spacing: .14em; text-transform: uppercase;
+  color: rgba(255,255,255,.7);
+}
+.cb-corridor-cue__line { position: relative; width: 52px; height: 1px; background: rgba(255,255,255,.3); overflow: hidden; }
+.cb-corridor-cue__line span {
+  position: absolute; inset: 0; width: 40%;
+  background: var(--cb-bright-blue, #1F69FF);
+  animation: cb-corridor-cue 2.4s ease-in-out infinite;
+}
+@keyframes cb-corridor-cue { 0% { transform: translateX(-100%); } 100% { transform: translateX(280%); } }
+
+.cb-corridor-go {
+  display: inline-flex; align-items: center; gap: .4rem; margin-top: 1rem;
+  font-family: var(--font-subheader, sans-serif); font-size: .8rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--cb-bright-blue, #1F69FF);
+}
+.cb-corridor-go svg { width: 14px; height: 14px; transform: rotate(-90deg); }
+.cb-corridor-card--action .cb-corridor-card__inner { height: 100%; }
+
+.cb-corridor-card--stat .cb-corridor-card__inner { text-align: center; height: 100%; }
+.cb-corridor-stat__num {
+  font-family: var(--font-heading, sans-serif); font-weight: 700; font-size: clamp(2.2rem, 4vw, 3.2rem); line-height: 1; color: #fff;
+}
+.cb-corridor-stat__label {
+  margin-top: .6rem; font-family: var(--font-subheader, sans-serif); font-size: .82rem; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--cb-tide, #B8CFEA);
+}
+
+.cb-corridor-card--cta { width: 100%; max-width: 720px; }
+.cb-corridor-section--center .cb-corridor-card--cta { margin: 0 auto; text-align: center; }
+.cb-corridor-card--cta .cb-corridor-card__inner { padding: clamp(2rem, 4vw, 3.2rem); }
+.cb-corridor-card--cta .cb-btn, .cb-corridor-card--watch .cb-btn { margin-top: 1.4rem; }
+.cb-corridor-card--cta-row .cb-corridor-card__inner {
+  background: none; border: none; box-shadow: none; padding: .25rem;
+}
+.cb-corridor-card--cta-row .cb-corridor-card__inner::before { display: none; }
+.cb-corridor-card--cta-row { width: 100%; }
+.cb-corridor-section:not(.cb-corridor-section--center) .cb-corridor-card--cta-row .cb-corridor-card__inner { text-align: left; }
+
+.cb-corridor-watch__form { display: flex; gap: .6rem; margin-top: 1.2rem; flex-wrap: wrap; }
+.cb-corridor-watch__input {
+  flex: 1 1 200px; min-width: 0; padding: .8rem 1rem; border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.08); color: #fff;
+  font-family: var(--font-body, sans-serif);
+}
+.cb-corridor-watch__input::placeholder { color: rgba(255,255,255,.55); }
+.cb-corridor-watch__input:focus { outline: none; border-color: var(--cb-bright-blue, #1F69FF); background: rgba(255,255,255,.12); }
+.cb-corridor-watch__note { font-size: .78rem; color: rgba(255,255,255,.55); margin-top: .7rem; }
+
+.cb-corridor-card--community .cb-corridor-card__inner { padding: 0; height: 260px; display: flex; align-items: flex-end; }
+.cb-corridor-community__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform .8s ease; }
+a.cb-corridor-card--community:hover .cb-corridor-community__img { transform: scale(1.06); }
+.cb-corridor-community__overlay {
+  position: relative; z-index: 1; width: 100%; padding: 1.3rem;
+  background: linear-gradient(0deg, rgba(5,11,28,.85), rgba(5,11,28,.15) 70%, transparent);
+}
+.cb-corridor-community__overlay .cb-corridor-h3 { margin-bottom: .2rem; }
+.cb-corridor-card--community .cb-corridor-go { margin-top: .2rem; }
+
+.cb-corridor-card--blog .cb-corridor-card__inner { padding: 0; height: 100%; display: flex; flex-direction: column; }
+.cb-corridor-blog__image { aspect-ratio: 16 / 10; overflow: hidden; }
+.cb-corridor-blog__image img { width: 100%; height: 100%; object-fit: cover; transition: transform .8s ease; }
+.cb-corridor-card--blog:hover .cb-corridor-blog__image img { transform: scale(1.05); }
+.cb-corridor-blog__body { padding: 1.3rem; flex: 1; }
+.cb-corridor-blog__cat {
+  display: inline-block; font-family: var(--font-subheader, sans-serif); font-size: .72rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--cb-bright-blue, #1F69FF); margin-bottom: .6rem;
+}
+.cb-corridor-blog__meta { display: block; margin-top: .9rem; font-size: .8rem; color: rgba(255,255,255,.55); }
+
+.cb-corridor-card--frame { width: 100%; }
+.cb-corridor-card--frame .cb-corridor-card__inner {
+  background: rgba(8, 20, 46, .42);
+  border: 1px solid rgba(184,207,234,.16);
+  padding: clamp(1rem, 2vw, 1.6rem);
+}
+html.cb-corridor-on .cb-corridor-card--frame.is-formed .cb-corridor-card__inner,
+html.cb-corridor-on .cb-corridor-card--frame .cb-corridor-card__inner { animation: none !important; }
+html.cb-corridor-on .cb-corridor-card--frame.is-crumbling {
+  filter: brightness(1.12);
+  transform: translate3d(0, -24px, 0) scale(1.01);
+}
+
+.cb-corridor-card--mark { width: 100%; }
+.cb-corridor-card--mark .cb-corridor-card__inner { text-align: center; padding: clamp(2rem, 4vw, 3rem); }
+.cb-corridor-mark__logo { width: 120px; height: auto; margin: 0 auto .8rem; filter: brightness(0) invert(1); opacity: .92; }
+.cb-corridor-mark__tag {
+  font-family: var(--font-subheader, sans-serif); letter-spacing: .12em; text-transform: uppercase; font-size: .85rem;
+  color: var(--cb-tide, #B8CFEA); margin: 0;
+}
+.cb-corridor-mark__line { font-family: var(--font-accent, serif); font-style: italic; color: rgba(255,255,255,.7); margin: .35rem 0 0; }
+
+/* -------------------------------------------------------------------------
+   8. Section progress rail
+   ------------------------------------------------------------------------- */
+.cb-corridor-nav {
+  position: fixed; top: 50%; right: 1.4rem; transform: translateY(-50%); z-index: 30;
+  display: flex; flex-direction: column; gap: .9rem;
+}
+.cb-corridor-nav__dot {
+  position: relative; width: 11px; height: 11px; padding: 0; border-radius: 50%;
+  border: 1px solid rgba(255,255,255,.45); background: transparent; cursor: pointer;
+  transition: background .3s ease, border-color .3s ease, transform .3s ease;
+}
+.cb-corridor-nav__dot.is-active { background: var(--cb-bright-blue, #1F69FF); border-color: var(--cb-bright-blue, #1F69FF); transform: scale(1.25); }
+.cb-corridor-nav__label {
+  position: absolute; right: 22px; top: 50%; transform: translateY(-50%); white-space: nowrap;
+  font-family: var(--font-subheader, sans-serif); font-size: .72rem; letter-spacing: .1em; text-transform: uppercase;
+  color: #fff; background: rgba(5,11,28,.7); padding: .25rem .6rem; border-radius: 6px;
+  opacity: 0; pointer-events: none; transition: opacity .25s ease;
+}
+.cb-corridor-nav__dot:hover .cb-corridor-nav__label { opacity: 1; }
+html.cb-corridor-on .cb-corridor-nav__dot { cursor: none; }
+@media (max-width: 900px) { .cb-corridor-nav { display: none; } }
+
+/* -------------------------------------------------------------------------
+   9. Overlay header for the preview (body-class scoped)
+   ------------------------------------------------------------------------- */
+body.cb-page--home7-preview .cb-header:not(.cb-header--scrolled) {
+  background: transparent;
+  border-bottom-color: rgba(255,255,255,.1);
+}
+body.cb-page--home7-preview .cb-header:not(.cb-header--scrolled) .cb-nav__link { color: var(--cb-white, #fff); }
+body.cb-page--home7-preview .cb-header:not(.cb-header--scrolled) .cb-header__logo-img { filter: none; }

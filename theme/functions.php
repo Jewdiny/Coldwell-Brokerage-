@@ -207,6 +207,49 @@ function cb_enqueue_home2_webgl() {
 }
 add_action('wp_enqueue_scripts', 'cb_enqueue_home2_webgl');
 
+/* ==========================================================================
+   HOME 7 — CORRIDOR WALKTHROUGH PREVIEW (un-linked staging page)
+   Loads the 3D dust-nebula corridor walkthrough on the "Home 7 — Corridor
+   Walkthrough Preview" page template ONLY.
+   ========================================================================== */
+define('CB_HOME7_TEMPLATE', 'templates/template-home7-corridor.php');
+
+function cb_enqueue_home7_corridor() {
+    if (!is_page_template(CB_HOME7_TEMPLATE)) { return; }
+
+    // Three.js core
+    wp_enqueue_script('three', CB_THEME_URI . '/assets/js/vendor/three.min.js', [], '0.160.0', true);
+
+    // Custom cursor (shared with Home 2 WebGL)
+    wp_enqueue_script('cb-wg-cursor', CB_THEME_URI . '/assets/js/cb-webgl/cursor.js', ['three'], CB_THEME_VERSION, true);
+
+    // Corridor engine
+    wp_enqueue_script('cb-corridor', CB_THEME_URI . '/assets/js/cb-corridor/corridor.js', ['three', 'cb-wg-cursor'], CB_THEME_VERSION, true);
+
+    // Corridor styles
+    wp_enqueue_style('cb-corridor', CB_THEME_URI . '/assets/css/cb-corridor.css', ['cb-legacy-style'], CB_THEME_VERSION);
+
+    // Init inline — gates on capable desktop so it never runs on mobile/tablet.
+    $cb_mono    = esc_js(CB_THEME_URI . '/assets/images/logos/monogram-horizontal-stacked.svg');
+    $cb_monoStk = esc_js(CB_THEME_URI . '/assets/images/logos/monogram-vertical-stacked.svg');
+    wp_add_inline_script(
+        'cb-corridor',
+        "(function(){try{" .
+        "var ok=window.matchMedia('(min-width: 1025px)').matches" .
+        "&&window.matchMedia('(prefers-reduced-motion: no-preference)').matches" .
+        "&&!window.matchMedia('(pointer: coarse)').matches;" .
+        "if(ok&&window.CBCorridor){window.CBCorridor.init({" .
+        "canvas:'#cb-corridor-canvas'," .
+        "monogram:'{$cb_mono}'," .
+        "monogramStacked:'{$cb_monoStk}'" .
+        "});}" .
+        "}catch(e){document.documentElement.classList.remove('cb-corridor-on');" .
+        "if(window.console){console.warn('[cb-corridor] init failed; using fallback.',e);}}})();",
+        'after'
+    );
+}
+add_action('wp_enqueue_scripts', 'cb_enqueue_home7_corridor');
+
 /**
  * Pre-paint mode arbitration for the Home 2 preview.
  *
@@ -1206,6 +1249,11 @@ function cb_body_classes($classes) {
     if (is_page_template(CB_HOME2_TEMPLATE)) {
         $classes[] = 'cb-page--home';
         $classes[] = 'cb-page--home2-preview';
+    }
+    // Home 7 — corridor walkthrough
+    if (defined('CB_HOME7_TEMPLATE') && is_page_template(CB_HOME7_TEMPLATE)) {
+        $classes[] = 'cb-page--home';
+        $classes[] = 'cb-page--home7-preview';
     }
     return $classes;
 }
