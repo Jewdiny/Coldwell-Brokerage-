@@ -112,9 +112,25 @@ html.cb9-on .cb-footer {
   background: var(--cb-walnut, #2B1A10);
 }
 
-html.cb9-on, html.cb9-on * { cursor: none; }
-@media (prefers-reduced-motion: reduce) { html.cb9-on, html.cb9-on * { cursor: auto; } }
-@media (pointer: coarse) { html.cb9-on, html.cb9-on * { cursor: auto; } }
+/* Hide the native cursor ONLY once the custom one is confirmed running -- home9.js
+   adds .cb9-cursor when CBCursor.init() returns true. It returns false on
+   reduced-motion, coarse pointers and no-body, and it can fail to load outright;
+   hiding the cursor anyway left the page with none at all, which reads as broken.
+   Links were always clickable -- there was simply nothing to click WITH. */
+html.cb9-on.cb9-cursor, html.cb9-on.cb9-cursor * { cursor: none; }
+@media (prefers-reduced-motion: reduce) { html.cb9-on.cb9-cursor, html.cb9-on.cb9-cursor * { cursor: auto; } }
+@media (pointer: coarse) { html.cb9-on.cb9-cursor, html.cb9-on.cb9-cursor * { cursor: auto; } }
+
+/* And say so explicitly. Anchors default to `pointer`, but the cards are the
+   clickable surface and half of them are <a> wrappers around a <div>. */
+html.cb9-on a.cb9-card,
+html.cb9-on .cb9-card a,
+html.cb9-on .cb9-card button,
+html.cb9-on .cb-btn { cursor: pointer; }
+html.cb9-on.cb9-cursor a.cb9-card,
+html.cb9-on.cb9-cursor .cb9-card a,
+html.cb9-on.cb9-cursor .cb9-card button,
+html.cb9-on.cb9-cursor .cb-btn { cursor: none; }
 
 /* -------------------------------------------------------------------------
    2. Spacers.
@@ -631,7 +647,7 @@ html.cb9-on .cb9-nav {
   opacity: 0; pointer-events: none; transition: opacity .25s ease;
 }
 .cb9-nav__dot:hover .cb9-nav__label { opacity: 1; }
-html.cb9-on .cb9-nav__dot { cursor: none; }
+html.cb9-on.cb9-cursor .cb9-nav__dot { cursor: none; }
 @media (max-width: 900px) { html.cb9-on .cb9-nav { display: none; } }
 
 /* -------------------------------------------------------------------------

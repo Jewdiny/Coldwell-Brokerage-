@@ -363,15 +363,20 @@
   function texWood() {
     var c = document.createElement('canvas'); c.width = 256; c.height = 256;
     var g = c.getContext('2d'), i, y, xx, yy;
-    g.fillStyle = '#5b3d28'; g.fillRect(0, 0, 256, 256);
+    // Light oak, not the near-black walnut this started as. Once the texture is
+    // correctly decoded as sRGB, #5b3d28 lands at ~0.10 linear -- multiply that by
+    // a 0.26 ambient and the floor is black no matter how the lamps are tuned. The
+    // fix is the material, not the lighting: a real floor is simply lighter than
+    // the furniture standing on it.
+    g.fillStyle = '#9c6f45'; g.fillRect(0, 0, 256, 256);
     for (i = 0; i < 16; i++) {                       // board seams
       y = i * 16;
-      g.fillStyle = 'rgba(255,222,170,0.05)'; g.fillRect(0, y + 1, 256, 14);
-      g.fillStyle = 'rgba(24,12,4,0.55)'; g.fillRect(0, y, 256, 1);
+      g.fillStyle = 'rgba(255,226,178,0.10)'; g.fillRect(0, y + 1, 256, 14);
+      g.fillStyle = 'rgba(48,26,10,0.5)'; g.fillRect(0, y, 256, 1);
     }
     for (i = 0; i < 260; i++) {                      // grain
       yy = rand(0, 256); xx = rand(0, 256);
-      g.strokeStyle = 'rgba(30,16,6,' + rand(0.04, 0.13).toFixed(3) + ')';
+      g.strokeStyle = 'rgba(70,40,16,' + rand(0.05, 0.16).toFixed(3) + ')';
       g.lineWidth = rand(0.5, 1.4);
       g.beginPath(); g.moveTo(xx, yy);
       g.bezierCurveTo(xx + 26, yy + rand(-1.5, 1.5), xx + 52, yy + rand(-1.5, 1.5), xx + 84, yy);
@@ -379,8 +384,23 @@
     }
     var t = new THREE.CanvasTexture(c);
     t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    return sRGB(t);
+  }
+  /**
+   * Tag a texture as sRGB.
+   *
+   * This is not a nicety -- it is why the first pass looked like flat beige
+   * cardboard. Three r152+ enables colour management and renders to sRGB, but a
+   * texture defaults to NO colour space, i.e. it is taken as already-linear. A
+   * canvas drawn with '#5b3d28' is sRGB data, so leaving it untagged skips the
+   * decode: mid-tones lift, contrast collapses, and every surface converges on the
+   * same washed value no matter what the lights do.
+   */
+  function sRGB(t) {
+    if (THREE.SRGBColorSpace) { t.colorSpace = THREE.SRGBColorSpace; }
     return t;
   }
+
   function texRug() {
     var c = document.createElement('canvas'); c.width = 128; c.height = 128;
     var g = c.getContext('2d'), i;
@@ -393,7 +413,21 @@
       g.fillStyle = 'rgba(0,0,0,' + rand(0.02, 0.09).toFixed(3) + ')';
       g.fillRect(rand(0, 128), rand(0, 128), 2, 2);
     }
-    return new THREE.CanvasTexture(c);
+    return sRGB(new THREE.CanvasTexture(c));
+  }
+
+  /** A soft contact shadow to sit under furniture. Nothing grounds an object like
+   *  a shadow, and with no shadow maps this is what stops the sofa looking as if it
+   *  is hovering half an inch above the floor. */
+  function texShadow() {
+    var c = document.createElement('canvas'); c.width = 128; c.height = 128;
+    var g = c.getContext('2d');
+    var grd = g.createRadialGradient(64, 64, 4, 64, 64, 62);
+    grd.addColorStop(0, 'rgba(0,0,0,0.72)');
+    grd.addColorStop(0.55, 'rgba(0,0,0,0.34)');
+    grd.addColorStop(1, 'rgba(0,0,0,0)');
+    g.fillStyle = grd; g.fillRect(0, 0, 128, 128);
+    return new THREE.CanvasTexture(c);   // alpha only -- no colour to decode
   }
   function texPlaster() {
     var c = document.createElement('canvas'); c.width = 128; c.height = 128;
@@ -405,38 +439,66 @@
     }
     var t = new THREE.CanvasTexture(c);
     t.wrapS = t.wrapT = THREE.RepeatWrapping;
-    return t;
+    return sRGB(t);
+  }
+
+  /**
+   * MeshStandardMaterial, not Lambert.
+   *
+   * Lambert has no specular term at all -- every surface is perfectly matte, which
+   * is why the first pass read as cardboard regardless of the lighting. Polished
+   * oak, stone counters and a lacquered desk are defined by their sheen; without a
+   * roughness response there is nothing to tell them apart from paper.
+   *
+   * metalness stays at 0 or near it throughout, deliberately: there is no envMap
+   * here, and a metal with nothing to reflect renders black.
+   */
+  function surf(o) {
+    o.metalness = (o.metalness === undefined) ? 0 : o.metalness;
+    return new THREE.MeshStandardMaterial(o);
   }
 
   function buildMaterials() {
     var wood = texWood(), plaster = texPlaster();
-    MAT.floor = new THREE.MeshLambertMaterial({ map: wood });
+    MAT.floor = surf({ map: wood, roughness: 0.42 });      // polished boards catch the lamps
     MAT.floor.map.repeat.set(6, 10);
-    MAT.hallFloor = new THREE.MeshLambertMaterial({ map: wood.clone() });
-    MAT.hallFloor.map.wrapS = MAT.hallFloor.map.wrapT = THREE.RepeatWrapping;
-    MAT.hallFloor.map.repeat.set(3, 30);
-    MAT.hallFloor.map.needsUpdate = true;
-    MAT.wall = new THREE.MeshLambertMaterial({ map: plaster, color: 0xffffff });
+    var hw = wood.clone(); hw.wrapS = hw.wrapT = THREE.RepeatWrapping; hw.repeat.set(3, 30); hw.needsUpdate = true;
+    MAT.hallFloor = surf({ map: hw, roughness: 0.42 });
+    MAT.wall = surf({ map: plaster, color: 0xffffff, roughness: 0.95 });   // plaster is dead matte
     MAT.wall.map.repeat.set(4, 2);
-    MAT.ceil = new THREE.MeshLambertMaterial({ color: M_TRIM });
-    MAT.trim = new THREE.MeshLambertMaterial({ color: M_TRIM });
-    MAT.wains = new THREE.MeshLambertMaterial({ color: M_LINEN });
-    MAT.walnut = new THREE.MeshLambertMaterial({ color: M_WALNUT });
-    MAT.oak = new THREE.MeshLambertMaterial({ color: M_OAK });
-    MAT.navy = new THREE.MeshLambertMaterial({ color: M_NAVY });
-    MAT.slate = new THREE.MeshLambertMaterial({ color: M_SLATE });
-    MAT.linen = new THREE.MeshLambertMaterial({ color: M_LINEN });
-    MAT.cream = new THREE.MeshLambertMaterial({ color: M_CREAM });
-    MAT.rug = new THREE.MeshLambertMaterial({ map: texRug() });
+    MAT.ceil = surf({ color: M_TRIM, roughness: 0.95 });
+    MAT.trim = surf({ color: M_TRIM, roughness: 0.55 });   // painted joinery has a slight sheen
+    MAT.wains = surf({ color: M_LINEN, roughness: 0.7 });
+    MAT.walnut = surf({ color: M_WALNUT, roughness: 0.38 });
+    MAT.oak = surf({ color: M_OAK, roughness: 0.5 });
+    MAT.navy = surf({ color: M_NAVY, roughness: 0.85 });   // upholstery
+    MAT.slate = surf({ color: M_SLATE, roughness: 0.28, metalness: 0.08 });  // stone
+    MAT.linen = surf({ color: M_LINEN, roughness: 0.85 });
+    MAT.cream = surf({ color: M_CREAM, roughness: 0.8 });
+    MAT.rug = surf({ map: texRug(), roughness: 0.98 });    // wool reflects nothing
     // Brass and lampshades are UNLIT on purpose: they are the things emitting the
     // warmth, so shading them would make the light sources look dim.
     MAT.brass = new THREE.MeshBasicMaterial({ color: M_BRASS });
     MAT.shade = new THREE.MeshBasicMaterial({ color: LAMP_HEX });
-    MAT.glass = new THREE.MeshLambertMaterial({ color: M_GLASS, transparent: true, opacity: 0.35 });
+    MAT.glass = surf({ color: M_GLASS, roughness: 0.1, transparent: true, opacity: 0.35 });
+    MAT.shadow = new THREE.MeshBasicMaterial({
+      map: texShadow(), transparent: true, opacity: 0.9, depthWrite: false
+    });
 
     GEO.box = new THREE.BoxGeometry(1, 1, 1);
     GEO.plane = new THREE.PlaneGeometry(1, 1);
     GEO.cyl = new THREE.CylinderGeometry(1, 1, 1, 12);
+  }
+
+  /** Contact shadow on the floor, just above it. */
+  function shadowPad(cx, cz, w, d) {
+    var m = new THREE.Mesh(GEO.plane, MAT.shadow);
+    m.position.set(cx, -HALL_Y + 0.04, cz);
+    m.rotation.x = -Math.PI / 2;
+    m.scale.set(w, d, 1);
+    m.renderOrder = 1;
+    houseGroup.add(m);
+    return m;
   }
 
   /** box(material, centre, size) -- everything in the house is a box or a plane. */
@@ -565,6 +627,7 @@
     var i, fz;
     switch (R.theme) {
       case 'living':
+        shadowPad(s * 19, z, 5.6, 8.4); shadowPad(s * 15.5, z, 4, 5.4);
         box(MAT.navy, s * 19, -3.9, z, 3.4, 1.5, 6.2);             // sofa
         box(MAT.navy, s * 20.4, -2.8, z, 0.6, 2.2, 6.2);           // back
         for (i = -1; i <= 1; i += 2) { box(MAT.navy, s * 19, -2.9, z + i * 2.9, 3.4, 1.1, 0.5); }
@@ -573,11 +636,13 @@
         lamp(s * 21.4, -2.2, z - 4.4);
         break;
       case 'gallery':                                              // console + vases
+        shadowPad(s * 21, z, 3.2, 8.6);
         box(MAT.walnut, s * 21, -3.6, z, 1.1, 2.2, 7);
         for (i = -1; i <= 1; i++) { cyl(MAT.glass, s * 21, -2.1, z + i * 2.2, 0.26, 0.8); }
         lamp(s * 21, -1.4, z + 4.6);
         break;
       case 'study':
+        shadowPad(s * 19, z, 4.4, 6.6); shadowPad(s * 21.4, z - 4.6, 2.6, 5);
         box(MAT.walnut, s * 19, -3.7, z, 2.6, 0.26, 5);            // desk
         for (i = 0; i < 4; i++) { box(MAT.walnut, s * (18 + (i % 2) * 2), -4.4, z + (i < 2 ? -2.2 : 2.2), 0.2, 1.4, 0.2); }
         box(MAT.slate, s * 19, -3.2, z, 1.4, 0.9, 2.2);            // chair back
@@ -586,6 +651,7 @@
         lamp(s * 19.6, -3.2, z + 2);
         break;
       case 'entry':                                                // the front door
+        shadowPad(s * 17, z + 4.4, 3, 4);
         box(MAT.walnut, s * (HALL_X + ROOM_D - 0.3), -1, z, 0.3, 8, 3.6);
         box(MAT.brass, s * (HALL_X + ROOM_D - 0.55), -1, z + 1.3, 0.14, 0.14, 0.5);
         box(MAT.trim, s * (HALL_X + ROOM_D - 0.2), -1, z, 0.5, 8.7, 4.3);
@@ -593,6 +659,7 @@
         lamp(s * 21, -1.6, z - 4.6);
         break;
       case 'dining':
+        shadowPad(s * 18, z, 6.6, 9.4);
         box(MAT.walnut, s * 18, -3.4, z, 3.4, 0.26, 7);            // table
         for (i = 0; i < 4; i++) { box(MAT.walnut, s * (16.8 + (i % 2) * 2.4), -4.2, z + (i < 2 ? -2.8 : 2.8), 0.22, 1.6, 0.22); }
         for (i = -1; i <= 1; i += 2) {                             // chairs
@@ -603,6 +670,7 @@
         lamp(s * 18, 1.4, z);
         break;
       case 'kitchen':
+        shadowPad(s * 20.6, z, 3.4, 10); shadowPad(s * 16.6, z, 4, 6.6);
         box(MAT.trim, s * 20.6, -3.4, z, 2.2, 3.2, 9);             // run of cabinets
         box(MAT.slate, s * 20.6, -1.75, z, 2.4, 0.18, 9.2);        // stone counter
         box(MAT.oak, s * 16.6, -3.9, z, 2.6, 2.2, 5);              // island
@@ -611,6 +679,7 @@
         for (i = -1; i <= 1; i += 2) { lamp(s * 16.6, -0.2, z + i * 1.4); }
         break;
       case 'hearth':                                               // fireplace
+        shadowPad(s * 21, z, 3, 7.6); shadowPad(s * 16.6, z - 2.2, 4, 4); shadowPad(s * 16.6, z + 2.2, 4, 4);
         box(MAT.trim, s * 21, -1.6, z, 1.2, 6.8, 6);
         box(MAT.slate, s * 20.6, -3.4, z, 0.6, 3.2, 3.4);
         box(MAT.shade, s * 20.4, -3.9, z, 0.2, 1.4, 2.6);          // the fire itself
@@ -724,8 +793,11 @@
     // out uniformly beige -- every surface the same value, which is exactly what
     // makes cheap 3D look cheap. Luxury here is contrast: dark corners, warm pools
     // of lamplight, and the fall-off between them. Let the lamps do the work.
-    scene.add(new THREE.AmbientLight(0xffe0b8, 0.26));
-    scene.add(new THREE.HemisphereLight(0xffeeda, 0x21150c, 0.30));
+    scene.add(new THREE.AmbientLight(0xffe0b8, 0.30));
+    // Ground colour is a warm bounce, not black: light hitting an oak floor bounces
+    // back up onto everything above it. Setting it near-black (as this first did)
+    // is physically wrong and makes the underside of every object read as a hole.
+    scene.add(new THREE.HemisphereLight(0xffeeda, 0x6b4a2a, 0.44));
     _lampLight = new THREE.PointLight(LAMP_HEX, 3.2, 26, 2);
     scene.add(_lampLight);
     // A second light rides just behind the camera. Without it you cast no presence
@@ -1438,7 +1510,9 @@
     // canvas's CSS box to match, so the projection and the render agree exactly.
     vw = document.documentElement.clientWidth || 1;
     vh = document.documentElement.clientHeight || 1;
-    dpr = Math.min(window.devicePixelRatio || 1, 1.25);
+    // Do not re-raise the cap if adaptive quality already dropped it to 1.0 --
+    // a resize would otherwise undo the very mitigation that made it smooth.
+    dpr = Math.min(window.devicePixelRatio || 1, _degraded ? 1.0 : 2);
     renderer.setPixelRatio(dpr); renderer.setSize(vw, vh, true);
     camera.aspect = vw / vh; camera.updateProjectionMatrix();
     material.uniforms.uPixelRatio.value = dpr;
@@ -1529,7 +1603,11 @@
     var sel = opts.canvas || '#cb9-canvas';
     canvas = (typeof sel === 'string') ? document.querySelector(sel) : sel;
     if (!canvas) { return false; }
-    try { renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: false, powerPreference: 'high-performance' }); }
+    // antialias ON, unlike Home 8. Home 8 can skip it: additive lines and points
+    // have no silhouettes to alias. A house is nothing but silhouettes -- every
+    // door casing, mantel and skirting is a hard straight edge, and unantialiased
+    // they crawl as the camera turns.
+    try { renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true, antialias: true, powerPreference: 'high-performance' }); }
     catch (e) { renderer = null; }
     if (!renderer) { return false; }
 
@@ -1537,9 +1615,19 @@
       _v = new THREE.Vector3(); _dir = new THREE.Vector3(); _out = new THREE.Vector3();
       _pv = new THREE.Vector3(); _fwd = new THREE.Vector3(); _mwi = new THREE.Matrix4();
       renderer.setClearColor(0x000000, 0);
+      // Filmic tone mapping. A physically-lit interior blows out around the lamps
+      // and crushes in the corners under Three's default linear-to-sRGB; ACES rolls
+      // the highlights off the way a camera does, which is most of the difference
+      // between "3D render" and "photograph of a room".
+      if (THREE.ACESFilmicToneMapping) { renderer.toneMapping = THREE.ACESFilmicToneMapping; }
+      renderer.toneMappingExposure = 1.15;
       vw = document.documentElement.clientWidth || 1;
       vh = document.documentElement.clientHeight || 1;
-      dpr = Math.min(window.devicePixelRatio || 1, 1.25);
+      // 1.25 -> 2. Home 8's cap is fine for glowing wireframe, where softness reads
+      // as bloom; here every straight edge in the room is a hard edge, and 1.25 on a
+      // 2x display renders them visibly stepped. The adaptive-quality pass still
+      // drops this to 1.0 if frame time suffers, so the cost is bounded.
+      dpr = Math.min(window.devicePixelRatio || 1, 2);
 
       scene = new THREE.Scene();
       camera = new THREE.PerspectiveCamera(FOV, vw / vh, 0.1, 160);
@@ -1592,7 +1680,19 @@
       // Plates live outside .cb9-page__body, so they start fetching immediately --
       // watch them now. Body images are picked up in revealBody().
       for (var pi = 0; pi < _pages.length; pi++) { watchImages(_pages[pi].el); }
-      if (window.CBCursor && window.CBCursor.init && !_capture) { try { window.CBCursor.init(); } catch (e2) {} }
+      // Only hide the native cursor if the custom one actually started.
+      //
+      // CBCursor.init() RETURNS FALSE when it bails (reduced-motion, coarse
+      // pointer, no body) and can also simply fail to load -- but the CSS hid the
+      // native cursor regardless, so any of those left you with NO cursor at all.
+      // Links stayed clickable the whole time; there was just nothing on screen to
+      // tell you so, which is indistinguishable from a dead page. Same principle as
+      // the image fade: an enhancement must never remove the thing it enhances.
+      if (window.CBCursor && window.CBCursor.init && !_capture) {
+        try {
+          if (window.CBCursor.init() === true) { document.documentElement.classList.add('cb9-cursor'); }
+        } catch (e2) {}
+      }
 
       scrollY = _capture ? captureScrollFor(_captureG) : (window.pageYOffset || 0);
       _g = computeG();
@@ -1673,5 +1773,7 @@
   window.CBHome9 = { init: init };
 
 })(window, document);
+
+
 
 
