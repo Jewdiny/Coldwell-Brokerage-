@@ -173,15 +173,36 @@
     [0.79, 0.66, 0.30], [1.00, 0.84, 0.52]
   ];
 
-  // ---- palette (BRAND.md + the two WebGL-only tokens from CONTRACT.md) ------
-  // CB Blue stays, but as upholstery and joinery rather than as the whole world.
-  // Gold #C9A84C and cream #F0EBE0 are the CONTRACT.md WebGL tokens; the warm
-  // woods and plaster below are new to Home 9 and exist nowhere in BRAND.md --
-  // they are set decoration, deliberately not brand colours.
-  var M_WALNUT = 0x4a3222, M_OAK = 0x8a6440, M_PLASTER = 0xefe7da, M_TRIM = 0xf7f3ec;
-  var M_BRASS = 0xc9a84c, M_CREAM = 0xf0ebe0, M_NAVY = 0x012169, M_SLATE = 0x1b3c55;
-  var M_LINEN = 0xd8cbb6, M_RUG = 0x6b3f3a, M_GLASS = 0x9fb6c9;
-  var LAMP_HEX = 0xffd9a0;   // every warm light and every glowing shade
+  // ---- palette: the house IS the brand -------------------------------------
+  // The first pass dressed the house in generic warm neutrals -- oatmeal plaster,
+  // taupe linen -- and it could have been any nice house. It read as luxurious and
+  // as nobody in particular. These are BRAND.md's actual values, and the house is
+  // now built out of them, so the brand is the architecture rather than a logo
+  // stuck on it.
+  //
+  // BRAND.md's own rule is the composition: "CB Blue + lots of white +
+  // Midnight/Slate for depth. Use Bright Blue + Celestial sparingly as energy
+  // accents." So: Icy Blue walls (lots of white), CB Blue on the one wall you
+  // stand and face, Mist wainscot, Slate stone, and gold -- which harness/
+  // palette.php proves is CB Blue's exact complement, to 2.6 degrees -- on
+  // everything that glows.
+  var M_ICY = 0xf0f5fb;      // BRAND.md Icy Blue    -- "off-white sections"
+  var M_GLACIER = 0xdae1e8;  // BRAND.md Glacier     -- "very light section backgrounds"
+  var M_MIST = 0xbecad7;     // BRAND.md Mist        -- "light backgrounds, hover states"
+  var M_TIDE = 0xb8cfea;     // BRAND.md Tide        -- "soft blue accents"
+  var M_SMOKY = 0x58718d;    // BRAND.md Smoky Gray  -- "secondary surfaces"
+  var M_NAVY = 0x012169;     // BRAND.md CB Blue     -- the signature
+  var M_SLATE = 0x1b3c55;    // BRAND.md Slate       -- "mid-tone navy"
+  var M_MIDNIGHT = 0x0a1730; // BRAND.md Midnight    -- "navy depth"
+  var M_TRIM = 0xffffff;     // BRAND.md White       -- "whitespace-first foundation"
+  var M_BRASS = 0xc9a84c;    // CONTRACT.md gold: CB Blue's complement
+  var M_CREAM = 0xf0ebe0;    // CONTRACT.md cream
+  // Floors stay wood: BRAND.md has no opinion on oak, and a blue floor would be a
+  // costume rather than a home. The warmth of the timber is what keeps a
+  // white-and-navy interior from going clinical.
+  var M_WALNUT = 0x4a3222, M_OAK = 0x8a6440;
+  var M_LINEN = M_GLACIER, M_GLASS = 0x9fb6c9;
+  var LAMP_HEX = 0xffe9c4;   // every warm light and every glowing shade
 
   // Resting screen offset per page, in CSS px AT READING DISTANCE. Baked into the
   // page's world anchor on resize (see sizePages), so it is a real position in the
@@ -405,10 +426,12 @@
   function texRug() {
     var c = document.createElement('canvas'); c.width = 128; c.height = 128;
     var g = c.getContext('2d'), i;
-    g.fillStyle = '#6b3f3a'; g.fillRect(0, 0, 128, 128);
-    g.strokeStyle = 'rgba(240,235,224,0.30)'; g.lineWidth = 3;
+    // CB Blue ground, cream border, gold keyline -- the brand's own three values,
+    // in the one object you look straight down at in every room.
+    g.fillStyle = '#012169'; g.fillRect(0, 0, 128, 128);
+    g.strokeStyle = 'rgba(240,235,224,0.42)'; g.lineWidth = 3;
     g.strokeRect(9, 9, 110, 110); g.strokeRect(19, 19, 90, 90);
-    g.strokeStyle = 'rgba(201,168,76,0.40)'; g.lineWidth = 2;
+    g.strokeStyle = 'rgba(201,168,76,0.65)'; g.lineWidth = 2;
     g.strokeRect(14, 14, 100, 100);
     for (i = 0; i < 900; i++) {                      // pile
       g.fillStyle = 'rgba(0,0,0,' + rand(0.02, 0.09).toFixed(3) + ')';
@@ -433,9 +456,11 @@
   function texPlaster() {
     var c = document.createElement('canvas'); c.width = 128; c.height = 128;
     var g = c.getContext('2d'), i;
-    g.fillStyle = '#efe7da'; g.fillRect(0, 0, 128, 128);
+    g.fillStyle = '#F0F5FB'; g.fillRect(0, 0, 128, 128);   // BRAND.md Icy Blue
     for (i = 0; i < 2400; i++) {                     // tooth, so it is not vinyl
-      g.fillStyle = 'rgba(120,96,68,' + rand(0.01, 0.05).toFixed(3) + ')';
+      // The tooth is Smoky Gray, not brown: speckling a brand off-white with warm
+      // grit is what quietly turned Icy Blue into oatmeal in the first pass.
+      g.fillStyle = 'rgba(88,113,141,' + rand(0.02, 0.07).toFixed(3) + ')';
       g.fillRect(rand(0, 128), rand(0, 128), 1, 1);
     }
     var t = new THREE.CanvasTexture(c);
@@ -469,7 +494,11 @@
     MAT.wall.map.repeat.set(4, 2);
     MAT.ceil = surf({ color: M_TRIM, roughness: 0.95 });
     MAT.trim = surf({ color: M_TRIM, roughness: 0.55 });   // painted joinery has a slight sheen
-    MAT.wains = surf({ color: M_LINEN, roughness: 0.7 });
+    MAT.wains = surf({ color: M_MIST, roughness: 0.7 });
+    // The one wall you stand and face, in the signature colour. BRAND.md's rule is
+    // "CB Blue + lots of white" -- so CB Blue is the accent the white is there to
+    // set off, not the wallpaper. Every room has exactly one.
+    MAT.accent = surf({ color: M_NAVY, roughness: 0.92 });
     MAT.walnut = surf({ color: M_WALNUT, roughness: 0.38 });
     MAT.oak = surf({ color: M_OAK, roughness: 0.5 });
     MAT.navy = surf({ color: M_NAVY, roughness: 0.85 });   // upholstery
@@ -662,7 +691,7 @@
 
     plane(MAT.floor, xMid, -HALL_Y, z, ROOM_D, 2 * ROOM_H, 'up');
     plane(MAT.ceil, xMid, HALL_Y, z, ROOM_D, 2 * ROOM_H, 'down');
-    plane(MAT.wall, xFar, 0, z, 2 * ROOM_H, 2 * HALL_Y, s > 0 ? '-x' : '+x');
+    plane(MAT.accent, xFar, 0, z, 2 * ROOM_H, 2 * HALL_Y, s > 0 ? '-x' : '+x');
     plane(MAT.wall, xMid, 0, z0, ROOM_D, 2 * HALL_Y, '+z');
     plane(MAT.wall, xMid, 0, z1, ROOM_D, 2 * HALL_Y, '-z');
 
@@ -859,11 +888,20 @@
     // out uniformly beige -- every surface the same value, which is exactly what
     // makes cheap 3D look cheap. Luxury here is contrast: dark corners, warm pools
     // of lamplight, and the fall-off between them. Let the lamps do the work.
-    scene.add(new THREE.AmbientLight(0xffe0b8, 0.30));
-    // Ground colour is a warm bounce, not black: light hitting an oak floor bounces
-    // back up onto everything above it. Setting it near-black (as this first did)
-    // is physically wrong and makes the underside of every object read as a hole.
-    scene.add(new THREE.HemisphereLight(0xffeeda, 0x6b4a2a, 0.44));
+    // The FILL is cool, the LAMPS are warm. That split is the whole trick.
+    //
+    // A warm ambient over Icy Blue walls renders them oatmeal -- which is exactly
+    // how the brand colour quietly disappeared in the first pass, and no amount of
+    // choosing a bluer wall would have fixed it, because the light was doing the
+    // tinting. Daylight fill is genuinely cool anyway, so this is not a cheat:
+    // the walls read as the brand's off-white, and the lamps still pool warm
+    // against them, which is what keeps a navy-and-white house from going clinical.
+    scene.add(new THREE.AmbientLight(0xdfe9f7, 0.34));
+    // Ground colour is the oak bouncing back up -- warm, and not black: light
+    // hitting a timber floor returns onto everything above it. Setting it
+    // near-black (as this first did) is physically wrong and makes the underside of
+    // every object read as a hole.
+    scene.add(new THREE.HemisphereLight(0xeef4fd, 0x6b4a2a, 0.46));
     _lampLight = new THREE.PointLight(LAMP_HEX, 3.2, 26, 2);
     scene.add(_lampLight);
     // A second light rides just behind the camera. Without it you cast no presence
@@ -871,9 +909,12 @@
     _handLight = new THREE.PointLight(0xffe3c0, 1.1, 20, 2);
     scene.add(_handLight);
 
-    // Warm fog does the work Home 8's depthFade did in the shaders: it hides the
-    // far end of the hallway and makes the house feel deep rather than finite.
-    scene.fog = new THREE.Fog(0x20140c, 10, 52);
+    // Fog does the work Home 8's depthFade did in the shaders: it hides the far end
+    // of the hallway and makes the house feel deep rather than finite. Midnight
+    // rather than the brown it started as -- BRAND.md gives Midnight as the depth
+    // colour ("dark hero overlays, footer, navy depth"), which is exactly this job,
+    // and brown haze over a navy-and-white interior just reads as dirt.
+    scene.fog = new THREE.Fog(M_MIDNIGHT, 10, 52);
 
     // The brand mark, hung as a small plaque rather than blazing across the hall.
     bakeMonogram(_monoStackUrl, ROOM[7].side * (HALL_X + ROOM_D - 0.34), -2.6, ROOM[7].z + 4.6, 1.6, yawFor(ROOM[7].side));

@@ -74,11 +74,12 @@
    1. Page field
    ------------------------------------------------------------------------- */
 /* The canvas is alpha:true, so this is what shows through wherever the house does
-   not. It must match home9.js's fog colour (0x20140c) or the far end of the
-   hallway fades into a seam instead of into darkness. Change one, change both. */
+   not. It must match home9.js's fog colour -- now BRAND.md Midnight #0A1730 -- or
+   the far end of the hallway fades into a seam instead of into depth. Change one,
+   change both. Slate -> Midnight is BRAND.md's own depth ramp. */
 body.cb-page--home9-preview {
   background: radial-gradient(130% 115% at 50% -8%,
-                #3a2517 0%, #2b1a10 34%, #20140c 62%, #150c07 100%) fixed;
+                #1B3C55 0%, #12283f 34%, #0A1730 62%, #060d1c 100%) fixed;
   color: var(--cb-cream, #F0EBE0);
 }
 
