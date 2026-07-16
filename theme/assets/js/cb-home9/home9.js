@@ -565,9 +565,29 @@
    *  The shade is unlit geometry; the actual PointLight is roved to the nearest
    *  of these each frame (see updateLights) so the light COUNT never changes --
    *  Three recompiles every material when it does, which would hitch mid-walk. */
-  function lamp(cx, cy, cz) {
-    cyl(MAT.brass, cx, cy - 0.5, cz, 0.06, 1.0);
-    cyl(MAT.brass, cx, cy - 1.0, cz, 0.28, 0.06);
+  /**
+   * A lamp. `cy` is the shade; the fitting reaches from there to whatever holds it
+   * up, and THAT is the part that has to be true.
+   *
+   * `standsOn` is the Y of the surface it sits on -- a tabletop, or the floor. The
+   * stem is drawn to reach it, however far that is, instead of being a fixed 1.0
+   * long and hoping. Every table lamp in the house was floating because of that
+   * assumption: the living-room lamp hung 1.8 units over bare floor, the entry
+   * lamp 2.4, and the study lamp was 0.6 UNDER its own desktop, buried in the desk.
+   *
+   * `pendant: true` hangs it from the ceiling instead, with the stem drawn to the
+   * actual ceiling height -- the kitchen's pendants were hanging from stems that
+   * stopped 2.1 units short of it, attached to nothing at all.
+   */
+  function lamp(cx, cy, cz, standsOn, pendant) {
+    var shadeTop = cy + 0.6, shadeBot = cy;
+    if (pendant) {
+      cyl(MAT.brass, cx, (HALL_Y + shadeTop) / 2, cz, 0.04, HALL_Y - shadeTop);
+    } else {
+      var base = (standsOn === undefined) ? -HALL_Y : standsOn;
+      cyl(MAT.brass, cx, (base + shadeBot) / 2, cz, 0.06, Math.max(0.05, shadeBot - base));
+      cyl(MAT.brass, cx, base + 0.03, cz, 0.28, 0.06);   // foot, ON the surface
+    }
     var shade = new THREE.Mesh(new THREE.CylinderGeometry(0.34, 0.5, 0.6, 14, 1, true), MAT.shade);
     shade.position.set(cx, cy + 0.3, cz);
     houseGroup.add(shade);
@@ -731,13 +751,16 @@
         for (i = -1; i <= 1; i += 2) { box(MAT.navy, s * 19, -2.9, z + i * 2.9, 3.4, 1.1, 0.5); }
         box(MAT.walnut, s * 15.5, -4.4, z, 2.2, 0.24, 3.6);        // coffee table
         for (i = 0; i < 4; i++) { box(MAT.walnut, s * (14.6 + (i % 2) * 1.8), -4.75, z + (i < 2 ? -1.4 : 1.4), 0.16, 0.7, 0.16); }
-        lamp(s * 21.4, -2.2, z - 4.4);
+        // side table, then the lamp ON it -- it used to hang 1.8 over bare floor
+        shadowPad(s * 21.4, z - 4.4, 2.2, 2.2);
+        box(MAT.walnut, s * 21.4, -4.1, z - 4.4, 1.3, 1.8, 1.3);   // top at y = -3.2
+        lamp(s * 21.4, -2.2, z - 4.4, -3.2);
         break;
       case 'gallery':                                              // console + vases
         shadowPad(s * 21, z, 3.2, 8.6);
         box(MAT.walnut, s * 21, -3.6, z, 1.1, 2.2, 7);
         for (i = -1; i <= 1; i++) { cyl(MAT.glass, s * 21, -2.1, z + i * 2.2, 0.26, 0.8); }
-        lamp(s * 21, -1.4, z + 4.6);
+        lamp(s * 21, -1.4, z + 4.6, -2.5);   // console top
         break;
       case 'study':
         shadowPad(s * 19, z, 4.4, 6.6); shadowPad(s * 21.4, z - 4.6, 2.6, 5);
@@ -746,7 +769,7 @@
         box(MAT.slate, s * 19, -3.2, z, 1.4, 0.9, 2.2);            // chair back
         box(MAT.oak, s * 21.4, -1.4, z - 4.6, 0.7, 7.2, 3.4);      // bookcase
         for (i = 0; i < 4; i++) { box(MAT.trim, s * 21.1, -4.2 + i * 1.8, z - 4.6, 0.1, 0.1, 3.2); }
-        lamp(s * 19.6, -3.2, z + 2);
+        lamp(s * 19.6, -2.7, z + 2, -3.57);   // desk top
         break;
       case 'entry':                                                // the front door
         shadowPad(s * 17, z + 4.4, 3, 4);
@@ -754,7 +777,9 @@
         box(MAT.brass, s * (HALL_X + ROOM_D - 0.55), -1, z + 1.3, 0.14, 0.14, 0.5);
         box(MAT.trim, s * (HALL_X + ROOM_D - 0.2), -1, z, 0.5, 8.7, 4.3);
         box(MAT.walnut, s * 17, -4.4, z + 4.4, 1.2, 1.2, 2.2);     // bench
-        lamp(s * 21, -1.6, z - 4.6);
+        shadowPad(s * 21, z - 4.6, 2, 3);
+        box(MAT.walnut, s * 21, -4.1, z - 4.6, 1.1, 1.8, 2.4);     // top at y = -3.2
+        lamp(s * 21, -2.2, z - 4.6, -3.2);
         break;
       case 'dining':
         shadowPad(s * 18, z, 6.6, 9.4);
@@ -764,8 +789,8 @@
           box(MAT.linen, s * (18 + i * 2.6), -4.1, z, 0.9, 1.1, 1.1);
           box(MAT.linen, s * (18 + i * 3.05), -3.1, z, 0.16, 1.9, 1.1);
         }
-        cyl(MAT.brass, s * 18, 3.4, z, 0.05, 3.2);                 // pendant
-        lamp(s * 18, 1.4, z);
+
+        lamp(s * 18, 1.4, z, null, true);   // pendant: stem drawn to the real ceiling
         break;
       case 'kitchen':
         shadowPad(s * 20.6, z, 3.4, 10); shadowPad(s * 16.6, z, 4, 6.6);
@@ -773,8 +798,8 @@
         box(MAT.slate, s * 20.6, -1.75, z, 2.4, 0.18, 9.2);        // stone counter
         box(MAT.oak, s * 16.6, -3.9, z, 2.6, 2.2, 5);              // island
         box(MAT.slate, s * 16.6, -2.75, z, 2.9, 0.2, 5.3);
-        for (i = -1; i <= 1; i += 2) { cyl(MAT.brass, s * 16.6, 1.6, z + i * 1.4, 0.04, 2.6); }
-        for (i = -1; i <= 1; i += 2) { lamp(s * 16.6, -0.2, z + i * 1.4); }
+
+        for (i = -1; i <= 1; i += 2) { lamp(s * 16.6, -0.2, z + i * 1.4, null, true); }
         break;
       case 'hearth':                                               // fireplace
         shadowPad(s * 21, z, 3, 7.6); shadowPad(s * 16.6, z - 2.2, 4, 4); shadowPad(s * 16.6, z + 2.2, 4, 4);
@@ -784,11 +809,13 @@
         box(MAT.walnut, s * 21, 1.9, z, 1.6, 0.34, 6.6);           // mantel
         box(MAT.navy, s * 16.6, -3.9, z - 2.2, 2.6, 1.5, 2.6);     // armchairs
         box(MAT.navy, s * 16.6, -3.9, z + 2.2, 2.6, 1.5, 2.6);
-        lamp(s * 20.4, -2.6, z);
+        shadowPad(s * 18.4, z, 2, 2);
+        box(MAT.walnut, s * 18.4, -4.2, z, 1.2, 1.6, 1.2);         // top at y = -3.4
+        lamp(s * 18.4, -2.4, z, -3.4);
         break;
       default:                                                     // foyer-ish
         box(MAT.walnut, s * 21, -3.6, z, 1, 2.2, 6);
-        lamp(s * 21, -1.4, z);
+        lamp(s * 21, -1.4, z, -2.5);   // console top
         break;
     }
   }
@@ -1887,6 +1914,7 @@
   window.CBHome9 = { init: init };
 
 })(window, document);
+
 
 
 
