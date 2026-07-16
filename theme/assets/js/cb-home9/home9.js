@@ -693,12 +693,20 @@
 
     // Architrave on both faces. You see the hallway side on approach and the room
     // side once you are through; casing only one face looks like a stage flat.
-    var faces = [xw - s * (half + 0.06), xw + s * (half + 0.06)];
+    //
+    // CASING_D is the whole point: it must stand PROUD of the wainscot, not level
+    // with it. Both were previously a 0.12 slab hung on the same wall face, so
+    // they occupied identical depth -- and where a casing leg crossed the wainscot
+    // the two coplanar surfaces fought for the same z, which is what flickered.
+    // Real casing is applied ON the wall and stands off it; nothing else in the
+    // house is allowed to share its plane.
+    var CASING_D = 0.22;                        // wainscot is 0.12 -- deeper, on purpose
+    var faces = [xw - s * (half + CASING_D / 2), xw + s * (half + CASING_D / 2)];
     for (var f = 0; f < 2; f++) {
       var xf = faces[f];
-      box(MAT.trim, xf, -HALL_Y + H / 2 + 0.1, z - W / 2 - 0.16, 0.12, H + 0.2, 0.44);
-      box(MAT.trim, xf, -HALL_Y + H / 2 + 0.1, z + W / 2 + 0.16, 0.12, H + 0.2, 0.44);
-      box(MAT.trim, xf, top + 0.12, z, 0.12, 0.44, W + 1.1);
+      box(MAT.trim, xf, -HALL_Y + H / 2 + 0.1, z - W / 2 - 0.16, CASING_D, H + 0.2, 0.44);
+      box(MAT.trim, xf, -HALL_Y + H / 2 + 0.1, z + W / 2 + 0.16, CASING_D, H + 0.2, 0.44);
+      box(MAT.trim, xf, top + 0.12, z, CASING_D, 0.44, W + 1.1);
     }
 
     box(MAT.oak, xw, -HALL_Y + 0.035, z, WALL_T + 0.3, 0.07, W);   // threshold
