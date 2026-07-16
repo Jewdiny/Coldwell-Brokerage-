@@ -526,6 +526,49 @@
     GEO.cyl = new THREE.CylinderGeometry(1, 1, 1, 12);
   }
 
+  /**
+   * A wall sconce: backplate, arm, tapered shade.
+   *
+   * The old one was two boxes placed for a wall that no longer exists. When the
+   * walls gained thickness (WALL_T), the hallway face moved from x=6.0 in to 5.75
+   * -- and the brass backplate, still sitting at 5.82, ended up INSIDE the wall.
+   * All that survived was the glowing shade, stuck to nothing, which is why they
+   * read as cards floating in mid-air.
+   *
+   * Everything is now measured from the wall FACE, so it cannot drift again if the
+   * wall changes: backplate straddling the face (half buried, so no coplanar
+   * z-fight), an arm reaching out of it, and the shade on the end of the arm.
+   */
+  function sconce(ss, z) {
+    var face = ss * (HALL_X - WALL_T / 2);   // the plaster you mount it on
+    var out = function (d) { return face - ss * d; };   // d units into the hallway
+
+    box(MAT.brass, out(0.02), 1.25, z, 0.1, 1.05, 0.34);   // backplate, on the wall
+    box(MAT.brass, out(0.06), 1.78, z, 0.06, 0.1, 0.42);   // its cap
+    box(MAT.brass, out(0.2), 1.62, z, 0.34, 0.07, 0.07);   // arm reaching out
+    cyl(MAT.brass, out(0.36), 1.5, z, 0.035, 0.3);         // riser to the shade
+
+    var shade = new THREE.Mesh(new THREE.CylinderGeometry(0.19, 0.3, 0.42, 14, 1, true), MAT.shade);
+    shade.position.set(out(0.36), 1.86, z);
+    houseGroup.add(shade);
+
+    _lampPts.push(new THREE.Vector3(out(0.5), 1.86, z));
+  }
+
+  /**
+   * A floor lamp: it brings its own stand, so it needs no table and cannot end up
+   * hovering over one that is not there.
+   */
+  function floorLamp(cx, cz) {
+    shadowPad(cx, cz, 1.7, 1.7);
+    cyl(MAT.brass, cx, -HALL_Y + 0.05, cz, 0.34, 0.1);     // weighted base, ON the floor
+    cyl(MAT.brass, cx, -HALL_Y + 1.75, cz, 0.05, 3.3);     // column
+    var shade = new THREE.Mesh(new THREE.CylinderGeometry(0.44, 0.6, 0.72, 16, 1, true), MAT.shade);
+    shade.position.set(cx, -HALL_Y + 3.75, cz);
+    houseGroup.add(shade);
+    _lampPts.push(new THREE.Vector3(cx, -HALL_Y + 3.65, cz));
+  }
+
   /** Contact shadow on the floor, just above it. */
   function shadowPad(cx, cz, w, d) {
     var m = new THREE.Mesh(GEO.plane, MAT.shadow);
@@ -764,10 +807,7 @@
         for (i = -1; i <= 1; i += 2) { box(MAT.navy, s * 19, -2.9, z + i * 2.9, 3.4, 1.1, 0.5); }
         box(MAT.walnut, s * 15.5, -4.4, z, 2.2, 0.24, 3.6);        // coffee table
         for (i = 0; i < 4; i++) { box(MAT.walnut, s * (14.6 + (i % 2) * 1.8), -4.75, z + (i < 2 ? -1.4 : 1.4), 0.16, 0.7, 0.16); }
-        // side table, then the lamp ON it -- it used to hang 1.8 over bare floor
-        shadowPad(s * 21.4, z - 4.4, 2.2, 2.2);
-        box(MAT.walnut, s * 21.4, -4.1, z - 4.4, 1.3, 1.8, 1.3);   // top at y = -3.2
-        lamp(s * 21.4, -2.2, z - 4.4, -3.2);
+        floorLamp(s * 21.4, z - 4.4);   // brings its own stand
         break;
       case 'gallery':                                              // console + vases
         shadowPad(s * 21, z, 3.2, 8.6);
@@ -887,10 +927,7 @@
     // Sconces down the hallway -- the reason it is lit at all.
     for (z = HALL_Z0 - 4; z > HALL_Z1 + 2; z -= 8) {
       for (sIdx = 0; sIdx < 2; sIdx++) {
-        var ss = sides[sIdx];
-        box(MAT.brass, ss * (HALL_X - 0.18), 1.4, z, 0.12, 0.5, 0.5);
-        box(MAT.shade, ss * (HALL_X - 0.42), 1.75, z, 0.36, 0.5, 0.36);
-        _lampPts.push(new THREE.Vector3(ss * (HALL_X - 0.8), 1.8, z));
+        sconce(sides[sIdx], z);
       }
     }
   }
@@ -1940,6 +1977,7 @@
   window.CBHome9 = { init: init };
 
 })(window, document);
+
 
 
 
