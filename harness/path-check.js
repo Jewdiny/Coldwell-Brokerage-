@@ -1,13 +1,26 @@
 ﻿/*
- * Samples the REAL poseAt() out of home8.js and checks the walk is actually
+ * Samples the REAL poseAt() out of the engine and checks the walk is actually
  * smooth. Screenshots prove the poses; only this proves the motion between them.
+ *
+ *   node harness/path-check.js        # Home 8 (blueprint) -- the default
+ *   node harness/path-check.js 9      # Home 9 (the house)
+ *
+ * Home 8 and Home 9 are the same walk through two different worlds, so BOTH must
+ * pass and both must give the SAME numbers. If they ever diverge, someone fixed a
+ * pose bug in one engine and not the other.
  *
  * The functions are private to the IIFE, so rather than re-typing them here (which
  * would test my transcription, not the shipping file) this brace-matches them out
  * of the source and evals that exact text.
  */
 const fs = require('fs');
-const SRC = fs.readFileSync(require('path').join(__dirname, '..', 'theme', 'assets', 'js', 'cb-home8', 'home8.js'), 'utf8');
+const path = require('path');
+const VARIANT = (process.argv[2] || '8').trim() === '9' ? 9 : 8;
+const ENGINE = VARIANT === 9
+  ? path.join(__dirname, '..', 'theme', 'assets', 'js', 'cb-home9', 'home9.js')
+  : path.join(__dirname, '..', 'theme', 'assets', 'js', 'cb-home8', 'home8.js');
+console.log('engine: home' + VARIANT + '\n');
+const SRC = fs.readFileSync(ENGINE, 'utf8');
 
 function grabFn(name) {
   const i = SRC.indexOf('function ' + name + '(');

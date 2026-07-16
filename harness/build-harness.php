@@ -1,8 +1,15 @@
-<?php
+﻿<?php
 /**
- * Generates harness/cb-home8-harness.html from the REAL partial.
+ * Generates a standalone harness from the REAL partial, for either variant.
  *
- *   php harness/build-harness.php
+ *   php harness/build-harness.php          # Home 8 (blueprint) -- the default
+ *   php harness/build-harness.php 9        # Home 9 (the house)
+ *   php harness/build-harness.php all      # both
+ *
+ * Home 8 and Home 9 are the same walk through two different worlds, so they share
+ * one generator rather than two that drift apart. Everything that differs between
+ * them lives in $VARIANTS below; if you find yourself adding an `if ($n === 9)`
+ * anywhere else, it probably belongs there instead.
  *
  * WHY THIS IS GENERATED
  * ---------------------
@@ -30,6 +37,52 @@
  */
 
 $repo = dirname(__DIR__);
+
+/**
+ * Everything that differs between the two variants. The walk, the pages, the
+ * cards and the content are identical -- only the world and its palette change.
+ */
+$VARIANTS = [
+    8 => [
+        'ns'      => 'cb8',
+        'partial' => 'theme/template-parts/home8-pages-scenes.php',
+        'css'     => '../theme/assets/css/cb-home8.css',
+        'engine'  => '../theme/assets/js/cb-home8/home8.js',
+        'global'  => 'CBHome8',
+        'out'     => 'cb-home8-harness.html',
+        'title'   => 'CB Home 8 -- Floating Pages harness',
+        'badge'   => 'Home 8 harness',
+        'body'    => 'cb-page--home cb-page--home8-preview',
+        // Home 8's brand tokens are the cool set; the page field is navy.
+        'field'   => 'radial-gradient(130% 115% at 50% -5%, #16409c 0%, #0c2a72 30%, #071c52 58%, #040c2c 100%) fixed',
+        'ink'     => '#fff',
+        'accent'  => 'var(--cb-bright-blue)',
+        'basePath' => null,
+    ],
+    9 => [
+        'ns'      => 'cb9',
+        'partial' => 'theme/template-parts/home9-house-scenes.php',
+        'css'     => '../theme/assets/css/cb-home9.css',
+        'engine'  => '../theme/assets/js/cb-home9/home9.js',
+        'global'  => 'CBHome9',
+        'out'     => 'cb-home9-harness.html',
+        'title'   => 'CB Home 9 -- The House harness',
+        'badge'   => 'Home 9 harness',
+        'body'    => 'cb-page--home cb-page--home9-preview',
+        // Must match home9.js's fog (0x20140c) -- see cb-home9.css.
+        'field'   => 'radial-gradient(130% 115% at 50% -8%, #3a2517 0%, #2b1a10 34%, #20140c 62%, #150c07 100%) fixed',
+        'ink'     => 'var(--cb-cream)',
+        'accent'  => 'var(--cb-gold)',
+        // Home 9 hangs Home 2's plates as framed art on the room walls.
+        'basePath' => '../theme/assets/images/webgl/',
+    ],
+];
+
+$arg = isset($argv[1]) ? strtolower($argv[1]) : '8';
+$which = ($arg === 'all') ? [8, 9] : [(int) $arg];
+foreach ($which as $n) {
+    if (!isset($VARIANTS[$n])) { fwrite(STDERR, "unknown variant: $n\n"); exit(1); }
+}
 
 define('ABSPATH', __DIR__);
 define('CB_THEME_URI', '../theme');   // resolves from harness/ on disk
@@ -98,7 +151,7 @@ function do_shortcode($s) {
             ['$1,150,000', '700 Concho River Walk',   '6 bd &middot; 5 ba &middot; 5,200 sqft', 'Featured',  'alt-river-42.jpg'],
             ['$225,000',   '108 Christoval Lane',     '3 bd &middot; 1 ba &middot; 1,320 sqft', 'Price cut', 'alt-fortconcho.jpg'],
         ];
-        $out = '<div class="cb8-grid cb8-grid--3">';
+        $out = '<div class="' . $GLOBALS['NS'] . '-grid ' . $GLOBALS['NS'] . '-grid--3">';
         foreach ($rows as $r) {
             $out .= '<article class="h-listing">'
                   . '<div class="h-listing__img" data-tag="' . $r[3] . '">'
@@ -143,24 +196,20 @@ class WP_Query {
     public function the_post() { $GLOBALS['h_i']++; }
 }
 
-ob_start();
-require $repo . '/theme/template-parts/home8-pages-scenes.php';
-$partial = ob_get_clean();
-
 $head = <<<'HTML'
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CB Home 8 -- Floating Pages harness</title>
+<title>{{TITLE}}</title>
 
 <!--
   GENERATED FILE -- do not hand-edit.
-    Source : theme/template-parts/home8-pages-scenes.php
-    Rebuild: php harness/build-harness.php
+    Source : {{PARTIAL}}
+    Rebuild: php harness/build-harness.php {{N}}
 
-  Standalone harness for the Home 8 floating-pages engine. Open directly: no
+  Standalone harness for the {{TITLE}} engine. Open directly: no
   build, no server, no WordPress. The markup below IS the shipping partial, with
   WordPress stubbed and the two live shortcodes ([cb_listings],
   [cb_testimonials]) swapped for static stand-ins.
@@ -182,7 +231,7 @@ $head = <<<'HTML'
   monogram signage.
 -->
 
-<link rel="stylesheet" href="../theme/assets/css/cb-home8.css">
+<link rel="stylesheet" href="{{CSS}}">
 
 <style>
   /* Minimal stand-in for cb-legacy-style: only the tokens cb-home8.css consumes.
@@ -200,6 +249,11 @@ $head = <<<'HTML'
     --cb-bright-blue: #1F69FF;
     --cb-celestial: #418FDE;
     --cb-white: #fff;
+    /* Home 9 set decoration -- deliberately NOT brand tokens. Gold and cream are
+       CONTRACT.md's two WebGL-only values; the woods are new to Home 9. */
+    --cb-gold: #C9A84C;
+    --cb-cream: #F0EBE0;
+    --cb-walnut: #2B1A10;
     --font-heading: 'Familjen Grotesk', 'Segoe UI', system-ui, sans-serif;
     --font-subheader: 'Josefin Sans', 'Segoe UI', system-ui, sans-serif;
     --font-body: Roboto, 'Segoe UI', system-ui, sans-serif;
@@ -207,7 +261,7 @@ $head = <<<'HTML'
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
-  body { font-family: var(--font-body); }
+  body { font-family: var(--font-body); background: {{FIELD}}; color: {{INK}}; }
 
   .cb-btn {
     display: inline-block; padding: .75rem 1.4rem; border-radius: 10px;
@@ -215,7 +269,7 @@ $head = <<<'HTML'
     letter-spacing: .08em; text-transform: uppercase; text-decoration: none;
     border: 1px solid transparent; cursor: pointer;
   }
-  .cb-btn--primary { background: var(--cb-bright-blue); color: #fff; }
+  .cb-btn--primary { background: {{ACCENT}}; color: #fff; }
   .cb-btn--primary:hover { background: #1257e0; }
   .cb-btn--outline { background: transparent; color: #fff; border-color: rgba(255,255,255,.45); }
   .cb-btn--outline:hover { border-color: #fff; }
@@ -239,19 +293,19 @@ $head = <<<'HTML'
   .h-listing__img img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .h-listing__img::after {
     content: attr(data-tag); position: absolute; z-index: 1; left: .5rem; top: .5rem;
-    background: var(--cb-bright-blue); color: #fff; font-size: .58rem; font-weight: 700;
+    background: {{ACCENT}}; color: #fff; font-size: .58rem; font-weight: 700;
     letter-spacing: .08em; text-transform: uppercase; padding: .18rem .45rem; border-radius: 4px;
   }
   .h-listing__body { padding: .7rem; }
   .h-listing__price { font-family: var(--font-heading); font-weight: 700; font-size: 1rem; color: #fff; }
   .h-listing__addr { font-size: .76rem; color: rgba(255,255,255,.7); margin-top: .15rem; }
-  .h-listing__meta { font-size: .68rem; color: var(--cb-tide); margin-top: .4rem; letter-spacing: .04em; }
+  .h-listing__meta { font-size: .68rem; color: {{ACCENT}}; margin-top: .4rem; letter-spacing: .04em; }
 
   /* Stand-in for [cb_testimonials type="rotator"]. */
   .h-quote { color: #fff; margin: 0; }
   .h-quote__stars { color: #C9A84C; letter-spacing: .15em; }
   .h-quote__text { font-family: var(--font-accent); font-style: italic; font-size: 1rem; line-height: 1.5; margin: .5rem 0 .4rem; }
-  .h-quote__who { font-size: .74rem; color: var(--cb-tide); letter-spacing: .06em; text-transform: uppercase; }
+  .h-quote__who { font-size: .74rem; color: {{ACCENT}}; letter-spacing: .06em; text-transform: uppercase; }
 
   /* Harness-only badge so a screenshot is never mistaken for the real page. */
   .h-badge {
@@ -263,7 +317,7 @@ $head = <<<'HTML'
   }
 </style>
 </head>
-<body class="cb-page--home cb-page--home8-preview">
+<body class="{{BODY}}">
 
 <header class="cb-header">
   <img class="cb-header__logo-img" src="../theme/assets/images/logos/monogram-horizontal.svg" alt="Coldwell Banker Legacy">
@@ -276,17 +330,17 @@ $tail = <<<'HTML'
   Coldwell Banker Legacy &middot; harness build &middot; not a live page
 </footer>
 
-<div class="h-badge">Home 8 harness</div>
+<div class="h-badge">{{BADGE}}</div>
 
 <!-- Load order is a hard contract (CONTRACT.md): three -> cursor -> motion -> engine.
-     Motion is optional; home8.js falls back to CSS keyframes + rAF counters. -->
+     Motion is optional; the engine falls back to CSS keyframes + rAF counters. -->
 <script src="../theme/assets/js/vendor/three.min.js"></script>
 <script src="../theme/assets/js/cb-webgl/cursor.js"></script>
 <script src="../theme/assets/js/vendor/motion.js"></script>
-<script src="../theme/assets/js/cb-home8/home8.js"></script>
+<script src="{{ENGINE}}"></script>
 <script>
 (function () {
-  // Mirrors deploy/cb-home8-preview.php's gate, so the harness tests the same
+  // Mirrors the variant's deploy/ loader gate, so the harness tests the same
   // three conditions the real page ships with. Capture mode bypasses it: a
   // headless window passes anyway, but an explicit bypass means a failed
   // screenshot is never silently a gate problem.
@@ -301,15 +355,15 @@ $tail = <<<'HTML'
   } catch (e) { ok = false; }
 
   if (!ok) {
-    if (window.console) { console.info('[cb8 harness] gated off -- showing the flat fallback. Correct below 1025px, on touch, or with reduced-motion.'); }
+    if (window.console) { console.info('[{{NS}} harness] gated off -- showing the flat fallback. Correct below 1025px, on touch, or with reduced-motion.'); }
     return;
   }
-  if (!window.CBHome8) {
-    if (window.console) { console.error('[cb8 harness] home8.js did not load.'); }
+  if (!window.{{GLOBAL}}) {
+    if (window.console) { console.error('[{{NS}} harness] engine did not load.'); }
     return;
   }
-  window.CBHome8.init({
-    canvas: '#cb8-canvas',
+  window.{{GLOBAL}}.init({
+    canvas: '#{{NS}}-canvas',{{BASEPATH}}
     monogram: '../theme/assets/images/logos/monogram.svg',
     monogramStacked: '../theme/assets/images/logos/monogram-vertical-stacked.svg'
   });
@@ -319,8 +373,36 @@ $tail = <<<'HTML'
 </html>
 HTML;
 
-$out = $head . "\n" . $partial . $tail;
-$dest = __DIR__ . '/cb-home8-harness.html';
-file_put_contents($dest, $out);
+foreach ($which as $n) {
+    $V = $VARIANTS[$n];
+    $GLOBALS['NS'] = $V['ns'];
+    $GLOBALS['h_i'] = -1;          // rewind the stubbed blog loop for each variant
 
-printf("wrote %s (%d bytes, partial %d bytes)\n", $dest, strlen($out), strlen($partial));
+    ob_start();
+    require $repo . '/' . $V['partial'];
+    $partial = ob_get_clean();
+
+    $basePath = $V['basePath'] ? ("\n    basePath: '" . $V['basePath'] . "',") : '';
+    $subs = [
+        '{{TITLE}}'    => $V['title'],
+        '{{PARTIAL}}'  => $V['partial'],
+        '{{N}}'        => (string) $n,
+        '{{CSS}}'      => $V['css'],
+        '{{ENGINE}}'   => $V['engine'],
+        '{{GLOBAL}}'   => $V['global'],
+        '{{BODY}}'     => $V['body'],
+        '{{BADGE}}'    => $V['badge'],
+        '{{NS}}'       => $V['ns'],
+        '{{FIELD}}'    => $V['field'],
+        '{{INK}}'      => $V['ink'],
+        '{{ACCENT}}'   => $V['accent'],
+        '{{BASEPATH}}' => $basePath,
+    ];
+    $page = strtr($head, $subs) . "\n" . $partial . strtr($tail, $subs);
+
+    $dest = __DIR__ . '/' . $V['out'];
+    file_put_contents($dest, $page);
+    printf("wrote %s (%d bytes, partial %d bytes)\n", $V['out'], strlen($page), strlen($partial));
+}
+
+

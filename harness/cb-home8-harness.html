@@ -8,9 +8,9 @@
 <!--
   GENERATED FILE -- do not hand-edit.
     Source : theme/template-parts/home8-pages-scenes.php
-    Rebuild: php harness/build-harness.php
+    Rebuild: php harness/build-harness.php 8
 
-  Standalone harness for the Home 8 floating-pages engine. Open directly: no
+  Standalone harness for the CB Home 8 -- Floating Pages harness engine. Open directly: no
   build, no server, no WordPress. The markup below IS the shipping partial, with
   WordPress stubbed and the two live shortcodes ([cb_listings],
   [cb_testimonials]) swapped for static stand-ins.
@@ -50,6 +50,11 @@
     --cb-bright-blue: #1F69FF;
     --cb-celestial: #418FDE;
     --cb-white: #fff;
+    /* Home 9 set decoration -- deliberately NOT brand tokens. Gold and cream are
+       CONTRACT.md's two WebGL-only values; the woods are new to Home 9. */
+    --cb-gold: #C9A84C;
+    --cb-cream: #F0EBE0;
+    --cb-walnut: #2B1A10;
     --font-heading: 'Familjen Grotesk', 'Segoe UI', system-ui, sans-serif;
     --font-subheader: 'Josefin Sans', 'Segoe UI', system-ui, sans-serif;
     --font-body: Roboto, 'Segoe UI', system-ui, sans-serif;
@@ -57,7 +62,7 @@
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
-  body { font-family: var(--font-body); }
+  body { font-family: var(--font-body); background: radial-gradient(130% 115% at 50% -5%, #16409c 0%, #0c2a72 30%, #071c52 58%, #040c2c 100%) fixed; color: #fff; }
 
   .cb-btn {
     display: inline-block; padding: .75rem 1.4rem; border-radius: 10px;
@@ -95,13 +100,13 @@
   .h-listing__body { padding: .7rem; }
   .h-listing__price { font-family: var(--font-heading); font-weight: 700; font-size: 1rem; color: #fff; }
   .h-listing__addr { font-size: .76rem; color: rgba(255,255,255,.7); margin-top: .15rem; }
-  .h-listing__meta { font-size: .68rem; color: var(--cb-tide); margin-top: .4rem; letter-spacing: .04em; }
+  .h-listing__meta { font-size: .68rem; color: var(--cb-bright-blue); margin-top: .4rem; letter-spacing: .04em; }
 
   /* Stand-in for [cb_testimonials type="rotator"]. */
   .h-quote { color: #fff; margin: 0; }
   .h-quote__stars { color: #C9A84C; letter-spacing: .15em; }
   .h-quote__text { font-family: var(--font-accent); font-style: italic; font-size: 1rem; line-height: 1.5; margin: .5rem 0 .4rem; }
-  .h-quote__who { font-size: .74rem; color: var(--cb-tide); letter-spacing: .06em; text-transform: uppercase; }
+  .h-quote__who { font-size: .74rem; color: var(--cb-bright-blue); letter-spacing: .06em; text-transform: uppercase; }
 
   /* Harness-only badge so a screenshot is never mistaken for the real page. */
   .h-badge {
@@ -610,14 +615,14 @@
 <div class="h-badge">Home 8 harness</div>
 
 <!-- Load order is a hard contract (CONTRACT.md): three -> cursor -> motion -> engine.
-     Motion is optional; home8.js falls back to CSS keyframes + rAF counters. -->
+     Motion is optional; the engine falls back to CSS keyframes + rAF counters. -->
 <script src="../theme/assets/js/vendor/three.min.js"></script>
 <script src="../theme/assets/js/cb-webgl/cursor.js"></script>
 <script src="../theme/assets/js/vendor/motion.js"></script>
 <script src="../theme/assets/js/cb-home8/home8.js"></script>
 <script>
 (function () {
-  // Mirrors deploy/cb-home8-preview.php's gate, so the harness tests the same
+  // Mirrors the variant's deploy/ loader gate, so the harness tests the same
   // three conditions the real page ships with. Capture mode bypasses it: a
   // headless window passes anyway, but an explicit bypass means a failed
   // screenshot is never silently a gate problem.
@@ -636,7 +641,7 @@
     return;
   }
   if (!window.CBHome8) {
-    if (window.console) { console.error('[cb8 harness] home8.js did not load.'); }
+    if (window.console) { console.error('[cb8 harness] engine did not load.'); }
     return;
   }
   window.CBHome8.init({

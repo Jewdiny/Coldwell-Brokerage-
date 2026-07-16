@@ -1,0 +1,648 @@
+﻿/* =========================================================================
+   cb-home9.css -- Coldwell Banker "The House" (Home 9 preview)
+
+   Home 8's stylesheet, warmed. Home 8 (cb-home8.css) is UNCHANGED and still
+   ships; this is a sibling. The structure is identical on purpose -- same page
+   geometry box, same four-layer ownership, same inverted polarity, same flat
+   fallback. What differs is entirely palette and glass.
+
+   WHY THE CARDS CHANGED
+   ---------------------
+   Home 8's cards are semi-opaque NAVY over a navy wireframe void. Reuse them here
+   and the effect collapses: navy glass over a lamplit oak room reads as a cold
+   rectangle pasted onto a warm photograph -- the one thing that would give away
+   that the room is a backdrop rather than somewhere you are standing. So the glass
+   is warm here: cream and linen, brass hairlines, shadows that fall like lamplight
+   rather than like a HUD.
+
+   The brand does not bend for this. CB Blue is still CB Blue and the lockup is
+   untouched (BRAND.md 5/9); it moves from being the whole field to being the
+   accent it is specified as -- "CB Blue + lots of white ... use Bright Blue +
+   Celestial sparingly as energy accents".
+   ------------------------------------------------------------------------- */
+
+/* Original Home 8 header follows, since every structural rule below is its:
+
+   cb-home8.css -- Coldwell Banker "Floating Pages" (Home 8 preview)
+
+   Home 2's content, Home 5/7's hallway camera, and the layer Home 7's template
+   docblock promised but never built: each section is a PAGE that floats in the
+   corridor and zooms as you scroll to it. Tall live content (MLS grid,
+   testimonials) scrolls INSIDE its page; the document drives the camera, so an
+   inner scroller absorbing a gesture freezes the camera for exactly as long as
+   the reading takes, then chains back natively. No wheel listener anywhere.
+
+   THE PAGE IS A TRANSPARENT CONTAINER -- READ THIS BEFORE EDITING
+   ---------------------------------------------------------------
+   The first cut made each page one big opaque glass box with a full-bleed photo
+   backdrop. It hid the corridor, which is the whole point of the hallway. So the
+   page is now FRAMELESS: it carries no background, border or shadow. What you see
+   floating is Home 7's discrete glass CARDS, with the wireframe corridor and dust
+   reading through the gaps between them. The page is only a geometry box -- an
+   invisible thing that positions, scales and fades a cluster of cards as one.
+
+   Consequences worth knowing before you "improve" something:
+   - There is no scrim element. Over a frameless page a full-cover scrim would
+     darken a visible rectangle hanging in the corridor. Depth-of-field is opacity
+     on .cb9-page__skin, which fades the whole cluster with nothing to give it away.
+   - The plate (Home 2's scene still) is masked to feather its edges for the same
+     reason: an unmasked image is a rectangle, and a rectangle breaks the illusion.
+   - Cards, not the page, own the glass. Put a background on .cb9-page__skin and
+     you are back to the big box.
+
+   POLARITY IS INVERTED FROM HOME 7
+   --------------------------------
+   The flat Home 2 layout is the DEFAULT. Every floating rule nests under
+   html.cb9-on, which home8.js adds only after WebGL starts and all three gates
+   pass (>=1025px, no reduced-motion, fine pointer).
+
+   Home 7 degraded the other way -- `transform: none` under reduced-motion. That
+   cannot work here: with eight position:fixed pages it does not flatten them, it
+   stacks all eight on top of each other in the viewport, permanently. The float
+   layout is STRUCTURALLY incompatible with the flat one, so it has to be a layout
+   switch, not an override. One switch then covers reduced-motion, <1025px, coarse
+   pointer, no-JS, and JS-threw-an-exception.
+
+   Corollary: a rule that only makes sense while floating belongs under
+   html.cb9-on. If you are writing an "undo" rule, it is in the wrong block.
+
+   No backdrop-filter -- a semi-opaque navy fill gives the frosted look without
+   re-blurring every frame (smoothness lesson carried from Home 3/5/7).
+   ========================================================================= */
+
+/* -------------------------------------------------------------------------
+   1. Page field
+   ------------------------------------------------------------------------- */
+/* The canvas is alpha:true, so this is what shows through wherever the house does
+   not. It must match home9.js's fog colour (0x20140c) or the far end of the
+   hallway fades into a seam instead of into darkness. Change one, change both. */
+body.cb-page--home9-preview {
+  background: radial-gradient(130% 115% at 50% -8%,
+                #3a2517 0%, #2b1a10 34%, #20140c 62%, #150c07 100%) fixed;
+  color: var(--cb-cream, #F0EBE0);
+}
+
+.cb9-stage { position: relative; }
+
+/* home8.js sets the canvas's CSS box via renderer.setSize(.., true) from
+   documentElement.clientWidth/Height -- deliberately NOT 100vw, which includes
+   the scrollbar and would put every page ~15px off the corridor's axis. */
+#cb9-canvas, .cb9-vignette { display: none; }
+html.cb9-on #cb9-canvas {
+  display: block;
+  position: fixed;
+  top: 0; left: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+html.cb9-on .cb9-vignette {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  /* Warm, and weaker than Home 8's. A dark vignette over lamplight reads as a
+     lens; over a navy void it read as depth. */
+  background: radial-gradient(125% 105% at 50% 45%, transparent 48%, rgba(20, 10, 4, .42) 100%);
+}
+
+html.cb9-on .cb-footer {
+  position: relative;
+  z-index: 3;
+  background: var(--cb-walnut, #2B1A10);
+}
+
+html.cb9-on, html.cb9-on * { cursor: none; }
+@media (prefers-reduced-motion: reduce) { html.cb9-on, html.cb9-on * { cursor: auto; } }
+@media (pointer: coarse) { html.cb9-on, html.cb9-on * { cursor: auto; } }
+
+/* -------------------------------------------------------------------------
+   2. Spacers.
+
+   FLAT: empty, zero height -- the pages carry the content and flow normally.
+
+   FLOATING: authored constant heights that drive the camera. These heights have
+   NO relationship to content length, and that is deliberate: it is what buys
+   zero layout reads per frame (home8.js caches offsets + ResizeObserver).
+   Do NOT "fix" them to track content -- inner scrollers absorb length instead.
+   ------------------------------------------------------------------------- */
+.cb9-section { height: auto; }
+/* Raised from 140vh: a section now has to fit backing out of a room, gliding the
+   hallway, turning, and stepping into the next one. At 140vh the whole arc got
+   ~95vh of scroll and read as hurried. This is the pacing dial for the walk --
+   taller is slower and calmer, and it costs nothing but page height. */
+html.cb9-on .cb9-section { height: 165vh; }
+html.cb9-on .cb9-section--hero { height: 190vh; }
+
+/* -------------------------------------------------------------------------
+   3. Page stage + geometry box
+   ------------------------------------------------------------------------- */
+.cb9-pages { display: contents; }
+html.cb9-on .cb9-pages {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+/* FLAT: an ordinary stacked section. */
+.cb9-page {
+  position: relative;
+  width: auto;
+  max-width: 1160px;
+  margin: 0 auto;
+  padding: clamp(3rem, 8vh, 5rem) 1.5rem;
+}
+
+/* FLOATING: the geometry box, and nothing else. home8.js owns `transform` here;
+   nothing else may write it. Centred by inset+margin:auto against definite
+   width/height (both set inline on resize), so transform-origin stays 50% 50%. */
+html.cb9-on .cb9-page {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  max-width: none;
+  padding: 0;
+  pointer-events: auto;
+  transform-origin: 50% 50%;
+  backface-visibility: hidden;
+}
+
+/* Reset the inline styles home8.js writes, in case init throws after it has
+   already sized the pages. Without this the flat fallback inherits a 1100x720
+   box and an absolute position, i.e. it is not a fallback at all. */
+html:not(.cb9-on) .cb9-page {
+  position: relative !important;
+  width: auto !important;
+  height: auto !important;
+  transform: none !important;
+  visibility: visible !important;
+  z-index: auto !important;
+  will-change: auto !important;
+}
+html:not(.cb9-on) .cb9-page__skin { opacity: 1 !important; filter: none !important; }
+
+.cb9-page__float { position: relative; }
+html.cb9-on .cb9-page__float { width: 100%; height: 100%; }
+
+/* Transparent. The cards are the glass; this is just what fades. */
+.cb9-page__skin { position: relative; }
+html.cb9-on .cb9-page__skin { width: 100%; height: 100%; }
+
+/* -------------------------------------------------------------------------
+   4. Home 2's scene plate -- atmosphere, not backdrop.
+
+   These are the graded 2K stills Home 2 uses as WebGL textures
+   (webgl/01-arrival.jpg .. 08-connect.jpg); Home 7's wireframe fork dropped them
+   entirely. Here they come back at low opacity behind the cards, masked so they
+   have no hard edge: Home 2's imagery is present as atmosphere while the corridor
+   stays the dominant read. Raise the opacity and you re-bury the hallway.
+
+   Eager, not lazy: a fixed page always intersects the viewport, so loading="lazy"
+   would fire for all 8 immediately anyway. Home 2 loads all 8 as textures, so
+   this is no worse than the variant it inherits from.
+   ------------------------------------------------------------------------- */
+.cb9-page__plate {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+  opacity: .16;          /* flat/no-JS: no fade, just present */
+  border-radius: 24px;
+  -webkit-mask-image: radial-gradient(115% 100% at 50% 50%, #000 38%, transparent 76%);
+          mask-image: radial-gradient(115% 100% at 50% 50%, #000 38%, transparent 76%);
+}
+
+/* -------------------------------------------------------------------------
+   4b. Images fade up as they decode (home9.js adds .is-loaded on load/error).
+
+   Gated under .cb9-on for a reason: home9.js is the only thing that adds
+   .is-loaded, so applying `opacity: 0` in the flat/no-JS layout would hide every
+   image on the page permanently. The fade is an enhancement; the fallback must
+   never depend on the script that provides it.
+   ------------------------------------------------------------------------- */
+
+/* The plate is FLAT-ONLY here. While the house is running, that same photograph
+   hangs framed on the room's far wall (home9.js hangArt), so leaving it behind the
+   page too would show the picture twice -- once on the wall, once floating in
+   front of it. Without the house there is no wall to hang it on, so the flat
+   fallback keeps it as a backdrop exactly like Home 8's. */
+html.cb9-on .cb9-page__plate { display: none; }
+
+html.cb9-on .cb9-page img:not(.cb9-page__plate) {
+  opacity: 0;
+  transition: opacity .7s ease;
+}
+html.cb9-on .cb9-page img:not(.cb9-page__plate).is-loaded { opacity: 1; }
+
+/* Capture mode: a transition does not advance under --virtual-time-budget, so a
+   fading image photographs at opacity 0. */
+html.cb9-capture .cb9-page img { transition: none !important; }
+
+/* -------------------------------------------------------------------------
+   5. Scroller -- THE BROWSER OWNS THIS. Nothing animates it, ever.
+
+   overscroll-behavior stays `auto` on purpose. `contain` is the reflex reach and
+   it is exactly the property that breaks this design: it would trap the gesture
+   in the page, forcing the user to move the cursor off it to continue down the
+   corridor. Chaining to the document is the whole mechanism.
+   ------------------------------------------------------------------------- */
+.cb9-page__scroll {
+  overflow: visible;
+  position: relative;
+  z-index: 2;
+  padding: clamp(1.5rem, 3vw, 2.4rem);   /* base: the flat layout needs it too */
+}
+html.cb9-on .cb9-page__scroll {
+  height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: auto;
+  display: flex;
+  flex-direction: column;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(201, 168, 76, .40) transparent;
+}
+html.cb9-on .cb9-page__scroll::-webkit-scrollbar { width: 7px; }
+html.cb9-on .cb9-page__scroll::-webkit-scrollbar-track { background: transparent; }
+html.cb9-on .cb9-page__scroll::-webkit-scrollbar-thumb {
+  background: rgba(201, 168, 76, .34); border-radius: 4px;
+}
+html.cb9-on .cb9-page__scroll:focus-visible {
+  outline: 2px solid var(--cb-bright-blue, #1F69FF);
+  outline-offset: -6px;
+  border-radius: 18px;
+}
+
+/* `margin: auto 0` centres short content but collapses to 0 when the content
+   overflows -- the standard fix for flex centring clipping the top of a
+   scroller. Do not swap this for align-items:center. */
+html.cb9-on .cb9-page__inner {
+  margin: auto 0;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: clamp(1rem, 2.2vh, 1.6rem);
+  align-items: stretch;
+}
+.cb9-page__inner { display: flex; flex-direction: column; gap: clamp(1rem, 2.2vh, 1.6rem); }
+
+/* LOD: the live body is skipped until partway through the approach (home8.js
+   flips .is-body-on). content-visibility:auto cannot be used -- a fixed page
+   always intersects the viewport, so it would never engage. `hidden` preserves
+   scrollTop, so a reading position survives a fly-past and return. */
+html.cb9-on .cb9-page__body { content-visibility: hidden; }
+html.cb9-on .cb9-page.is-body-on .cb9-page__body { content-visibility: visible; }
+.cb9-page__body, .cb9-lod { display: flex; flex-direction: column; gap: clamp(1rem, 2.2vh, 1.6rem); }
+
+/* -------------------------------------------------------------------------
+   6. The glass card -- Home 7's, verbatim in spirit.
+
+   TWO-ELEMENT SPLIT, LOAD-BEARING: form/crumble owns .cb9-card's transform, the
+   infinite idle float owns .cb9-card__inner's. Merge them and the one-shot reveal
+   and the float clobber each other. (The page's projected scale is a third
+   transform, on a third element -- it composes, so a 12px bob at s=0.75 lands as
+   9px: further pages wobble less, for free.)
+   ------------------------------------------------------------------------- */
+.cb9-card {
+  position: relative;
+  display: block;
+  color: #fff;
+  text-decoration: none;
+  transition: opacity .7s cubic-bezier(.22, .61, .36, 1),
+              transform .7s cubic-bezier(.22, .61, .36, 1),
+              filter .7s cubic-bezier(.22, .61, .36, 1);
+}
+html.cb9-on .cb9-card.is-crumbling,
+html.cb9-on .cb9-card.is-forming {
+  will-change: opacity, transform, filter;
+}
+
+/* Warm glass. Still no backdrop-filter (the smoothness lesson carried from Home
+   3/5/7/8) -- a semi-opaque warm fill plus a brass hairline does the work, and it
+   sits on a lamplit room rather than fighting it. */
+.cb9-card__inner {
+  position: relative;
+  padding: clamp(1.1rem, 2vw, 1.7rem);
+  border-radius: 16px;
+  background: linear-gradient(150deg, rgba(48, 32, 20, .80), rgba(26, 16, 9, .84));
+  border: 1px solid rgba(201, 168, 76, .30);
+  box-shadow: 0 26px 64px rgba(12, 6, 2, .52),
+              inset 0 1px 0 rgba(255, 228, 178, .16);
+  overflow: hidden;
+}
+.cb9-card__inner::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 40%;
+  background: linear-gradient(180deg, rgba(255, 231, 186, .09), transparent);
+  pointer-events: none;
+}
+
+/* CSS keyframes are the no-Motion fallback; html.cb9-motion switches them off so
+   Motion and CSS never double up on the same transform. */
+@media (prefers-reduced-motion: no-preference) {
+  html.cb9-on:not(.cb9-motion) .cb9-card.is-formed .cb9-card__inner {
+    animation: cb9-float var(--fl-dur, 9s) ease-in-out var(--fl-delay, 0s) infinite;
+  }
+}
+@keyframes cb9-float {
+  0%, 100% { transform: translate3d(0, calc(var(--fl-y, 12px) * -0.5), 0) rotate(calc(var(--fl-rot, 0deg) * -1)); }
+  50%      { transform: translate3d(0, var(--fl-y, 12px), 0) rotate(var(--fl-rot, 0deg)); }
+}
+
+a.cb9-card:hover .cb9-card__inner,
+a.cb9-card:focus-visible .cb9-card__inner {
+  border-color: rgba(201, 168, 76, .70);
+  box-shadow: 0 30px 70px rgba(12, 6, 2, .6),
+              0 0 0 1px rgba(201, 168, 76, .34),
+              inset 0 1px 0 rgba(255, 255, 255, .18);
+}
+
+/* Form-from-dust / crumble. The asymmetry is the point: cards form from BELOW and
+   shrunk, and crumble UPWARD, enlarged and brightened -- that is what reads as
+   "rising past you" rather than simply fading. */
+html.cb9-on .cb9-card {
+  opacity: 0;
+  transform: translate3d(0, 40px, 0) scale(.94);
+  filter: blur(4px);
+}
+html.cb9-on .cb9-card.is-formed {
+  opacity: 1;
+  transform: translate3d(0, 0, 0) scale(1);
+  filter: blur(0);
+}
+html.cb9-on .cb9-card.is-crumbling {
+  opacity: 0;
+  transform: translate3d(0, -46px, 0) scale(1.06);
+  filter: blur(8px) brightness(1.4);
+  transition-duration: .9s;
+}
+/* A11y safety net: never keep a keyboard-focused card invisible. */
+html.cb9-on .cb9-card:focus-within {
+  opacity: 1 !important;
+  transform: none !important;
+  filter: none !important;
+}
+
+/* -------------------------------------------------------------------------
+   7. Grids
+   ------------------------------------------------------------------------- */
+.cb9-grid { width: 100%; display: grid; gap: clamp(.8rem, 1.5vw, 1.2rem); }
+.cb9-grid--2 { grid-template-columns: repeat(2, 1fr); }
+.cb9-grid--3 { grid-template-columns: repeat(3, 1fr); }
+.cb9-grid--4 { grid-template-columns: repeat(4, 1fr); }
+@media (max-width: 1180px) { .cb9-grid--4 { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 960px)  { .cb9-grid--3 { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 600px)  { .cb9-grid--2, .cb9-grid--3, .cb9-grid--4 { grid-template-columns: 1fr; } }
+
+/* -------------------------------------------------------------------------
+   8. Typography
+   ------------------------------------------------------------------------- */
+.cb9-eyebrow {
+  display: block;
+  font-family: var(--font-subheader, 'Josefin Sans', sans-serif);
+  font-size: .76rem; font-weight: 600; letter-spacing: .18em; text-transform: uppercase;
+  color: var(--cb-gold, #C9A84C);
+  margin-bottom: .6rem;
+}
+.cb9-h1 {
+  font-family: var(--font-heading, sans-serif);
+  font-weight: 600; font-size: clamp(2rem, 3.6vw, 3.1rem); line-height: 1.03; letter-spacing: -.02em;
+  margin: 0; color: #fff;
+}
+.cb9-h2 {
+  font-family: var(--font-heading, sans-serif);
+  font-weight: 600; font-size: clamp(1.4rem, 2.3vw, 2rem); line-height: 1.08; letter-spacing: -.015em;
+  margin: 0; color: #fff;
+}
+.cb9-h2--sm { font-size: clamp(1.2rem, 1.8vw, 1.5rem); }
+.cb9-h3 {
+  font-family: var(--font-heading, sans-serif);
+  font-weight: 600; font-size: 1.06rem; line-height: 1.2; margin: 0 0 .35rem; color: #fff;
+}
+.cb9-h3 a { color: inherit; text-decoration: none; }
+.cb9-h3 a:hover { color: var(--cb-gold, #C9A84C); }
+.cb9-p {
+  font-family: var(--font-body, sans-serif);
+  font-size: .92rem; line-height: 1.55; margin: .6rem 0 0; color: rgba(255, 255, 255, .82);
+}
+.cb9-sub {
+  font-family: var(--font-body, sans-serif);
+  font-size: clamp(.98rem, 1.2vw, 1.1rem); line-height: 1.5; margin: 0; color: rgba(255, 255, 255, .85);
+}
+.cb9-coords {
+  display: block; margin-top: .3rem;
+  font-family: var(--font-body, sans-serif); font-size: .76rem; letter-spacing: .04em;
+  color: rgba(255, 255, 255, .7);
+}
+.cb9-go {
+  display: inline-flex; align-items: center; gap: .35rem; margin-top: .7rem;
+  font-family: var(--font-subheader, sans-serif); font-size: .72rem; font-weight: 600;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--cb-bright-blue, #1F69FF);
+}
+.cb9-go svg { width: 13px; height: 13px; transform: rotate(-90deg); }
+
+/* -------------------------------------------------------------------------
+   9. Card variants (Home 7's set)
+   ------------------------------------------------------------------------- */
+.cb9-card--chip { align-self: flex-start; }
+.cb9-card--chip .cb9-card__inner { padding: .7rem 1.15rem; display: inline-block; }
+.cb9-card--chip .cb9-eyebrow { margin-bottom: 0; }
+
+.cb9-card--title { align-self: flex-start; max-width: 100%; }
+.cb9-card--lead { max-width: 620px; align-self: flex-start; }
+.cb9-card--title .cb9-card__inner,
+.cb9-card--lead .cb9-card__inner {
+  background: linear-gradient(150deg, rgba(44, 29, 18, .78), rgba(24, 15, 8, .82));
+}
+
+.cb9-card--head { max-width: 780px; align-self: flex-start; }
+.cb9-card--head .cb9-p { max-width: 46ch; }
+
+.cb9-card--ghost { align-self: flex-start; }
+.cb9-card--ghost .cb9-card__inner { background: none; border: none; box-shadow: none; padding: .2rem; }
+.cb9-card--ghost .cb9-card__inner::before { display: none; }
+
+.cb9-cue {
+  display: inline-flex; align-items: center; gap: .8rem;
+  font-family: var(--font-subheader, sans-serif); font-size: .76rem; letter-spacing: .14em; text-transform: uppercase;
+  color: rgba(255, 255, 255, .7);
+}
+.cb9-cue__line { position: relative; width: 52px; height: 1px; background: rgba(255, 255, 255, .3); overflow: hidden; }
+.cb9-cue__line span {
+  position: absolute; inset: 0; width: 40%;
+  background: var(--cb-bright-blue, #1F69FF);
+  animation: cb9-cue 2.4s ease-in-out infinite;
+}
+@keyframes cb9-cue { 0% { transform: translateX(-100%); } 100% { transform: translateX(280%); } }
+
+.cb9-card--action .cb9-card__inner { height: 100%; }
+
+.cb9-card--stat .cb9-card__inner { text-align: center; height: 100%; }
+.cb9-stat__num {
+  font-family: var(--font-heading, sans-serif); font-weight: 700;
+  font-size: clamp(1.7rem, 2.6vw, 2.3rem); line-height: 1; color: #fff;
+}
+.cb9-stat__label {
+  margin-top: .45rem; font-family: var(--font-subheader, sans-serif); font-size: .72rem;
+  letter-spacing: .08em; text-transform: uppercase; color: var(--cb-gold, #C9A84C);
+}
+
+.cb9-card--cta { width: 100%; max-width: 720px; }
+.cb9-card--cta .cb9-card__inner { padding: clamp(1.4rem, 2.6vw, 2.2rem); }
+.cb9-card--cta .cb-btn, .cb9-card--watch .cb-btn { margin-top: 1.2rem; }
+
+.cb9-card--cta-row { width: 100%; align-self: flex-start; }
+.cb9-card--cta-row .cb9-card__inner { background: none; border: none; box-shadow: none; padding: .2rem; }
+.cb9-card--cta-row .cb9-card__inner::before { display: none; }
+
+.cb9-watch__form { display: flex; gap: .5rem; margin-top: .9rem; flex-wrap: wrap; }
+.cb9-watch__input {
+  flex: 1 1 180px; min-width: 0; padding: .7rem .9rem; border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, .25); background: rgba(255, 255, 255, .08); color: #fff;
+  font-family: var(--font-body, sans-serif);
+}
+.cb9-watch__input::placeholder { color: rgba(255, 255, 255, .55); }
+.cb9-watch__input:focus { outline: none; border-color: var(--cb-bright-blue, #1F69FF); background: rgba(255, 255, 255, .12); }
+.cb9-watch__note { font-size: .74rem; color: rgba(255, 255, 255, .55); margin-top: .55rem; }
+
+.cb9-card--community .cb9-card__inner { padding: 0; height: 180px; display: flex; align-items: flex-end; }
+.cb9-community__img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform .8s ease; }
+a.cb9-card--community:hover .cb9-community__img { transform: scale(1.06); }
+.cb9-community__overlay {
+  position: relative; z-index: 1; width: 100%; padding: 1rem;
+  background: linear-gradient(0deg, rgba(16, 9, 4, .88), rgba(16, 9, 4, .18) 70%, transparent);
+}
+.cb9-community__overlay .cb9-h3 { margin-bottom: .1rem; }
+.cb9-card--community .cb9-go { margin-top: .1rem; }
+
+.cb9-card--blog .cb9-card__inner { padding: 0; height: 100%; display: flex; flex-direction: column; }
+.cb9-blog__image { aspect-ratio: 16 / 10; overflow: hidden; }
+.cb9-blog__image img { width: 100%; height: 100%; object-fit: cover; transition: transform .8s ease; }
+.cb9-card--blog:hover .cb9-blog__image img { transform: scale(1.05); }
+/* Home 2 and Home 7 both point their no-thumbnail fallback at
+   assets/images/placeholder-blog.jpg, which does not exist anywhere in the repo
+   -- it renders broken whenever a post has no featured image. Brand gradient
+   instead of shipping the same broken reference forward. */
+.cb9-blog__image--ph {
+  background:
+    radial-gradient(120% 120% at 25% 15%, rgba(201, 168, 76, .40), transparent 60%),
+    linear-gradient(150deg, #5b3d28, #241408);
+}
+.cb9-blog__body { padding: 1rem; flex: 1; }
+.cb9-blog__cat {
+  display: inline-block; font-family: var(--font-subheader, sans-serif); font-size: .66rem; font-weight: 600;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--cb-bright-blue, #1F69FF); margin-bottom: .45rem;
+}
+.cb9-blog__meta { display: block; margin-top: .65rem; font-size: .74rem; color: rgba(255, 255, 255, .55); }
+
+/* Frames hold live content (MLS grid, testimonial rotator). Home 7 exempts them
+   from the float -- a scrollable table drifting under the cursor is unusable --
+   and gives them a gentler crumble. home8.js skips them in startCardFloats(). */
+.cb9-card--frame { width: 100%; }
+.cb9-card--frame .cb9-card__inner {
+  background: rgba(30, 19, 11, .74);
+  border: 1px solid rgba(201, 168, 76, .20);
+  padding: clamp(.8rem, 1.6vw, 1.3rem);
+}
+html.cb9-on .cb9-card--frame.is-formed .cb9-card__inner,
+html.cb9-on .cb9-card--frame .cb9-card__inner { animation: none !important; }
+html.cb9-on .cb9-card--frame.is-crumbling {
+  filter: brightness(1.12);
+  transform: translate3d(0, -24px, 0) scale(1.01);
+}
+
+.cb9-card--mark { width: 100%; }
+.cb9-card--mark .cb9-card__inner { text-align: center; padding: clamp(1.4rem, 2.6vw, 2rem); }
+.cb9-mark__logo { width: 96px; height: auto; margin: 0 auto .6rem; filter: brightness(0) invert(1); opacity: .92; }
+.cb9-mark__tag {
+  font-family: var(--font-subheader, sans-serif); letter-spacing: .12em; text-transform: uppercase; font-size: .78rem;
+  color: var(--cb-gold, #C9A84C); margin: 0;
+}
+.cb9-mark__line { font-family: var(--font-accent, serif); font-style: italic; color: rgba(255, 255, 255, .7); margin: .3rem 0 0; }
+
+/* -------------------------------------------------------------------------
+   9b. Photography credits.
+
+   NOT optional and not decorative. The scene plates are Wikimedia Commons photos
+   under CC BY-SA 4.0 / CC BY 4.0, which require attribution wherever they are
+   displayed. STORYBOARD.md: "Attribution is required by CC and lives in a
+   .cb-photo-credits block ... Keep it on the page."
+
+   Home 7 legitimately had no credits -- it used no photographs. Home 8 puts the
+   plates back, so the credits come back with them. If you ever remove the plates,
+   remove this too; while a plate renders, this block ships.
+
+   Styled locally rather than reusing scroll-home.css's .cb-photo-credits, since
+   that stylesheet is Home 2's and is not enqueued here.
+   ------------------------------------------------------------------------- */
+.cb9-credits {
+  position: relative;
+  z-index: 3;
+  margin: 0;
+  padding: .85rem 1.25rem;
+  background: var(--cb-walnut, #2B1A10);
+  text-align: center;
+}
+html.cb9-on .cb9-credits { z-index: 4; }
+.cb9-credits p {
+  margin: 0 auto;
+  max-width: 70rem;
+  font-family: var(--font-body, sans-serif);
+  font-size: .72rem;
+  line-height: 1.5;
+  letter-spacing: .01em;
+  color: rgba(240, 245, 251, .55);
+}
+.cb9-credits a {
+  color: rgba(240, 245, 251, .78);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(240, 245, 251, .22);
+}
+.cb9-credits a:hover,
+.cb9-credits a:focus-visible {
+  color: var(--cb-bright-blue, #1F69FF);
+  border-color: var(--cb-bright-blue, #1F69FF);
+}
+
+/* -------------------------------------------------------------------------
+   10. Section progress rail
+   ------------------------------------------------------------------------- */
+.cb9-nav { display: none; }
+html.cb9-on .cb9-nav {
+  display: flex;
+  position: fixed; top: 50%; right: 1.4rem; transform: translateY(-50%); z-index: 30;
+  flex-direction: column; gap: .9rem;
+}
+.cb9-nav__dot {
+  position: relative; width: 11px; height: 11px; padding: 0; border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, .45); background: transparent; cursor: pointer;
+  transition: background .3s ease, border-color .3s ease, transform .3s ease;
+}
+.cb9-nav__dot.is-active { background: var(--cb-bright-blue, #1F69FF); border-color: var(--cb-bright-blue, #1F69FF); transform: scale(1.25); }
+.cb9-nav__label {
+  position: absolute; right: 22px; top: 50%; transform: translateY(-50%); white-space: nowrap;
+  font-family: var(--font-subheader, sans-serif); font-size: .7rem; letter-spacing: .1em; text-transform: uppercase;
+  color: #fff; background: rgba(16, 9, 4, .8); padding: .22rem .55rem; border-radius: 6px;
+  opacity: 0; pointer-events: none; transition: opacity .25s ease;
+}
+.cb9-nav__dot:hover .cb9-nav__label { opacity: 1; }
+html.cb9-on .cb9-nav__dot { cursor: none; }
+@media (max-width: 900px) { html.cb9-on .cb9-nav { display: none; } }
+
+/* -------------------------------------------------------------------------
+   11. Overlay header for the preview (body-class scoped)
+   ------------------------------------------------------------------------- */
+body.cb-page--home9-preview .cb-header:not(.cb-header--scrolled) {
+  background: transparent;
+  border-bottom-color: rgba(255, 255, 255, .1);
+}
+body.cb-page--home9-preview .cb-header:not(.cb-header--scrolled) .cb-nav__link { color: var(--cb-white, #fff); }
+body.cb-page--home9-preview .cb-header:not(.cb-header--scrolled) .cb-header__logo-img { filter: none; }
+html.cb9-on .cb-header { z-index: 20; }
+
+
