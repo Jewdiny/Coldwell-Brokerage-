@@ -7,22 +7,30 @@
    and never built: each of the 8 sections is a PAGE that floats in the corridor
    and zooms as you scroll to it (activetheory.net).
 
-   HOW THE PAGES FLOAT
-   -------------------
-   The camera never rotates -- it is a pure Z-dolly. A plane whose normal is +Z,
-   viewed by an unrotated perspective camera, projects to a rectangle with
-   UNIFORM SCALE: no keystone, no shear. So `translate + scale` is not an
-   approximation of the correct projection, it IS the correct projection, exactly.
-   That is why there is no CSS3DRenderer here: it would only buy rotation (which
-   we forswear) and inter-panel z-sorting (moot -- one page is substantial at a
-   time). See projectPages().
+   THE WALK
+   --------
+   A hallway with rooms opening off alternating sides. You travel the hallway, stop
+   at a door, TURN to face the room -- its page hangs deep inside, small -- walk in
+   so the page zooms up to reading size, dwell, back out, turn back, carry on to
+   the next door. Section 0 is the threshold: you arrive IN the hallway, so it has
+   no room (side:0 collapses the turn and walk to no-ops, one code path for all).
 
-   Pages ride an AUTHORED depth curve on a camera leash (dCurve), NOT a fixed
-   world Z. Pinning page i to W[i].z - D0 sounds tidier but the waypoint gaps are
-   5,6,6,3,6,8,8 -- spacing chosen for CORRIDOR pacing -- so page 4 would spawn at
-   s=0.80 (no zoom at all) while page 7 spawns at s=0.60, and the camera would fly
-   THROUGH the page plane (d -> 0, s -> infinity). An authored curve gives all 8
-   pages an identical zoom, a flat s==1 dwell, and an exit we control.
+   THE CAMERA ROTATES. Earlier builds of this file swore it never would, and used
+   that to justify having no CSS3DRenderer. The justification survives, but the
+   reason changed:
+
+     A plane that always FACES the camera -- a billboard -- projects to a rectangle
+     with uniform scale at ANY camera rotation. No keystone, no shear. So
+     `translate + scale` is not an approximation of the correct projection, it IS
+     the correct projection, exactly, even at yaw -90.
+
+   Pages are therefore world-anchored (each lives in its room) but camera-facing.
+   Give a page a fixed orientation instead and this whole approach ends: you would
+   need a real matrix3d / CSS3DRenderer pipeline the moment yaw leaves zero.
+
+   Because the camera physically stops D0 in front of each page, d == D0 and s == 1
+   at dwell BY CONSTRUCTION -- no authored depth curve, and no per-section zoom
+   inconsistency to correct for. The zoom is simply what walking into a room does.
 
    SCROLL: no wheel listener, no hijack (kept from Home 5/7). Inner scroll absorbs
    the gesture -> document does not scroll -> camera does not advance. The pause
@@ -75,21 +83,57 @@
   var TAU = Math.PI * 2;
   var TAN_HALF = Math.tan(FOV * Math.PI / 360);   // tan(29deg) = 0.5543091
 
-  // Page depth curve. D0 is BOTH the reading distance and the plane screenToWorld
-  // already uses for bursts -- keeping them equal is what makes s == 1 at dwell.
-  //
-  // The range is deliberately narrow: s = D0/d, so 16 -> 0.75x and 8.6 -> 1.4x.
-  // The first cut ran 34 -> 4 (0.35x .. 3x), which read as a dramatic fly-past and
-  // buried Home 7's gentler fade-up. Widen these two numbers and the drama comes
-  // back -- they are the whole zoom dial.
-  var D0 = 12, D_FAR = 16, D_NEAR = 8.6;
-  var U_FAR = -1.20, U_IN = -0.35, U_OUT = 0.25, U_GONE = 1.20;
-  // LOD flip point, in curve space rather than in scale. It used to be `s > 0.6`,
-  // which silently stopped meaning anything the moment the zoom range narrowed --
-  // s never drops below 0.75 now, so the body would always have been live and the
-  // LOD would have been dead code. Anchor it to the curve, not to a scale value.
-  var U_BODY = -0.75;
+  // D0 is BOTH the reading distance and the plane screenToWorld uses for bursts.
+  // A page sits exactly D0 in front of its room's dwell pose, so s == D0/d == 1
+  // there, with no authored curve needed -- the geometry guarantees it.
+  var D0 = 12;
   var PAGE_W_MAX = 1100, PAGE_H_MAX = 720;
+
+  // ---- the walkthrough ----------------------------------------------------
+  // A hallway with rooms opening off alternating sides. You walk the hallway, stop
+  // at a door, TURN to face the room (its page is deep inside, small), walk in
+  // (the page zooms to reading size), dwell, back out, turn back, carry on.
+  //
+  // THE CAMERA NOW ROTATES, which the previous build's header declared it never
+  // would -- that was the stated reason there is no CSS3DRenderer here. The
+  // reasoning survives, but only because the pages are BILLBOARDS: world-anchored
+  // in their room, always facing the camera. A camera-facing plane projects to a
+  // rectangle with uniform scale at ANY camera rotation -- no keystone, no shear.
+  // Anchor a page to a fixed orientation instead and this all ends: you would need
+  // a real matrix3d/CSS3DRenderer pipeline the moment the yaw leaves zero.
+  var HALL_X = 6, HALL_Y = 5, HALL_Z0 = 6, HALL_Z1 = -64;
+  var ROOM_D = 20;      // how far a room reaches past its doorway
+  var ROOM_H = 7;       // half-depth of a room along the hallway
+  var ROOM_IN = 8;      // how far into the room the camera stands at dwell
+
+  // side: +1 room on +X, -1 room on -X, 0 = no room (stay in the hallway).
+  // Section 0 is the threshold -- you arrive IN the hallway, so it has no room and
+  // its page hangs straight down the corridor. side:0 makes the turn/walk lerps
+  // no-ops, so one code path covers it.
+  var ROOM = [
+    { z: 0,   side: 0,  p: 0.40, theme: 'threshold' },
+    { z: -8,  side: 1,  p: 0.70, theme: 'reception' },
+    { z: -16, side: -1, p: 0.95, theme: 'listings' },
+    { z: -24, side: 1,  p: 0.85, theme: 'legacy' },
+    { z: -32, side: -1, p: 0.85, theme: 'door' },
+    { z: -40, side: 1,  p: 0.85, theme: 'communities' },
+    { z: -48, side: -1, p: 0.55, theme: 'value' },
+    { z: -56, side: 1,  p: 0.70, theme: 'story' }
+  ];
+
+  // Schedule in u = g - i. Budget per section sums to 1.0:
+  //   0.42..0.58  hallway travel to the next door   (shared between i and i+1)
+  //   0.30..0.42  turn at the doorway               (page swings into view, small)
+  //   0.16..0.30  walk in / out                     (page zooms 0.6x -> 1x)
+  //  -0.16..0.16  IN THE ROOM -- flat, so d == D0 and s == 1 for the whole dwell
+  // The flat middle is what lets the inner scroller absorb reading time without
+  // the camera creeping: the pose is literally constant across it.
+  var U_TURN = 0.42, U_WALK = 0.30, U_DWELL = 0.16;
+  var U_FAR = -0.45, U_GONE = 0.45;      // outside this, the page does not exist
+  var U_IN = -U_DWELL, U_OUT = U_DWELL;  // reading window == the flat pose window
+  // Live body comes in before the turn completes, so the relayout hitch lands
+  // while the camera is still swinging rather than as the page settles.
+  var U_BODY = -0.40;
 
   var PAL = [
     [1.00, 1.00, 1.00], [1.00, 1.00, 1.00],
@@ -98,23 +142,9 @@
   ];
   var C_BLUE = [0.13, 0.27, 0.62], C_TIDE = [0.72, 0.81, 0.92], C_BRIGHT = [0.20, 0.48, 1.00];
 
-  // Per-section camera waypoints {x,y,z,p=parallaxScale}. Camera looks toward
-  // (z-12) with NO rotation -- "looking around" is faked via x/y offsets.
-  var W = [
-    { x: 0.0, y: 0.0, z: 2,   p: 0.40 },  // 0 threshold
-    { x: -0.6, y: -0.3, z: -3, p: 0.70 }, // 1 reception
-    { x: 1.2, y: 0.1, z: -9,  p: 0.95 },  // 2 listings wall
-    { x: 0.0, y: 1.0, z: -15, p: 0.85 },  // 3 legacy arch
-    { x: 0.0, y: 0.4, z: -18, p: 0.85 },  // 4 buyers beat
-    { x: 0.0, y: 1.3, z: -24, p: 0.85 },  // 5 communities table
-    { x: 0.8, y: -0.2, z: -32, p: 0.55 }, // 6 valuation desk
-    { x: 0.0, y: 0.0, z: -40, p: 0.70 }   // 7 story wall / mark
-  ];
-
-  // Resting screen offset per page, in CSS px AT READING DISTANCE. Converted to
-  // world units on resize, so the offset scales with s: a page drifts in from
-  // near-centre, settles into its offset at s==1, then swings outward as it flies
-  // past. Kept small -- these are pages to be read, not decorations.
+  // Resting screen offset per page, in CSS px AT READING DISTANCE. Baked into the
+  // page's world anchor on resize (see sizePages), so it is a real position in the
+  // room rather than a screen nudge. Kept small -- these are pages to be read.
   var PAGE_OFF = [
     { x:   0, y:  14 },  // 0 arrival
     { x: -46, y:  -8 },  // 1 welcome
@@ -125,6 +155,13 @@
     { x:  46, y:  12 },  // 6 sell
     { x:   0, y:  -8 }   // 7 connect
   ];
+
+  // Camera basis from a yaw. Three's camera looks down -Z at yaw 0.
+  function fwdX(y) { return -Math.sin(y); }
+  function fwdZ(y) { return -Math.cos(y); }
+  function rgtX(y) { return Math.cos(y); }
+  function rgtZ(y) { return -Math.sin(y); }
+  function yawFor(side) { return side > 0 ? -Math.PI / 2 : (side < 0 ? Math.PI / 2 : 0); }
 
   // Idle float params per page (Motion drives these; CSS keyframes are the
   // no-Motion fallback). Negative delays desynchronise the cycle.
@@ -157,7 +194,7 @@
   var oX = 0, oY = 0, oZ = CAMZ, oTX = 0, oTY = 0, oTZ = CAMZ, oP = 1;
   var corridorAssembly = 0, _structDirty = false;
   var _fpsAcc = 0, _fpsN = 0, _degraded = false;
-  var _v = null, _dir = null, _out = null;
+  var _v = null, _dir = null, _out = null, _pv = null, _mwi = null, _fwd = null;
   var _monoUrl = '', _monoStackUrl = '';
 
   // pages
@@ -249,9 +286,12 @@
   function seedAmbient() {
     var i, c;
     for (i = 0; i < AMB; i++) {
-      pos[i * 3] = rand(-halfW * 1.3, halfW * 1.3);
+      // Ambient dust has to fill the whole walkthrough now, not just the aisle:
+      // the rooms reach out to x = +/-26, and once you turn into one you are
+      // looking along X, where the old +/-halfW seeding left a visibly empty void.
+      pos[i * 3] = (Math.random() < 0.5) ? rand(-halfW * 1.3, halfW * 1.3) : rand(-26, 26);
       pos[i * 3 + 1] = rand(-halfH * 1.7, halfH * 1.7);
-      pos[i * 3 + 2] = (Math.random() < 0.42) ? rand(-46, 6) : rand(-14, 6);
+      pos[i * 3 + 2] = (Math.random() < 0.6) ? rand(HALL_Z1, HALL_Z0) : rand(-14, 6);
       c = PAL[(Math.random() < 0.16) ? (2 + (Math.random() * 4 | 0)) : (Math.random() < 0.5 ? 0 : 2)];
       color[i * 3] = c[0]; color[i * 3 + 1] = c[1]; color[i * 3 + 2] = c[2];
       size[i] = rand(0.7, 2.1); alpha[i] = rand(0.35, 0.9); phase[i] = Math.random() * TAU;
@@ -296,56 +336,114 @@
     var prev = null, i, a, x, y;
     for (i = 0; i <= segs; i++) { a = a0 + (a1 - a0) * i / segs; x = cx + Math.cos(a) * r; y = cy + Math.sin(a) * r; if (prev) { E(prev[0], prev[1], cz, x, y, cz, c, g); } prev = [x, y]; }
   }
-
-  function defineCorridor() {
-    EDG.length = 0;
-    // floor light-spine + rails (the aisle)
-    E(0, -5, 4, 0, -5, -50, C_BRIGHT, 1);
-    E(-6, -5, 4, -6, -5, -50, C_TIDE, 0);
-    E(6, -5, 4, 6, -5, -50, C_TIDE, 0);
-    // 0 threshold portal
-    boxE(0, 0, -3, 7, 10, 0.4, C_TIDE, 1);
-    E(0, -4.6, -2.8, 0, 4.6, -2.8, C_TIDE, 0);
-    quadE(-1.8, 0, -2.9, 3.0, 9, C_TIDE, 0); quadE(1.8, 0, -2.9, 3.0, 9, C_TIDE, 0);
-    // 1 reception
-    boxE(-1, -3, -9, 7, 1.4, 2, C_TIDE, 1);
-    boxE(2.6, -2.7, -10, 2, 1.4, 3, C_TIDE, 0);
-    quadE(0, 0, -11, 10, 5, C_BLUE, 0);
-    arcE(-3.4, 1.6, -10.6, 0.45, 0, TAU, 18, C_BRIGHT, 0);
-    // 2 listings wall (3x2 frames)
-    quadE(0, 2, -16, 15, 7, C_BLUE, 0);
-    var fx = [-5, 0, 5], fy = [3.6, 0.4], r, cc;
-    for (r = 0; r < fx.length; r++) {
-      for (cc = 0; cc < fy.length; cc++) {
-        quadE(fx[r], fy[cc], -15.8, 3, 2.2, (r === 1 && cc === 0) ? C_BRIGHT : C_TIDE, (r === 1 && cc === 0) ? 1 : 0);
-      }
+  // Rooms open sideways off the hallway, so their walls and fixtures face along X.
+  // Everything the corridor build had was drawn in the X-Y plane at a fixed Z --
+  // useless once the camera is looking down the X axis. These are the Y-Z twins.
+  function quadYZ(x, cy, cz, h, d, c, g) {
+    var y0 = cy - h / 2, y1 = cy + h / 2, z0 = cz - d / 2, z1 = cz + d / 2;
+    E(x, y0, z0, x, y0, z1, c, g); E(x, y0, z1, x, y1, z1, c, g); E(x, y1, z1, x, y1, z0, c, g); E(x, y1, z0, x, y0, z0, c, g);
+  }
+  function arcYZ(x, cy, cz, r, a0, a1, segs, c, g) {
+    var prev = null, i, a, y, z;
+    for (i = 0; i <= segs; i++) {
+      a = a0 + (a1 - a0) * i / segs;
+      z = cz + Math.cos(a) * r; y = cy + Math.sin(a) * r;
+      if (prev) { E(x, prev[0], prev[1], x, y, z, c, g); }
+      prev = [y, z];
     }
-    E(-6.6, -1.7, -15.7, 6.6, -1.7, -15.7, C_BRIGHT, 1);
-    // 3 legacy arch (camera passes under) + columns + ceiling band
-    arcE(0, 0, -22, 6, 0, Math.PI, 38, C_TIDE, 1);
-    var ax = [-6, -2, 2, 6], q;
-    for (q = 0; q < ax.length; q++) { boxE(ax[q], 0, -22, 0.6, 9, 0.6, C_TIDE, 0); }
-    quadE(0, 5.4, -22, 12, 0.6, C_BLUE, 0);
-    // 4 buyers beat -- a gateway frame so the corridor never feels empty
-    quadE(0, 0.5, -27, 9, 8, C_BLUE, 0);
-    // 5 communities planning table (horizontal lattice + 6 pillars + river)
-    quadXZ(0, -3.5, -31, 12, 7, C_TIDE, 1);
-    var gi;
-    for (gi = 1; gi < 4; gi++) { E(-6 + gi * 3, -3.5, -27.5, -6 + gi * 3, -3.5, -34.5, C_TIDE, 0); }
-    for (gi = 1; gi < 3; gi++) { E(-6, -3.5, -27.5 + gi * 2.33, 6, -3.5, -27.5 + gi * 2.33, C_TIDE, 0); }
-    var px = [-4.2, -1.5, 1.0, 3.6, -3.0, 4.4], pz = [-29, -30.5, -29.8, -31.8, -33, -32.4], pp;
-    for (pp = 0; pp < px.length; pp++) { E(px[pp], -3.5, pz[pp], px[pp], -1.2, pz[pp], C_BRIGHT, (pp % 2) ? 0 : 1); }
-    E(-5.5, -3.48, -34, -2, -3.48, -31, C_BRIGHT, 0); E(-2, -3.48, -31, 2, -3.48, -33, C_BRIGHT, 0); E(2, -3.48, -33, 5.5, -3.48, -29.5, C_BRIGHT, 0);
-    // 6 valuation desk + angled screen + partition + gauge
-    boxE(1.5, -2, -38, 3.6, 1, 1.8, C_TIDE, 1);
-    quadE(1.5, -0.7, -37.4, 2, 1.3, C_BRIGHT, 1);
-    quadE(1.4, -0.4, -39, 6, 2.6, C_BLUE, 0);
-    E(-1.6, -2.4, -37.6, -1.6, 0.2, -37.6, C_BRIGHT, 1);
-    // 7 story wall + 3 frames + (monogram quad added as signage)
-    quadE(0, 1, -46, 14, 5, C_BLUE, 0);
-    var sx = [-4.4, 0, 4.4], sf;
-    for (sf = 0; sf < sx.length; sf++) { quadE(sx[sf], 1, -45.8, 3, 2.2, C_TIDE, 0); }
-    E(0, -1.6, -45.9, 0, -1.6, -49, C_BRIGHT, 1);
+  }
+
+  /** One room, opening off the hallway at x = side*HALL_X, centred on z = R.z. */
+  function defineRoom(R) {
+    var s = R.side, z = R.z;
+    var xIn = s * HALL_X;                 // doorway plane
+    var xFar = s * (HALL_X + ROOM_D);     // far wall, the one you face
+    var z0 = z - ROOM_H, z1 = z + ROOM_H;
+
+    // Shell: far wall, floor, ceiling, corner posts. Wireframe only -- the STRUCT
+    // particles condense onto these edges, so the room literally forms from dust.
+    quadYZ(xFar, 0, z, 2 * HALL_Y, 2 * ROOM_H, C_BLUE, 0);
+    E(xIn, -HALL_Y, z0, xFar, -HALL_Y, z0, C_TIDE, 0); E(xIn, -HALL_Y, z1, xFar, -HALL_Y, z1, C_TIDE, 0);
+    E(xIn, HALL_Y, z0, xFar, HALL_Y, z0, C_TIDE, 0);   E(xIn, HALL_Y, z1, xFar, HALL_Y, z1, C_TIDE, 0);
+    E(xFar, -HALL_Y, z0, xFar, HALL_Y, z0, C_TIDE, 0); E(xFar, -HALL_Y, z1, xFar, HALL_Y, z1, C_TIDE, 0);
+    // Floor light-line running into the room -- it reads as the path you walk.
+    E(xIn, -HALL_Y + 0.02, z, xFar, -HALL_Y + 0.02, z, C_BRIGHT, 1);
+
+    // Doorway: posts + lintel in the hallway wall. This is what you turn to face.
+    E(xIn, -HALL_Y, z - 3, xIn, HALL_Y - 1, z - 3, C_TIDE, 1);
+    E(xIn, -HALL_Y, z + 3, xIn, HALL_Y - 1, z + 3, C_TIDE, 1);
+    E(xIn, HALL_Y - 1, z - 3, xIn, HALL_Y - 1, z + 3, C_TIDE, 1);
+
+    var i, fy, fz;
+    switch (R.theme) {
+      case 'reception':
+        boxE(s * 16, -3, z, 6, 1.4, 2.4, C_TIDE, 1);            // desk
+        arcYZ(xFar - 0.2, 1.4, z, 2.2, 0, TAU, 22, C_BRIGHT, 0); // ring on the wall
+        break;
+      case 'listings':                                           // 3x2 frame wall
+        fz = [-4.4, 0, 4.4]; fy = [2.4, -1.2];
+        for (i = 0; i < 3; i++) {
+          quadYZ(xFar - 0.2, fy[0], z + fz[i], 2.6, 3.4, (i === 1) ? C_BRIGHT : C_TIDE, (i === 1) ? 1 : 0);
+          quadYZ(xFar - 0.2, fy[1], z + fz[i], 2.6, 3.4, C_TIDE, 0);
+        }
+        E(xIn + 1, -1.9, z, xFar - 0.4, -1.9, z, C_BRIGHT, 1);
+        break;
+      case 'legacy':                                             // arch you face
+        arcYZ(s * 18, -1, z, 5, 0, Math.PI, 34, C_TIDE, 1);
+        for (i = -1; i <= 1; i += 2) { boxE(s * 18, 0, z + i * 5, 0.5, 9, 0.5, C_TIDE, 0); }
+        quadYZ(xFar - 0.2, 1, z, 4, 9, C_BLUE, 0);
+        break;
+      case 'door':                                               // a literal door
+        quadYZ(xFar - 0.2, -0.6, z, 7.6, 3.6, C_BRIGHT, 1);
+        quadYZ(xFar - 0.2, -0.6, z, 8.6, 4.8, C_TIDE, 0);
+        E(xFar - 0.3, -0.6, z + 1.3, xFar - 0.3, -0.6, z + 1.5, C_BRIGHT, 1);  // handle
+        break;
+      case 'communities':                                        // planning table
+        quadXZ(s * 16, -3.4, z, 9, 8, C_TIDE, 1);
+        for (i = 1; i < 4; i++) { E(s * (11 + i * 2.5), -3.4, z - 4, s * (11 + i * 2.5), -3.4, z + 4, C_TIDE, 0); }
+        for (i = 1; i < 4; i++) { E(s * 11.5, -3.4, z - 4 + i * 2, s * 20.5, -3.4, z - 4 + i * 2, C_TIDE, 0); }
+        var px = [13, 15.5, 18, 19.5], pz = [-2.2, 1.4, -0.6, 2.6];
+        for (i = 0; i < px.length; i++) { E(s * px[i], -3.4, z + pz[i], s * px[i], -1.4, z + pz[i], C_BRIGHT, (i % 2) ? 0 : 1); }
+        break;
+      case 'value':                                              // valuation desk
+        boxE(s * 17, -2.4, z, 5, 1, 2.6, C_TIDE, 1);
+        quadYZ(s * 17.4, -0.7, z, 2.2, 3.2, C_BRIGHT, 1);
+        quadYZ(xFar - 0.2, 0.4, z, 5.2, 8, C_BLUE, 0);
+        break;
+      case 'story':                                              // story wall
+        fz = [-4.6, 0, 4.6];
+        for (i = 0; i < 3; i++) { quadYZ(xFar - 0.2, 1.2, z + fz[i], 3, 3.4, C_TIDE, 0); }
+        E(xIn + 1, -2.2, z, xFar - 0.4, -2.2, z, C_BRIGHT, 1);
+        break;
+    }
+  }
+
+  function defineWorld() {
+    EDG.length = 0;
+    var i, z;
+
+    // ---- the hallway --------------------------------------------------------
+    // Floor light-spine + four long rails. This is the thing you travel down and
+    // the thing the rooms hang off, so it runs the full length.
+    E(0, -HALL_Y, HALL_Z0, 0, -HALL_Y, HALL_Z1, C_BRIGHT, 1);
+    E(-HALL_X, -HALL_Y, HALL_Z0, -HALL_X, -HALL_Y, HALL_Z1, C_TIDE, 0);
+    E(HALL_X, -HALL_Y, HALL_Z0, HALL_X, -HALL_Y, HALL_Z1, C_TIDE, 0);
+    E(-HALL_X, HALL_Y, HALL_Z0, -HALL_X, HALL_Y, HALL_Z1, C_TIDE, 0);
+    E(HALL_X, HALL_Y, HALL_Z0, HALL_X, HALL_Y, HALL_Z1, C_TIDE, 0);
+    // Ribs every 8 units so travelling down the hallway reads as motion.
+    for (z = HALL_Z0; z >= HALL_Z1; z -= 8) {
+      E(-HALL_X, -HALL_Y, z, -HALL_X, HALL_Y, z, C_TIDE, 0);
+      E(HALL_X, -HALL_Y, z, HALL_X, HALL_Y, z, C_TIDE, 0);
+      E(-HALL_X, HALL_Y, z, HALL_X, HALL_Y, z, C_BLUE, 0);
+    }
+
+    // ---- the threshold ------------------------------------------------------
+    boxE(0, 0, ROOM[0].z + 3, 2 * HALL_X + 1, 2 * HALL_Y, 0.4, C_TIDE, 1);
+    quadE(-1.8, 0, ROOM[0].z + 2.9, 3.0, 9, C_TIDE, 0);
+    quadE(1.8, 0, ROOM[0].z + 2.9, 3.0, 9, C_TIDE, 0);
+
+    // ---- the rooms ----------------------------------------------------------
+    for (i = 0; i < ROOM.length; i++) { if (ROOM[i].side !== 0) { defineRoom(ROOM[i]); } }
   }
 
   function buildCorridorFromEdges() {
@@ -386,10 +484,12 @@
         var hy = e.a[1] + (e.b[1] - e.a[1]) * t;
         var hz = e.a[2] + (e.b[2] - e.a[2]) * t;
         sHx[idx] = hx; sHy[idx] = hy; sHz[idx] = hz;
-        sRx[idx] = rand(-halfW * 1.3, halfW * 1.3);
+        sRx[idx] = rand(-26, 26);
         sRy[idx] = rand(-halfH * 1.7, halfH * 1.7);
-        sRz[idx] = rand(-46, 6);
-        sStag[idx] = clamp01((4 - hz) / 50);
+        sRz[idx] = rand(HALL_Z1, HALL_Z0);
+        // Condense front-to-back along the hallway, so the world builds itself
+        // ahead of you as you walk rather than all at once.
+        sStag[idx] = clamp01((HALL_Z0 - hz) / (HALL_Z0 - HALL_Z1));
         sBase[idx] = rand(0.34, 0.78);
         var k = AMB + idx;
         color[k * 3] = e.c[0] * 0.6 + 0.4; color[k * 3 + 1] = e.c[1] * 0.6 + 0.4; color[k * 3 + 2] = e.c[2] * 0.5 + 0.5;
@@ -402,7 +502,7 @@
     for (; idx < STRUCT; idx++) { var kk = AMB + idx; alpha[kk] = 0; pos[kk * 3 + 2] = -999; sStag[idx] = 2; }
   }
 
-  function bakeMonogram(url, x, y, z, h) {
+  function bakeMonogram(url, x, y, z, h, yaw) {
     if (!url) { return; }
     var img = new Image();
     img.onload = function () {
@@ -418,9 +518,13 @@
         var tex = new THREE.CanvasTexture(c); tex.needsUpdate = true;
         var mat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthTest: false, depthWrite: false });
         var mesh = new THREE.Mesh(new THREE.PlaneGeometry(h * ar, h), mat);
-        mesh.position.set(x, y, z); mesh.frustumCulled = false;
+        mesh.position.set(x, y, z);
+        mesh.rotation.y = yaw || 0;   // a plane on a room's far wall faces along X
+        mesh.frustumCulled = false;
         corridorGroup.add(mesh);
-        signage.push({ mesh: mesh, mat: mat, z: z });
+        // Proximity is measured from the mark's own position now, not from a z
+        // difference -- rooms are off to the side, so z alone says nothing.
+        signage.push({ mesh: mesh, mat: mat, pos: new THREE.Vector3(x, y, z) });
       } catch (e) {}
     };
     img.onerror = function () {};
@@ -429,10 +533,12 @@
 
   function buildCorridor() {
     corridorGroup = new THREE.Group();
-    defineCorridor();
+    defineWorld();
     buildCorridorFromEdges();
-    bakeMonogram(_monoUrl, 0, 0.4, -10.85, 2.6);
-    bakeMonogram(_monoStackUrl, 0, 1.2, -45.9, 4.6);
+    // Signage now hangs on room walls rather than across the hallway. It has to
+    // face the room's camera, so it is rotated to match the room's yaw.
+    bakeMonogram(_monoUrl, ROOM[1].side * (HALL_X + ROOM_D - 0.4), 1.4, ROOM[1].z, 2.6, yawFor(ROOM[1].side));
+    bakeMonogram(_monoStackUrl, ROOM[7].side * (HALL_X + ROOM_D - 0.4), -0.6, ROOM[7].z, 4.2, yawFor(ROOM[7].side));
     scene.add(corridorGroup);
     _corridorReady = true;
   }
@@ -452,7 +558,7 @@
   function updateSignage() {
     for (var i = 0; i < signage.length; i++) {
       var s = signage[i];
-      var on = clamp01(1 - (Math.abs(camera.position.z - s.z) - 4) / 12);
+      var on = clamp01(1 - (camera.position.distanceTo(s.pos) - 10) / 14);
       // Recede while a page is being read. The reception mark sits at z=-10.85 and
       // the camera parks at z=-9, so it blooms to full size across the middle of
       // the screen -- straight behind the text. Home 7 could let it blaze because
@@ -464,15 +570,22 @@
   }
 
   // ---- screen px -> world (plane D0 in front of the dollying camera) -------
-  // Exact inverse of projectPages()'s maths -- it only works because the camera
-  // is unrotated. Keep both sides reading from D0/TAN_HALF; two hand-derived
-  // inverses drift the first time somebody touches the FOV.
+  // Exact inverse of projectPages(): the point on the plane D0 in front of the
+  // camera that a screen pixel falls on.
+  //
+  // The old version divided by _dir.z, which silently assumed the camera looks
+  // down -Z. That held for the corridor and is wrong the moment the camera turns
+  // into a room: at yaw -90 the view axis is +X, _dir.z goes through zero, and
+  // every card's burst would fire off toward infinity. Projecting onto the camera's
+  // own forward axis is the general form and reduces to the old one at yaw 0.
   function screenToWorld(px, py) {
     camera.updateMatrixWorld();
+    camera.getWorldDirection(_fwd);
     _v.set((px / vw) * 2 - 1, -((py / vh) * 2 - 1), 0.5).unproject(camera);
     _dir.copy(_v).sub(camera.position).normalize();
-    var t = (-D0) / _dir.z;
-    _out.copy(camera.position).add(_dir.multiplyScalar(t));
+    var denom = _dir.dot(_fwd);
+    if (Math.abs(denom) < 1e-4) { return _out.copy(camera.position); }
+    _out.copy(camera.position).add(_dir.multiplyScalar(D0 / denom));
     return _out;
   }
 
@@ -532,15 +645,52 @@
   }
 
   // ---- page curves --------------------------------------------------------
-  function dCurve(u) {
-    if (u <= U_IN) {
-      var t = clamp01((u - U_FAR) / (U_IN - U_FAR));
-      return D_FAR + (D0 - D_FAR) * smooth(t);        // 34 -> 12, eased
+  /**
+   * The walk, as a pure function of the master clock.
+   *
+   *   |u| < 0.16          in the room, pose CONSTANT (this is what makes s == 1
+   *                       hold across the whole dwell, so an inner scroller can
+   *                       absorb reading time without the camera creeping)
+   *   0.16 .. 0.30        walking in / backing out through the doorway
+   *   0.30 .. 0.42        turning at the doorway, still in the hallway
+   *   0.42 .. 0.58        travelling the hallway to the next door
+   *
+   * Continuity is by construction: at u = +0.42 you are at room i's door facing
+   * down the hallway, and that is exactly where room i+1's u = -0.42 starts.
+   * Rooms with side:0 (the threshold) collapse the turn and walk to no-ops.
+   */
+  function poseAt(g, out) {
+    var n = ROOM.length;
+    g = clamp(g, 0, n - 1);
+    var i = Math.round(g), u = g - i, R = ROOM[i];
+
+    // Between two doors: pure hallway.
+    if (u <= -U_TURN || u >= U_TURN) {
+      var a, b, t;
+      if (u >= U_TURN) { a = i; b = Math.min(i + 1, n - 1); t = (u - U_TURN) / (1 - 2 * U_TURN); }
+      else { a = Math.max(i - 1, 0); b = i; t = (u + (1 - U_TURN)) / (1 - 2 * U_TURN); }
+      var za = ROOM[a].z, zb = ROOM[b].z;
+      out.x = 0; out.y = 0; out.z = za + (zb - za) * smooth(clamp01(t)); out.yaw = 0;
+      out.p = ROOM[a].p + (ROOM[b].p - ROOM[a].p) * clamp01(t);
+      return out;
     }
-    if (u <= U_OUT) { return D0; }                     // flat dwell: s == 1
-    var t2 = clamp01((u - U_OUT) / (U_GONE - U_OUT));
-    return D0 + (D_NEAR - D0) * (t2 * t2);             // 12 -> 4, accelerating past
+
+    out.y = 0; out.p = R.p;
+    if (R.side === 0) { out.x = 0; out.z = R.z; out.yaw = 0; return out; }
+
+    var yaw = yawFor(R.side), au = Math.abs(u);
+    if (au >= U_WALK) {                       // turning at the doorway
+      out.x = 0; out.z = R.z;
+      out.yaw = yaw * smooth(clamp01(1 - (au - U_WALK) / (U_TURN - U_WALK)));
+    } else if (au >= U_DWELL) {               // walking in / backing out
+      out.x = R.side * ROOM_IN * smooth(clamp01(1 - (au - U_DWELL) / (U_WALK - U_DWELL)));
+      out.z = R.z; out.yaw = yaw;
+    } else {                                  // in the room -- FLAT
+      out.x = R.side * ROOM_IN; out.z = R.z; out.yaw = yaw;
+    }
+    return out;
   }
+
   /**
    * Opacity. The two windows are COMPLEMENTARY, and that is the whole point:
    * consecutive pages sit exactly 1.0 apart in g, so page i's fade-out
@@ -559,10 +709,10 @@
    * page being read is always at a solid opacity: 1.
    */
   function aCurve(u) {
-    return band(u, -0.85, U_IN) * (1 - band(u, U_OUT, 0.75));
+    return band(u, -0.32, -0.18) * (1 - band(u, 0.18, 0.32));
   }
   function readAmount(u) {
-    return band(u, U_IN - 0.2, U_IN) * (1 - band(u, U_OUT, U_OUT + 0.2));
+    return band(u, U_IN - 0.05, U_IN) * (1 - band(u, U_OUT, U_OUT + 0.05));
   }
   function stateFor(u) {
     if (u <= U_FAR || u > U_GONE) { return 'far'; }
@@ -602,24 +752,38 @@
     return clamp(gg, 0, n - 1);
   }
 
+  var _pose = { x: 0, y: 0, z: 0, yaw: 0, p: 1 };
+  var _yawT = 0;
+
   function computeCamera() {
     if (!_corridorReady || !_secTop.length) {
-      oTX = mouseNX * 2.6; oTY = mouseNY * 1.9; oTZ = CAMZ; oP = 1; return;
+      oTX = mouseNX * 2.6; oTY = mouseNY * 1.9; oTZ = CAMZ; _yawT = 0; oP = 1; return;
     }
-    var lo = Math.floor(_g), hi = Math.min(lo + 1, W.length - 1), sp = smooth(_g - lo);
-    var a = W[lo] || W[0], b = W[hi] || a;
-    var sx = a.x + (b.x - a.x) * sp, sy2 = a.y + (b.y - a.y) * sp;
-    var sz = a.z + (b.z - a.z) * sp, spp = a.p + (b.p - a.p) * sp;
+    poseAt(_g, _pose);
     var center = scrollY + vh * 0.5;
     var ap = clamp01((center - _actTop) / _actH);
-    var asm = band(ap, 0.0, 0.10) * (1 - band(ap, 0.90, 1.0));
-    oTZ = CAMZ + (sz - CAMZ) * asm;
-    oTX = sx * asm; oTY = sy2 * asm;
+    // The assembly envelope condenses the WORLD out of the dust and dissolves it
+    // again at the very end. It no longer touches the camera.
+    //
+    // It used to blend the camera itself from a free-floating nebula pose (0,0,22)
+    // into the walk, which broke both ends of the page once pages became
+    // world-anchored rather than camera-leashed:
+    //   - the intro ramp was still climbing through section 0's dwell, so the hero
+    //     page sat at s=0.76 and never reached 1:1;
+    //   - the tail dissolve starts at 90%, but the last room's dwell is at 94% --
+    //     so it hauled the camera ~26 units back up the hallway and 34 degrees off
+    //     axis, and the final page rendered small, off-centre, with the WRONG
+    //     room's furniture behind it.
+    // The camera now simply walks; the world forms around it. That is also the
+    // better beat -- you stand at the threshold and the hallway assembles.
+    var asm = band(ap, 0.0, 0.10) * (1 - band(ap, 0.96, 1.0));
+    oTZ = _pose.z; oTX = _pose.x; oTY = _pose.y;
+    _yawT = _pose.yaw;
     // Damp parallax + idle drift at the CAMERA while a page is being read. Damping
     // it at the page would make the page a lie (it would stop obeying the
     // projection); damping the camera makes the whole world hold its breath, which
     // is the better beat anyway.
-    oP = (1 - (1 - spp) * asm) * (1 - _reading);
+    oP = _pose.p * (1 - _reading);
     if (Math.abs(asm - corridorAssembly) > 0.0006) { _structDirty = true; }
     corridorAssembly = asm;
   }
@@ -860,19 +1024,35 @@
   // scrollbar -- window.innerWidth would put every page ~15px off-axis from the
   // corridor on Windows, since this page always has a scrollbar.
   function projectPages() {
-    var cx = camera.position.x, cy = camera.position.y;
+    // Camera space, not world space. The old code differenced world coordinates
+    // directly, which only worked because the camera could not rotate. Going
+    // through matrixWorldInverse is the same maths for an unrotated camera and the
+    // correct maths for a yawing one. matrixWorldInverse is normally refreshed by
+    // renderer.render(), i.e. AFTER this runs -- so refresh it here or the pages
+    // project from last frame's camera and lag the world by a frame.
+    camera.updateMatrixWorld();
+    _mwi.copy(camera.matrixWorld).invert();
+
     var i, p, u, d, s, upp, sx, sy, a;
     for (i = 0; i < _pages.length; i++) {
       p = _pages[i];
       u = _g - i;
       if (u <= U_FAR || u > U_GONE) { setState(p, 'far'); continue; }
 
-      d = dCurve(u);
+      a = aCurve(u);
+      _pv.copy(p.world).applyMatrix4(_mwi);
+      d = -_pv.z;                                  // depth along the view axis
+
+      // A page lives in its room, so while you are out in the hallway it is off to
+      // one side -- d passes through zero and s = D0/d explodes. aCurve is already
+      // zero there, but a NaN/Infinity transform still poisons the element, so
+      // this guard is load-bearing rather than defensive.
+      if (d < 2 || a < 0.004) { setState(p, 'far'); continue; }
+
       s = D0 / d;                                  // == 1 exactly at d == D0
       upp = (2 * d * TAN_HALF) / vh;
-      sx = (p.wx - cx) / upp;                      // CSS px from viewport centre
-      sy = -(p.wy - cy) / upp;
-      a = aCurve(u);
+      sx = _pv.x / upp;                            // CSS px from viewport centre
+      sy = -_pv.y / upp;
 
       setState(p, stateFor(u));
 
@@ -967,8 +1147,12 @@
     // put the camera a further ~0.33s behind the pages that are projected FROM it
     // -- which reads as blur, not as lag.
     oX = oTX; oY = oTY; oZ = oTZ;
+    camera.rotation.y = _yawT;
+    // Parallax rides the camera's OWN right axis, not world X. Once the camera can
+    // turn, a world-X nudge would slide you sideways in the hallway but forwards
+    // and backwards inside a room -- mouse-driven dolly, which looks like a bug.
     var px = (_mx * 2.6 + driftX) * oP, py = (_my * 1.9 + driftY) * oP;
-    camera.position.set(oX + px, oY + py, oZ);
+    camera.position.set(oX + rgtX(_yawT) * px, oY + py, oZ + rgtZ(_yawT) * px);
 
     if (_corridorReady) {
       if (_structDirty) { updateStruct(); _structDirty = false; }
@@ -989,15 +1173,34 @@
   function start() { if (!started) { started = true; lastT = 0; rafId = raf(frame); } }
   function stop() { if (started) { started = false; caf(rafId); rafId = null; } }
 
+  /**
+   * Anchor each page in its room, D0 in front of that room's dwell pose.
+   *
+   * This is why no dCurve is needed any more. The old build authored the depth
+   * because the camera flew straight past a page pinned to a waypoint, and the
+   * corridor's waypoint gaps (5,6,6,3,6,8,8) gave every section a different zoom.
+   * Now the camera physically stops in front of the page, so d == D0 and s == 1 at
+   * dwell by construction, and the zoom is just what walking into a room does.
+   *
+   * Recomputed on resize because the resting offset is authored in CSS px at
+   * reading distance, and px -> world depends on viewport height.
+   */
   function sizePages() {
     var w = Math.min(PAGE_W_MAX, Math.round(vw * 0.84));
     var h = Math.min(PAGE_H_MAX, Math.round(vh * 0.80));
     for (var i = 0; i < _pages.length; i++) {
-      _pages[i].el.style.width = w + 'px';
-      _pages[i].el.style.height = h + 'px';
-      // Resting offset authored in CSS px at reading distance -> world units.
-      _pages[i].wx = W[i].x + PAGE_OFF[i].x * upp12;
-      _pages[i].wy = W[i].y - PAGE_OFF[i].y * upp12;
+      var p = _pages[i], R = ROOM[i];
+      p.el.style.width = w + 'px';
+      p.el.style.height = h + 'px';
+
+      var yaw = yawFor(R.side);
+      var cxr = R.side * ROOM_IN, czr = R.z;          // the dwell pose
+      var ox = PAGE_OFF[i].x * upp12, oy = PAGE_OFF[i].y * upp12;
+      p.world.set(
+        cxr + fwdX(yaw) * D0 + rgtX(yaw) * ox,
+        -oy,                                          // screen y is down, world y is up
+        czr + fwdZ(yaw) * D0 + rgtZ(yaw) * ox
+      );
     }
   }
 
@@ -1053,7 +1256,7 @@
         scroll: el.querySelector('.cb8-page__scroll'),
         body: el.querySelector('.cb8-page__body'),
         state: '', bodyOn: false, cardsIn: false, floatsOn: false,
-        wx: 0, wy: 0
+        world: new THREE.Vector3()
       });
     }
   }
@@ -1100,6 +1303,7 @@
 
     try {
       _v = new THREE.Vector3(); _dir = new THREE.Vector3(); _out = new THREE.Vector3();
+      _pv = new THREE.Vector3(); _fwd = new THREE.Vector3(); _mwi = new THREE.Matrix4();
       renderer.setClearColor(0x000000, 0);
       vw = document.documentElement.clientWidth || 1;
       vh = document.documentElement.clientHeight || 1;
