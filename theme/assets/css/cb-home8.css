@@ -98,8 +98,12 @@ html.cb8-on, html.cb8-on * { cursor: none; }
    Do NOT "fix" them to track content -- inner scrollers absorb length instead.
    ------------------------------------------------------------------------- */
 .cb8-section { height: auto; }
-html.cb8-on .cb8-section { height: 140vh; }
-html.cb8-on .cb8-section--hero { height: 170vh; }
+/* Raised from 140vh: a section now has to fit backing out of a room, gliding the
+   hallway, turning, and stepping into the next one. At 140vh the whole arc got
+   ~95vh of scroll and read as hurried. This is the pacing dial for the walk --
+   taller is slower and calmer, and it costs nothing but page height. */
+html.cb8-on .cb8-section { height: 165vh; }
+html.cb8-on .cb8-section--hero { height: 190vh; }
 
 /* -------------------------------------------------------------------------
    3. Page stage + geometry box

@@ -121,14 +121,17 @@
     { z: -56, side: 1,  p: 0.70, theme: 'story' }
   ];
 
-  // Schedule in u = g - i. Budget per section sums to 1.0:
-  //   0.42..0.58  hallway travel to the next door   (shared between i and i+1)
-  //   0.30..0.42  turn at the doorway               (page swings into view, small)
-  //   0.16..0.30  walk in / out                     (page zooms 0.6x -> 1x)
-  //  -0.16..0.16  IN THE ROOM -- flat, so d == D0 and s == 1 for the whole dwell
-  // The flat middle is what lets the inner scroller absorb reading time without
-  // the camera creeping: the pose is literally constant across it.
-  var U_TURN = 0.42, U_WALK = 0.30, U_DWELL = 0.16;
+  // Only two states are authored: standing in a room (flat), and the arc between
+  // two rooms. |u| <= U_DWELL is the flat one -- the pose is literally constant
+  // across it, which is what makes d == D0 and s == 1 hold for the whole dwell and
+  // lets an inner scroller absorb reading time without the camera creeping.
+  //
+  // Everything else is ONE overlapping arc; see poseAt(). The first cut chopped it
+  // into four separate smoothstepped legs (back out | travel | turn | walk in) and
+  // the camera came to a dead stop at every boundary, because smoothstep's
+  // velocity is zero at both ends. Six full stops per room. Overlapping the legs
+  // is what makes it a walk instead of a sequence of moves.
+  var U_DWELL = 0.16;
   var U_FAR = -0.45, U_GONE = 0.45;      // outside this, the page does not exist
   var U_IN = -U_DWELL, U_OUT = U_DWELL;  // reading window == the flat pose window
   // Live body comes in before the turn completes, so the relayout hitch lands
@@ -224,7 +227,13 @@
   function rand(a, b) { return a + Math.random() * (b - a); }
   function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
   function smooth(t) { return t * t * (3 - 2 * t); }
-  function band(x, a, b) { return smooth(clamp01((x - a) / (b - a))); }
+  // Smootherstep. Smoothstep's VELOCITY is zero at both ends, but its
+  // ACCELERATION jumps (2nd derivative is 6 at t=0), so every segment boundary in
+  // the walk lands a small jerk. This one zeroes the first AND second derivatives
+  // at both ends -- C2 instead of C1 -- so the camera changes pace without ever
+  // snapping into it. Same cost, strictly smoother; band() is the only consumer.
+  function smoother(t) { return t * t * t * (t * (t * 6 - 15) + 10); }
+  function band(x, a, b) { return smoother(clamp01((x - a) / (b - a))); }
   // Frame-rate independent lerp. `oX += (t-oX)*0.05` chases 2x faster at 120Hz,
   // and a page projected from a lagging camera reads as "the text looks blurry",
   // not "the timing is wrong" -- you get the bug report in the wrong vocabulary.
@@ -659,35 +668,68 @@
    * down the hallway, and that is exactly where room i+1's u = -0.42 starts.
    * Rooms with side:0 (the threshold) collapse the turn and walk to no-ops.
    */
+  function roomPose(R, out) {
+    out.x = R.side * ROOM_IN; out.y = 0; out.z = R.z; out.yaw = yawFor(R.side); out.p = R.p;
+    return out;
+  }
+
   function poseAt(g, out) {
     var n = ROOM.length;
     g = clamp(g, 0, n - 1);
-    var i = Math.round(g), u = g - i, R = ROOM[i];
+    if (n < 2) { return roomPose(ROOM[0], out); }
 
-    // Between two doors: pure hallway.
-    if (u <= -U_TURN || u >= U_TURN) {
-      var a, b, t;
-      if (u >= U_TURN) { a = i; b = Math.min(i + 1, n - 1); t = (u - U_TURN) / (1 - 2 * U_TURN); }
-      else { a = Math.max(i - 1, 0); b = i; t = (u + (1 - U_TURN)) / (1 - 2 * U_TURN); }
-      var za = ROOM[a].z, zb = ROOM[b].z;
-      out.x = 0; out.y = 0; out.z = za + (zb - za) * smooth(clamp01(t)); out.yaw = 0;
-      out.p = ROOM[a].p + (ROOM[b].p - ROOM[a].p) * clamp01(t);
-      return out;
-    }
+    var i = Math.floor(g);
+    if (i > n - 2) { i = n - 2; }
+    var t = g - i;                                   // 0..1 across segment i -> i+1
 
-    out.y = 0; out.p = R.p;
-    if (R.side === 0) { out.x = 0; out.z = R.z; out.yaw = 0; return out; }
+    if (t <= U_DWELL) { return roomPose(ROOM[i], out); }          // standing, room i
+    if (t >= 1 - U_DWELL) { return roomPose(ROOM[i + 1], out); }  // standing, room i+1
 
-    var yaw = yawFor(R.side), au = Math.abs(u);
-    if (au >= U_WALK) {                       // turning at the doorway
-      out.x = 0; out.z = R.z;
-      out.yaw = yaw * smooth(clamp01(1 - (au - U_WALK) / (U_TURN - U_WALK)));
-    } else if (au >= U_DWELL) {               // walking in / backing out
-      out.x = R.side * ROOM_IN * smooth(clamp01(1 - (au - U_DWELL) / (U_WALK - U_DWELL)));
-      out.z = R.z; out.yaw = yaw;
-    } else {                                  // in the room -- FLAT
-      out.x = R.side * ROOM_IN; out.z = R.z; out.yaw = yaw;
-    }
+    // ---- the arc between two rooms -----------------------------------------
+    // Five overlapping ramps, not four sequential moves. The overlaps are the
+    // whole point: you unwind your shoulders while still backing out (xOut/yawOut
+    // overlap), the hallway glide starts before the turn finishes, and you begin
+    // turning toward the next door while still gliding, then step through it
+    // (zT/yawIn/xIn overlap). Read the windows below as "what is happening at
+    // once", not "what happens next".
+    //
+    // Continuity is free: at w=0 every ramp reads exactly room i's pose and at
+    // w=1 exactly room i+1's, and band() has zero velocity AND acceleration at
+    // both ends -- so the arc leaves and rejoins the flat dwells without a seam.
+    var A = ROOM[i], B = ROOM[i + 1];
+    var w = (t - U_DWELL) / (1 - 2 * U_DWELL);
+
+    // The hallway glide normally waits for you to clear the doorway (w=0.18) and
+    // stops before you step into the next one (w=0.82). A side:0 room has no
+    // doorway to clear, so those waits become dead scroll where NOTHING moves --
+    // literally zero camera speed. That is exactly what happened leaving the
+    // threshold: ~14% of the section where you scrolled and the world sat still.
+    // With no room to back out of, the glide simply starts at once.
+    var zT = band(w, A.side === 0 ? 0.00 : 0.18, B.side === 0 ? 1.00 : 0.82);
+
+    // Window WIDTH is pace: each ramp covers a fixed distance (8 units, or a 90
+    // degree sweep), so a narrow window means that leg happens fast. They are
+    // sized to keep the legs at comparable speed. The first cut turned inside 0.28
+    // while the glide got 0.60, so the camera whipped through 90 degrees, crawled
+    // down the hallway, then whipped again -- an 8x speed swing per room, which
+    // reads as exactly the unevenness it was supposed to remove.
+    //
+    // A side:0 neighbour has no doorway, so its back-out (or step-in) leg does not
+    // exist and that window is free. Spend it on the turn: starting earlier makes
+    // the sweep wider and gentler, and -- the reason this is not cosmetic -- keeps
+    // it overlapping the glide. Leaving the threshold there is no back-out to
+    // carry the early motion, so with the default 0.58 start the glide had already
+    // decayed before the turn began and the camera all but stopped between them.
+    var xOut = 1 - band(w, 0.00, 0.30);                          // back out through the doorway
+    var yawOut = 1 - band(w, 0.06, B.side === 0 ? 0.66 : 0.42);  // ...turning as you go
+    var yawIn = band(w, A.side === 0 ? 0.34 : 0.58, 0.94);       // ...turning toward the next door early
+    var xIn = band(w, 0.70, 1.00);                               // step in
+
+    out.x = A.side * ROOM_IN * xOut + B.side * ROOM_IN * xIn;
+    out.y = 0;
+    out.z = A.z + (B.z - A.z) * zT;
+    out.yaw = yawFor(A.side) * yawOut + yawFor(B.side) * yawIn;
+    out.p = A.p + (B.p - A.p) * w;
     return out;
   }
 
