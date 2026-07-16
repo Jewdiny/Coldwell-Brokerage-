@@ -169,12 +169,24 @@ $ROUTES = [
     ],
 ];
 
+/**
+ * The harness links point at the REAL, LIVE pages.
+ *
+ * homes-sanangelo.com is live, and its routes are exactly the ones this partial
+ * already asks for -- /find-a-home/, /home-value/, /our-team/, /office/,
+ * /communities/{slug}/, /blog/ -- so home_url() only has to become absolute.
+ * In WordPress this function is WordPress's own and already resolves correctly;
+ * only the static harness needed a base, because file:// has no site root.
+ *
+ * Note this is the brokerage's OWN site, not coldwellbanker.com. Pointing a
+ * brokerage's nav at the franchisor would hand every "Find a Home" click to the
+ * national portal, and the lead with it -- while template-find-home.php's live
+ * Spark MLS search sat unused.
+ */
+const LIVE_BASE = 'http://homes-sanangelo.com';
+
 function home_url($p = '/') {
-    $r = $GLOBALS['ROUTES'];
-    if (isset($r[$p])) { return 'sub/' . $GLOBALS['NS'] . '-' . $r[$p]['file'] . '.html'; }
-    // Community permalinks are /communities/{slug}/ -- all land on the index here.
-    if (strpos($p, '/communities/') === 0) { return 'sub/' . $GLOBALS['NS'] . '-communities.html'; }
-    return 'sub/' . $GLOBALS['NS'] . '-communities.html';
+    return LIVE_BASE . $p;
 }
 function cb_get_svg_icon($n) { return ''; }
 function wp_reset_postdata() {}
@@ -635,33 +647,7 @@ foreach ($which as $n) {
     file_put_contents($dest, $page);
     printf("wrote %s (%d bytes, partial %d bytes)\n", $V['out'], strlen($page), strlen($partial));
 
-    // ---- route stand-ins ---------------------------------------------------
-    $subdir = __DIR__ . '/sub';
-    if (!is_dir($subdir)) { mkdir($subdir); }
-    $P = cb_palette();
-    $ptok = [];
-    foreach ($P as $k => $hexv) { $ptok['{{P_' . strtoupper($k) . '}}'] = $hexv; }
-
-    foreach ($ROUTES as $route => $r) {
-        $cards = '';
-        foreach ($r['sections'] as $sname) {
-            $cards .= '<article class="card"><h3>' . $sname . '</h3>'
-                    . '<p>Rendered by the real template.</p></article>';
-        }
-        $sub = strtr($SUB, array_merge($subs, $ptok, [
-            '{{ROUTE_TITLE}}'    => $r['title'],
-            '{{ROUTE_H1}}'       => $r['h1'],
-            '{{ROUTE_KICKER}}'   => $r['kicker'],
-            '{{ROUTE_PATH}}'     => $route,
-            '{{ROUTE_TPL}}'      => $r['tpl'],
-            '{{ROUTE_BLURB}}'    => $r['blurb'],
-            '{{ROUTE_LIVE}}'     => $r['live'],
-            '{{ROUTE_SECTIONS}}' => $cards,
-            '{{BACK}}'           => '../' . $V['out'],
-        ]));
-        file_put_contents($subdir . '/' . $V['ns'] . '-' . $r['file'] . '.html', $sub);
-    }
-    printf("  + %d route stand-ins in harness/sub/\n", count($ROUTES));
 }
+
 
 

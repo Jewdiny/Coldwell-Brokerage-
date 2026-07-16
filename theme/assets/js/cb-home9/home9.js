@@ -495,6 +495,12 @@
     MAT.ceil = surf({ color: M_TRIM, roughness: 0.95 });
     MAT.trim = surf({ color: M_TRIM, roughness: 0.55 });   // painted joinery has a slight sheen
     MAT.wains = surf({ color: M_MIST, roughness: 0.7 });
+    // CB Blue below the chair rail, the length of the hallway. This is the brand
+    // pushed past "tasteful accent": you are walking down a navy corridor, and it
+    // is the first thing you see. It costs some of the domestic feel -- a house
+    // does not usually commit a whole hallway to one colour -- which is the trade
+    // that was chosen deliberately.
+    MAT.wainsNavy = surf({ color: M_NAVY, roughness: 0.78 });
     // The one wall you stand and face, in the signature colour. BRAND.md's rule is
     // "CB Blue + lots of white" -- so CB Blue is the accent the white is there to
     // set off, not the wallpaper. Every room has exactly one.
@@ -570,11 +576,12 @@
 
   /** Wainscot + baseboard + crown along a wall run. This trim is most of why the
    *  rooms read as "house" rather than "box with a wood floor". */
-  function trimRun(axis, fixed, from, to, sign) {
+  function trimRun(axis, fixed, from, to, sign, mat) {
+    mat = mat || MAT.wains;
     var mid = (from + to) / 2, len = Math.abs(to - from);
     var off = 0.06 * sign;
     if (axis === 'x') {   // wall lies in the Y-Z plane at x = fixed
-      box(MAT.wains, fixed + off, -HALL_Y + 1.4, mid, 0.12, 2.8, len);
+      box(mat, fixed + off, -HALL_Y + 1.4, mid, 0.12, 2.8, len);
       box(MAT.trim, fixed + off * 1.6, -HALL_Y + 0.18, mid, 0.2, 0.36, len);
       box(MAT.trim, fixed + off * 1.6, -HALL_Y + 2.86, mid, 0.2, 0.12, len);
       box(MAT.trim, fixed + off * 1.6, HALL_Y - 0.16, mid, 0.2, 0.32, len);
@@ -692,7 +699,7 @@
     plane(MAT.floor, xMid, -HALL_Y, z, ROOM_D, 2 * ROOM_H, 'up');
     plane(MAT.ceil, xMid, HALL_Y, z, ROOM_D, 2 * ROOM_H, 'down');
     plane(MAT.accent, xFar, 0, z, 2 * ROOM_H, 2 * HALL_Y, s > 0 ? '-x' : '+x');
-    plane(MAT.wall, xMid, 0, z0, ROOM_D, 2 * HALL_Y, '+z');
+    plane(MAT.accent, xMid, 0, z0, ROOM_D, 2 * HALL_Y, '+z');   // second accent wall
     plane(MAT.wall, xMid, 0, z1, ROOM_D, 2 * HALL_Y, '-z');
 
     trimRun('x', xFar, z0, z1, s > 0 ? -1 : 1);
@@ -812,7 +819,7 @@
           // The 0.5 of depth here is the entire reason entrance() has something
           // to line.
           box(MAT.wall, s * HALL_X, 0, (prev + z + 3) / 2, WALL_T, 2 * HALL_Y, prev - (z + 3));
-          trimRun('x', s * HALL_X - s * (WALL_T / 2), z + 3, prev, s > 0 ? -1 : 1);
+          trimRun('x', s * HALL_X - s * (WALL_T / 2), z + 3, prev, s > 0 ? -1 : 1, MAT.wainsNavy);
         }
         // Over-door panel, so the opening reads as a doorway and not a missing wall.
         box(MAT.wall, s * HALL_X, 4.3, z, WALL_T, 1.4, 6);
@@ -820,7 +827,7 @@
       }
       if (prev - HALL_Z1 > 0.1) {
         box(MAT.wall, s * HALL_X, 0, (prev + HALL_Z1) / 2, WALL_T, 2 * HALL_Y, prev - HALL_Z1);
-        trimRun('x', s * HALL_X - s * (WALL_T / 2), HALL_Z1, prev, s > 0 ? -1 : 1);
+        trimRun('x', s * HALL_X - s * (WALL_T / 2), HALL_Z1, prev, s > 0 ? -1 : 1, MAT.wainsNavy);
       }
     }
 
@@ -1880,6 +1887,7 @@
   window.CBHome9 = { init: init };
 
 })(window, document);
+
 
 
 
