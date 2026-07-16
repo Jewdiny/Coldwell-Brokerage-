@@ -6,28 +6,20 @@
 <title>CB Home 8 -- Floating Pages harness</title>
 
 <!--
-  Standalone harness for the Home 8 "floating pages" engine.
+  GENERATED FILE -- do not hand-edit.
+    Source : theme/template-parts/home8-pages-scenes.php
+    Rebuild: php harness/build-harness.php
 
-  WHY THIS FILE EXISTS AND IS COMMITTED
-  -------------------------------------
-  theme/assets/js/cb-webgl/CONTRACT.md prescribes building a standalone showcase
-  with file:/// asset references BEFORE touching WordPress. The previous session
-  did exactly that -- and left all three harnesses on someone's Desktop, where
-  they are unversioned and lost to anyone who clones the repo (SESSION_HANDOFF.md
-  still points at "Desktop/cb-webgl-harness.html"). This one lives in the repo.
-
-  Open it directly: no build, no server, no WordPress. Edit a file, reload.
-
-  It mirrors home8-pages-scenes.php's DOM exactly -- same classes, same data-
-  attributes, same nesting. The only differences are static stand-ins for the two
-  live shortcodes ([cb_listings], [cb_testimonials]) and relative asset paths.
-  If you change the partial's structure, change it here too or the harness stops
-  testing the thing you ship.
+  Standalone harness for the Home 8 floating-pages engine. Open directly: no
+  build, no server, no WordPress. The markup below IS the shipping partial, with
+  WordPress stubbed and the two live shortcodes ([cb_listings],
+  [cb_testimonials]) swapped for static stand-ins.
 
   Capture mode (deterministic headless screenshots):
     cb-home8-harness.html?cb_capture=1&cb_progress=0.50
-  freezes time at 2.0s, zeroes the mouse, snaps the camera (no lerp), ignores
-  scroll, renders 3 frames, then sets window.__cbReady and document.title=CB_READY.
+  freezes time at 2.0s, zeroes the mouse, snaps the camera (no lerp), synthesises
+  scroll from the target progress, renders 3 frames, then sets window.__cbReady
+  and document.title = CB_READY.
 
     msedge --headless=new --use-gl=angle --use-angle=swiftshader
            --enable-unsafe-swiftshader --ignore-gpu-blocklist
@@ -45,7 +37,7 @@
 <style>
   /* Minimal stand-in for cb-legacy-style: only the tokens cb-home8.css consumes.
      Values from theme/BRAND.md. Google Fonts are not fetched (offline harness),
-     so the fallback chain is what renders -- metrics differ slightly from prod. */
+     so the fallback chain renders -- metrics differ slightly from production. */
   :root {
     --cb-blue: #012169;
     --cb-smoky-gray: #58718D;
@@ -68,8 +60,8 @@
   body { font-family: var(--font-body); }
 
   .cb-btn {
-    display: inline-block; padding: .8rem 1.5rem; border-radius: 10px;
-    font-family: var(--font-subheader); font-size: .82rem; font-weight: 600;
+    display: inline-block; padding: .75rem 1.4rem; border-radius: 10px;
+    font-family: var(--font-subheader); font-size: .8rem; font-weight: 600;
     letter-spacing: .08em; text-transform: uppercase; text-decoration: none;
     border: 1px solid transparent; cursor: pointer;
   }
@@ -77,7 +69,7 @@
   .cb-btn--primary:hover { background: #1257e0; }
   .cb-btn--outline { background: transparent; color: #fff; border-color: rgba(255,255,255,.45); }
   .cb-btn--outline:hover { border-color: #fff; }
-  .cb-btn--lg { padding: .95rem 1.9rem; font-size: .88rem; }
+  .cb-btn--lg { padding: .9rem 1.8rem; font-size: .86rem; }
 
   /* Header/footer stubs so the z-index and overlay rules have something real. */
   .cb-header {
@@ -88,24 +80,24 @@
   .cb-header__logo-img { height: 30px; filter: brightness(0) invert(1); }
   .cb-footer { padding: 2.5rem 1.5rem; text-align: center; color: rgba(255,255,255,.6); font-size: .8rem; }
 
-  /* Static stand-in for [cb_listings]. */
+  /* Stand-in for [cb_listings]. */
   .h-listing { border-radius: 10px; overflow: hidden; background: rgba(12,30,72,.55); border: 1px solid rgba(184,207,234,.16); }
   .h-listing__img { aspect-ratio: 16/11; background: linear-gradient(150deg, #1b4794, #08163a); position: relative; }
   .h-listing__img::after {
-    content: attr(data-tag); position: absolute; left: .6rem; top: .6rem;
-    background: var(--cb-bright-blue); color: #fff; font-size: .6rem; font-weight: 700;
-    letter-spacing: .08em; text-transform: uppercase; padding: .2rem .5rem; border-radius: 4px;
+    content: attr(data-tag); position: absolute; left: .5rem; top: .5rem;
+    background: var(--cb-bright-blue); color: #fff; font-size: .58rem; font-weight: 700;
+    letter-spacing: .08em; text-transform: uppercase; padding: .18rem .45rem; border-radius: 4px;
   }
-  .h-listing__body { padding: .8rem; }
-  .h-listing__price { font-family: var(--font-heading); font-weight: 700; font-size: 1.1rem; color: #fff; }
-  .h-listing__addr { font-size: .8rem; color: rgba(255,255,255,.7); margin-top: .2rem; }
-  .h-listing__meta { font-size: .72rem; color: var(--cb-tide); margin-top: .5rem; letter-spacing: .04em; }
+  .h-listing__body { padding: .7rem; }
+  .h-listing__price { font-family: var(--font-heading); font-weight: 700; font-size: 1rem; color: #fff; }
+  .h-listing__addr { font-size: .76rem; color: rgba(255,255,255,.7); margin-top: .15rem; }
+  .h-listing__meta { font-size: .68rem; color: var(--cb-tide); margin-top: .4rem; letter-spacing: .04em; }
 
-  /* Static stand-in for [cb_testimonials type="rotator"]. */
-  .h-quote { color: #fff; }
+  /* Stand-in for [cb_testimonials type="rotator"]. */
+  .h-quote { color: #fff; margin: 0; }
   .h-quote__stars { color: #C9A84C; letter-spacing: .15em; }
-  .h-quote__text { font-family: var(--font-accent); font-style: italic; font-size: 1.05rem; line-height: 1.55; margin: .6rem 0 .5rem; }
-  .h-quote__who { font-size: .78rem; color: var(--cb-tide); letter-spacing: .06em; text-transform: uppercase; }
+  .h-quote__text { font-family: var(--font-accent); font-style: italic; font-size: 1rem; line-height: 1.5; margin: .5rem 0 .4rem; }
+  .h-quote__who { font-size: .74rem; color: var(--cb-tide); letter-spacing: .06em; text-transform: uppercase; }
 
   /* Harness-only badge so a screenshot is never mistaken for the real page. */
   .h-badge {
@@ -125,347 +117,470 @@
 
 <div class="cb8-stage" id="cb8-stage">
 
-  <canvas id="cb8-canvas" aria-hidden="true"></canvas>
-  <div class="cb8-vignette" aria-hidden="true"></div>
+    <canvas id="cb8-canvas" aria-hidden="true"></canvas>
+    <div class="cb8-vignette" aria-hidden="true"></div>
 
-  <nav class="cb8-nav" aria-label="Page sections">
-    <button class="cb8-nav__dot is-active" data-cb8-to="0" type="button"><span class="cb8-nav__label">Arrival</span></button>
-    <button class="cb8-nav__dot" data-cb8-to="1" type="button"><span class="cb8-nav__label">Welcome</span></button>
-    <button class="cb8-nav__dot" data-cb8-to="2" type="button"><span class="cb8-nav__label">Listings</span></button>
-    <button class="cb8-nav__dot" data-cb8-to="3" type="button"><span class="cb8-nav__label">Legacy</span></button>
-    <button class="cb8-nav__dot" data-cb8-to="4" type="button"><span class="cb8-nav__label">Buy</span></button>
-    <button class="cb8-nav__dot" data-cb8-to="5" type="button"><span class="cb8-nav__label">Communities</span></button>
-    <button class="cb8-nav__dot" data-cb8-to="6" type="button"><span class="cb8-nav__label">Sell</span></button>
-    <button class="cb8-nav__dot" data-cb8-to="7" type="button"><span class="cb8-nav__label">Connect</span></button>
-  </nav>
+    <nav class="cb8-nav" aria-label="Page sections">
+                    <button class="cb8-nav__dot is-active"
+                    data-cb8-to="0" type="button">
+                <span class="cb8-nav__label">Arrival</span>
+            </button>
+                    <button class="cb8-nav__dot"
+                    data-cb8-to="1" type="button">
+                <span class="cb8-nav__label">Welcome</span>
+            </button>
+                    <button class="cb8-nav__dot"
+                    data-cb8-to="2" type="button">
+                <span class="cb8-nav__label">Listings</span>
+            </button>
+                    <button class="cb8-nav__dot"
+                    data-cb8-to="3" type="button">
+                <span class="cb8-nav__label">Legacy</span>
+            </button>
+                    <button class="cb8-nav__dot"
+                    data-cb8-to="4" type="button">
+                <span class="cb8-nav__label">Buy</span>
+            </button>
+                    <button class="cb8-nav__dot"
+                    data-cb8-to="5" type="button">
+                <span class="cb8-nav__label">Communities</span>
+            </button>
+                    <button class="cb8-nav__dot"
+                    data-cb8-to="6" type="button">
+                <span class="cb8-nav__label">Sell</span>
+            </button>
+                    <button class="cb8-nav__dot"
+                    data-cb8-to="7" type="button">
+                <span class="cb8-nav__label">Connect</span>
+            </button>
+            </nav>
 
-  <!-- SPACERS: empty rect providers; authored heights drive the camera. -->
-  <div class="cb8-scenes">
-    <section class="cb8-section cb8-section--hero" data-cb8-section="0" aria-hidden="true"></section>
-    <section class="cb8-section" data-cb8-section="1" aria-hidden="true"></section>
-    <section class="cb8-section" data-cb8-section="2" aria-hidden="true"></section>
-    <section class="cb8-section" data-cb8-section="3" aria-hidden="true"></section>
-    <section class="cb8-section" data-cb8-section="4" aria-hidden="true"></section>
-    <section class="cb8-section" data-cb8-section="5" aria-hidden="true"></section>
-    <section class="cb8-section" data-cb8-section="6" aria-hidden="true"></section>
-    <section class="cb8-section" data-cb8-section="7" aria-hidden="true"></section>
-  </div>
+    <!-- SPACERS. Empty by design. Their heights are authored constants
+         (cb-home8.css) with no relationship to content length -- that is what
+         buys zero layout reads per frame. Inner scrollers absorb length. -->
+    <div class="cb8-scenes">
+        <section class="cb8-section cb8-section--hero" data-cb8-section="0" aria-hidden="true"></section>
+        <section class="cb8-section" data-cb8-section="1" aria-hidden="true"></section>
+        <section class="cb8-section" data-cb8-section="2" aria-hidden="true"></section>
+        <section class="cb8-section" data-cb8-section="3" aria-hidden="true"></section>
+        <section class="cb8-section" data-cb8-section="4" aria-hidden="true"></section>
+        <section class="cb8-section" data-cb8-section="5" aria-hidden="true"></section>
+        <section class="cb8-section" data-cb8-section="6" aria-hidden="true"></section>
+        <section class="cb8-section" data-cb8-section="7" aria-hidden="true"></section>
+    </div>
 
-  <div class="cb8-pages">
+    <div class="cb8-pages">
 
-    <!-- 0 -- ARRIVAL -->
-    <section class="cb8-page" data-cb8-page="0" id="cb8-arrival" aria-label="Welcome">
-      <div class="cb8-page__float" style="--fl-dur:8.5s;--fl-delay:0s;--fl-y:10px;--fl-rot:0.6deg">
-        <div class="cb8-page__skin">
-          <img class="cb8-page__plate" src="../theme/assets/images/webgl/01-arrival.jpg" alt="" aria-hidden="true" decoding="async" fetchpriority="high">
-          <div class="cb8-page__wash" aria-hidden="true"></div>
-          <div class="cb8-page__scrim" aria-hidden="true"></div>
-          <div class="cb8-page__scroll" tabindex="0">
-            <div class="cb8-page__inner">
-              <div class="cb8-lod">
-                <span class="cb8-eyebrow">Live Well With Coldwell&#8480;</span>
-                <h1 class="cb8-h1">Find Your Dream Home in San Angelo</h1>
-              </div>
-              <div class="cb8-page__body">
-                <span class="cb8-coords">31.46&deg;&nbsp;N &middot; 100.44&deg;&nbsp;W &middot; San Angelo, Texas</span>
-                <p class="cb8-sub" data-cb8-card>Discover luxury living with Coldwell Banker Legacy. Your trusted partner in San Angelo real estate.</p>
-                <span class="cb8-cue" aria-hidden="true">
-                  Scroll &mdash; walk the corridor
-                  <span class="cb8-cue__line"><span></span></span>
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 1 -- WELCOME -->
-    <section class="cb8-page" data-cb8-page="1" id="cb8-welcome" aria-label="How can we help">
-      <div class="cb8-page__float" style="--fl-dur:10s;--fl-delay:-2.3s;--fl-y:14px;--fl-rot:-0.8deg">
-        <div class="cb8-page__skin">
-          <img class="cb8-page__plate" src="../theme/assets/images/webgl/02-welcome.jpg" alt="" aria-hidden="true" decoding="async">
-          <div class="cb8-page__wash" aria-hidden="true"></div>
-          <div class="cb8-page__scrim" aria-hidden="true"></div>
-          <div class="cb8-page__scroll" tabindex="0">
-            <div class="cb8-page__inner">
-              <div class="cb8-lod">
-                <span class="cb8-eyebrow">Welcome to the Concho Valley</span>
-                <h2 class="cb8-h2">At home in San&nbsp;Angelo.</h2>
-              </div>
-              <div class="cb8-page__body">
-                <p class="cb8-p">Whether you&rsquo;re buying, selling, or just dreaming &mdash; start here. Four ways we help you move forward.</p>
-                <div class="cb8-grid cb8-grid--4" style="margin-top:1.4rem">
-                  <a href="#" class="cb8-tile" data-cb8-card data-cursor="Explore">
-                    <h3 class="cb8-h3">Find a Home</h3>
-                    <p class="cb8-p">Browse available properties across San Angelo and the Concho Valley.</p>
-                    <span class="cb8-go">Explore</span>
-                  </a>
-                  <a href="#" class="cb8-tile" data-cb8-card data-cursor="Value">
-                    <h3 class="cb8-h3">Sell Your Home</h3>
-                    <p class="cb8-p">Get a free home valuation and connect with an expert agent.</p>
-                    <span class="cb8-go">Get value</span>
-                  </a>
-                  <a href="#" class="cb8-tile" data-cb8-card data-cursor="Meet">
-                    <h3 class="cb8-h3">Meet Our Team</h3>
-                    <p class="cb8-p">Connect with experienced agents who know San Angelo inside and out.</p>
-                    <span class="cb8-go">Meet us</span>
-                  </a>
-                  <a href="#" class="cb8-tile" data-cb8-card data-cursor="Visit">
-                    <h3 class="cb8-h3">Visit Our Office</h3>
-                    <p class="cb8-p">Stop by our office on Knickerbocker Road. We&rsquo;d love to meet you.</p>
-                    <span class="cb8-go">Directions</span>
-                  </a>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 2 -- LISTINGS. The tall page: this is the one that must absorb the wheel
-         and freeze the camera, then chain back at the end of its inner scroll. -->
-    <section class="cb8-page" data-cb8-page="2" id="cb8-listings" aria-label="Featured listings">
-      <div class="cb8-page__float" style="--fl-dur:9.2s;--fl-delay:-4.1s;--fl-y:8px;--fl-rot:0.5deg">
-        <div class="cb8-page__skin">
-          <img class="cb8-page__plate" src="../theme/assets/images/webgl/03-listings.jpg" alt="" aria-hidden="true" decoding="async">
-          <div class="cb8-page__wash" aria-hidden="true"></div>
-          <div class="cb8-page__scrim" aria-hidden="true"></div>
-          <div class="cb8-page__scroll" tabindex="0">
-            <div class="cb8-page__inner">
-              <div class="cb8-lod">
-                <span class="cb8-eyebrow">Featured Properties</span>
-                <h2 class="cb8-h2">The latest on the market.</h2>
-              </div>
-              <div class="cb8-page__body">
-                <p class="cb8-p">A hand-picked look at premier San Angelo homes, updated live from the MLS.</p>
-                <div class="cb8-frame" data-cb8-card style="margin-top:1.2rem">
-                  <!-- stand-in for [cb_listings filter="featured" count="6" columns="3"] -->
-                  <div class="cb8-grid cb8-grid--3">
-                    <article class="h-listing"><div class="h-listing__img" data-tag="New"></div><div class="h-listing__body"><div class="h-listing__price">$439,000</div><div class="h-listing__addr">2841 Sunset Drive</div><div class="h-listing__meta">4 bd &middot; 3 ba &middot; 2,640 sqft</div></div></article>
-                    <article class="h-listing"><div class="h-listing__img" data-tag="Featured"></div><div class="h-listing__body"><div class="h-listing__price">$312,500</div><div class="h-listing__addr">1907 College Hills Blvd</div><div class="h-listing__meta">3 bd &middot; 2 ba &middot; 1,880 sqft</div></div></article>
-                    <article class="h-listing"><div class="h-listing__img" data-tag="Open"></div><div class="h-listing__body"><div class="h-listing__price">$675,000</div><div class="h-listing__addr">42 Lake Nasworthy Road</div><div class="h-listing__meta">5 bd &middot; 4 ba &middot; 3,910 sqft</div></div></article>
-                    <article class="h-listing"><div class="h-listing__img" data-tag="New"></div><div class="h-listing__body"><div class="h-listing__price">$289,900</div><div class="h-listing__addr">515 Bentwood Court</div><div class="h-listing__meta">3 bd &middot; 2 ba &middot; 1,740 sqft</div></div></article>
-                    <article class="h-listing"><div class="h-listing__img" data-tag="Featured"></div><div class="h-listing__body"><div class="h-listing__price">$1,150,000</div><div class="h-listing__addr">700 Concho River Walk</div><div class="h-listing__meta">6 bd &middot; 5 ba &middot; 5,200 sqft</div></div></article>
-                    <article class="h-listing"><div class="h-listing__img" data-tag="Price cut"></div><div class="h-listing__body"><div class="h-listing__price">$225,000</div><div class="h-listing__addr">108 Christoval Lane</div><div class="h-listing__meta">3 bd &middot; 1 ba &middot; 1,320 sqft</div></div></article>
-                  </div>
-                </div>
-                <a href="#" class="cb-btn cb-btn--primary" style="margin-top:1.2rem">View All Properties</a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 3 -- LEGACY -->
-    <section class="cb8-page" data-cb8-page="3" id="cb8-legacy" aria-label="Our track record">
-      <div class="cb8-page__float" style="--fl-dur:11.5s;--fl-delay:-1.2s;--fl-y:16px;--fl-rot:-0.5deg">
-        <div class="cb8-page__skin">
-          <img class="cb8-page__plate" src="../theme/assets/images/webgl/04-legacy.jpg" alt="" aria-hidden="true" decoding="async">
-          <div class="cb8-page__wash" aria-hidden="true"></div>
-          <div class="cb8-page__scrim" aria-hidden="true"></div>
-          <div class="cb8-page__scroll" tabindex="0">
-            <div class="cb8-page__inner">
-              <div class="cb8-lod">
-                <span class="cb8-eyebrow">Since 2000</span>
-                <h2 class="cb8-h2">A legacy of results in the Concho&nbsp;Valley.</h2>
-              </div>
-              <div class="cb8-page__body">
-                <div class="cb8-grid cb8-grid--4" style="margin-top:1.4rem">
-                  <div class="cb8-tile cb8-stat" data-cb8-card><div class="cb8-stat__num" data-count="1200">0</div><div class="cb8-stat__label">Homes Sold</div></div>
-                  <div class="cb8-tile cb8-stat" data-cb8-card><div class="cb8-stat__num" data-count="30">0</div><div class="cb8-stat__label">Expert Agents</div></div>
-                  <div class="cb8-tile cb8-stat" data-cb8-card><div class="cb8-stat__num" data-count="25">0</div><div class="cb8-stat__label">Years Serving San Angelo</div></div>
-                  <div class="cb8-tile cb8-stat" data-cb8-card><div class="cb8-stat__num" data-count="20">0</div><div class="cb8-stat__label">Communities Served</div></div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 4 -- BUY -->
-    <section class="cb8-page" data-cb8-page="4" id="cb8-buy" aria-label="Browse homes">
-      <div class="cb8-page__float" style="--fl-dur:7.8s;--fl-delay:-5.6s;--fl-y:12px;--fl-rot:0.9deg">
-        <div class="cb8-page__skin">
-          <img class="cb8-page__plate" src="../theme/assets/images/webgl/05-door.jpg" alt="" aria-hidden="true" decoding="async">
-          <div class="cb8-page__wash" aria-hidden="true"></div>
-          <div class="cb8-page__scrim" aria-hidden="true"></div>
-          <div class="cb8-page__scroll" tabindex="0">
-            <div class="cb8-page__inner">
-              <div class="cb8-lod">
-                <span class="cb8-eyebrow">For Buyers</span>
-                <h2 class="cb8-h2">Open the door to San&nbsp;Angelo living.</h2>
-              </div>
-              <div class="cb8-page__body">
-                <p class="cb8-p" data-cb8-card>Search every active listing in the Concho Valley &mdash; filtered, mapped, and updated in real time.</p>
-                <a href="#" class="cb-btn cb-btn--primary cb-btn--lg" data-cb8-card style="margin-top:1.4rem">Browse San Angelo Homes</a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 5 -- COMMUNITIES -->
-    <section class="cb8-page" data-cb8-page="5" id="cb8-communities" aria-label="Featured communities">
-      <div class="cb8-page__float" style="--fl-dur:12.4s;--fl-delay:-3s;--fl-y:9px;--fl-rot:-0.7deg">
-        <div class="cb8-page__skin">
-          <img class="cb8-page__plate" src="../theme/assets/images/webgl/06-communities.jpg" alt="" aria-hidden="true" decoding="async">
-          <div class="cb8-page__wash" aria-hidden="true"></div>
-          <div class="cb8-page__scrim" aria-hidden="true"></div>
-          <div class="cb8-page__scroll" tabindex="0">
-            <div class="cb8-page__inner">
-              <div class="cb8-lod">
-                <span class="cb8-eyebrow">Explore the Area</span>
-                <h2 class="cb8-h2">From the river to the ranch&nbsp;land.</h2>
-              </div>
-              <div class="cb8-page__body">
-                <p class="cb8-p">From downtown San Angelo to the scenic shores of Lake Nasworthy, find the neighborhood that fits your life.</p>
-                <div class="cb8-grid cb8-grid--3" style="margin-top:1.2rem">
-                  <!-- grape-creek is in the featured slug list but has no image in
-                       assets/images/communities/ -- kept first, deliberately, so the
-                       no-image path stays exercised. -->
-                  <a href="#" class="cb8-tile cb8-community" data-cb8-card data-cursor="View">
-                    <div class="cb8-community__overlay"><h3 class="cb8-h3">Grape Creek</h3><span class="cb8-go">View Listings</span></div>
-                  </a>
-                  <a href="#" class="cb8-tile cb8-community" data-cb8-card data-cursor="View">
-                    <img src="../theme/assets/images/communities/bentwood.webp" alt="Bentwood, San Angelo TX" class="cb8-community__img" decoding="async">
-                    <div class="cb8-community__overlay"><h3 class="cb8-h3">Bentwood</h3><span class="cb8-go">View Listings</span></div>
-                  </a>
-                  <a href="#" class="cb8-tile cb8-community" data-cb8-card data-cursor="View">
-                    <img src="../theme/assets/images/communities/college-hills.webp" alt="College Hills, San Angelo TX" class="cb8-community__img" decoding="async">
-                    <div class="cb8-community__overlay"><h3 class="cb8-h3">College Hills</h3><span class="cb8-go">View Listings</span></div>
-                  </a>
-                  <a href="#" class="cb8-tile cb8-community" data-cb8-card data-cursor="View">
-                    <img src="../theme/assets/images/communities/christoval.webp" alt="Christoval, San Angelo TX" class="cb8-community__img" decoding="async">
-                    <div class="cb8-community__overlay"><h3 class="cb8-h3">Christoval</h3><span class="cb8-go">View Listings</span></div>
-                  </a>
-                  <a href="#" class="cb8-tile cb8-community" data-cb8-card data-cursor="View">
-                    <img src="../theme/assets/images/communities/wall.webp" alt="Wall, San Angelo TX" class="cb8-community__img" decoding="async">
-                    <div class="cb8-community__overlay"><h3 class="cb8-h3">Wall</h3><span class="cb8-go">View Listings</span></div>
-                  </a>
-                  <a href="#" class="cb8-tile cb8-community" data-cb8-card data-cursor="View">
-                    <img src="../theme/assets/images/communities/lake-nasworthy.webp" alt="Lake Nasworthy, San Angelo TX" class="cb8-community__img" decoding="async">
-                    <div class="cb8-community__overlay"><h3 class="cb8-h3">Lake Nasworthy</h3><span class="cb8-go">View Listings</span></div>
-                  </a>
-                </div>
-                <a href="#" class="cb-btn cb-btn--outline" style="margin-top:1.2rem">Explore All Communities</a>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 6 -- SELL -->
-    <section class="cb8-page" data-cb8-page="6" id="cb8-sell" aria-label="Sell your home">
-      <div class="cb8-page__float" style="--fl-dur:9.8s;--fl-delay:-6.2s;--fl-y:15px;--fl-rot:0.4deg">
-        <div class="cb8-page__skin">
-          <img class="cb8-page__plate" src="../theme/assets/images/webgl/07-value.jpg" alt="" aria-hidden="true" decoding="async">
-          <div class="cb8-page__wash" aria-hidden="true"></div>
-          <div class="cb8-page__scrim" aria-hidden="true"></div>
-          <div class="cb8-page__scroll" tabindex="0">
-            <div class="cb8-page__inner">
-              <div class="cb8-lod">
-                <span class="cb8-eyebrow">For Sellers</span>
-                <h2 class="cb8-h2">What&rsquo;s my home worth today?</h2>
-              </div>
-              <div class="cb8-page__body">
-                <div class="cb8-grid cb8-grid--2" style="margin-top:1.2rem">
-                  <div class="cb8-tile" data-cb8-card>
-                    <p class="cb8-p" style="margin-top:0">Get a free, no-obligation valuation grounded in live San Angelo market data &mdash; usually within 24 hours.</p>
-                    <a href="#" class="cb-btn cb-btn--primary cb-btn--lg" style="margin-top:1.2rem">Get My Home Value</a>
-                  </div>
-                  <div class="cb8-tile" data-cb8-card>
-                    <h3 class="cb8-h3">Never miss a listing</h3>
-                    <p class="cb8-p">Property Watch emails you the moment a home matching your criteria hits the market.</p>
-                    <form class="cb8-watch__form" data-cb-watch>
-                      <input type="email" class="cb8-watch__input" name="email" placeholder="Enter your email address" aria-label="Email address" required>
-                      <button type="submit" class="cb-btn cb-btn--primary">Sign Up</button>
-                    </form>
-                    <p class="cb8-watch__note">No spam. Unsubscribe anytime.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 7 -- CONNECT. The other tall page. -->
-    <section class="cb8-page" data-cb8-page="7" id="cb8-connect" aria-label="Reviews and stories">
-      <div class="cb8-page__float" style="--fl-dur:10.8s;--fl-delay:-0.7s;--fl-y:11px;--fl-rot:-0.6deg">
-        <div class="cb8-page__skin">
-          <img class="cb8-page__plate" src="../theme/assets/images/webgl/08-connect.jpg" alt="" aria-hidden="true" decoding="async">
-          <div class="cb8-page__wash" aria-hidden="true"></div>
-          <div class="cb8-page__scrim" aria-hidden="true"></div>
-          <div class="cb8-page__scroll" tabindex="0">
-            <div class="cb8-page__inner">
-              <div class="cb8-lod">
-                <span class="cb8-eyebrow">Client Stories</span>
-                <h2 class="cb8-h2">What our clients say.</h2>
-              </div>
-              <div class="cb8-page__body">
-                <p class="cb8-p">Real reviews from Coldwell Banker Legacy San Angelo clients &mdash; verified via Testimonial Tree.</p>
-                <div class="cb8-frame" data-cb8-card style="margin-top:1.2rem">
-                  <!-- stand-in for [cb_testimonials type="rotator"] -->
-                  <blockquote class="h-quote">
-                    <div class="h-quote__stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div>
-                    <p class="h-quote__text">&ldquo;They knew every street in this town. We had an offer in four days and closed without a single surprise.&rdquo;</p>
-                    <div class="h-quote__who">The Walsh Family &middot; College Hills</div>
-                  </blockquote>
-                </div>
-                <a href="#" class="cb-btn cb-btn--outline" style="margin-top:1.2rem">Read All Reviews</a>
-
-                <span class="cb8-eyebrow" style="margin-top:2rem">From Our Blog</span>
-                <h2 class="cb8-h2">Local insight &amp; market news.</h2>
-                <div class="cb8-grid cb8-grid--3" style="margin-top:1.2rem">
-                  <article class="cb8-tile cb8-blog" data-cb8-card>
-                    <div class="cb8-blog__image cb8-blog__image--ph" aria-hidden="true"></div>
-                    <div class="cb8-blog__body">
-                      <span class="cb8-blog__cat">Community</span>
-                      <h3 class="cb8-h3"><a href="#">12 San Angelo Secrets Only Locals Know</a></h3>
-                      <p class="cb8-p">Discover the latest insights about San Angelo real estate and community living.</p>
-                      <span class="cb8-blog__meta">April 10, 2026</span>
+        <!-- 0 -- ARRIVAL ------------------------------------------------ -->
+        <section class="cb8-page" data-cb8-page="0" id="cb8-arrival" aria-label="Welcome">
+            <div class="cb8-page__float">
+                <div class="cb8-page__skin">
+                    <img class="cb8-page__plate" src="../theme/assets/images/webgl/01-arrival.jpg" alt="" aria-hidden="true" decoding="async" fetchpriority="high">                    <div class="cb8-page__scroll" tabindex="0">
+                        <div class="cb8-page__inner">
+                            <div class="cb8-lod">
+                                <div class="cb8-card cb8-card--chip" data-cb8-card style="--fl-dur:8.5s;--fl-delay:0s;--fl-y:10px;--fl-rot:0.6deg">
+                                    <div class="cb8-card__inner">
+                                        <span class="cb8-eyebrow">Live Well With Coldwell&#8480;</span>
+                                        <span class="cb8-coords">31.46&deg;&nbsp;N &middot; 100.44&deg;&nbsp;W &middot; San Angelo, Texas</span>
+                                    </div>
+                                </div>
+                                <div class="cb8-card cb8-card--title" data-cb8-card style="--fl-dur:10s;--fl-delay:-2.3s;--fl-y:14px;--fl-rot:-0.8deg">
+                                    <div class="cb8-card__inner"><h1 class="cb8-h1">Find Your Dream Home in San Angelo</h1></div>
+                                </div>
+                            </div>
+                            <div class="cb8-page__body">
+                                <div class="cb8-card cb8-card--lead" data-cb8-card style="--fl-dur:9.2s;--fl-delay:-4.1s;--fl-y:8px;--fl-rot:0.5deg">
+                                    <div class="cb8-card__inner"><p class="cb8-sub">Discover luxury living with Coldwell Banker Legacy. Your trusted partner in San Angelo real estate.</p></div>
+                                </div>
+                                <div class="cb8-card cb8-card--ghost" data-cb8-card style="--fl-dur:11.5s;--fl-delay:-1.2s;--fl-y:16px;--fl-rot:-0.5deg">
+                                    <div class="cb8-card__inner">
+                                        <span class="cb8-cue" aria-hidden="true">
+                                            Scroll &mdash; walk the corridor
+                                            <span class="cb8-cue__line"><span></span></span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                  </article>
-                  <article class="cb8-tile cb8-blog" data-cb8-card>
-                    <div class="cb8-blog__image cb8-blog__image--ph" aria-hidden="true"></div>
-                    <div class="cb8-blog__body">
-                      <span class="cb8-blog__cat">Market Update</span>
-                      <h3 class="cb8-h3"><a href="#">Spring 2026 San Angelo Market Report</a></h3>
-                      <p class="cb8-p">Discover the latest insights about San Angelo real estate and community living.</p>
-                      <span class="cb8-blog__meta">April 5, 2026</span>
-                    </div>
-                  </article>
-                  <article class="cb8-tile cb8-blog" data-cb8-card>
-                    <div class="cb8-blog__image cb8-blog__image--ph" aria-hidden="true"></div>
-                    <div class="cb8-blog__body">
-                      <span class="cb8-blog__cat">Buying Tips</span>
-                      <h3 class="cb8-h3"><a href="#">First-Time Home Buyer Guide for West Texas</a></h3>
-                      <p class="cb8-p">Discover the latest insights about San Angelo real estate and community living.</p>
-                      <span class="cb8-blog__meta">March 28, 2026</span>
-                    </div>
-                  </article>
                 </div>
-
-                <div class="cb8-tile cb8-mark" data-cb8-card style="margin-top:1.6rem">
-                  <img src="../theme/assets/images/logos/monogram-vertical-stacked.svg" alt="Coldwell Banker Legacy" class="cb8-mark__logo">
-                  <p class="cb8-mark__tag">Live Well With Coldwell&#8480;</p>
-                  <p class="cb8-mark__line">At home in San Angelo, Texas.</p>
-                </div>
-              </div>
             </div>
-          </div>
-        </div>
-      </div>
-    </section>
+        </section>
 
-  </div><!-- /.cb8-pages -->
+        <!-- 1 -- WELCOME / QUICK ACTIONS -------------------------------- -->
+        <section class="cb8-page" data-cb8-page="1" id="cb8-welcome" aria-label="How can we help">
+            <div class="cb8-page__float">
+                <div class="cb8-page__skin">
+                    <img class="cb8-page__plate" src="../theme/assets/images/webgl/02-welcome.jpg" alt="" aria-hidden="true" decoding="async">                    <div class="cb8-page__scroll" tabindex="0">
+                        <div class="cb8-page__inner">
+                            <div class="cb8-lod">
+                                <div class="cb8-card cb8-card--head" data-cb8-card style="--fl-dur:7.8s;--fl-delay:-5.6s;--fl-y:12px;--fl-rot:0.9deg">
+                                    <div class="cb8-card__inner">
+                                        <span class="cb8-eyebrow">Welcome to the Concho Valley</span>
+                                        <h2 class="cb8-h2">At home in San&nbsp;Angelo.</h2>
+                                        <p class="cb8-p">Whether you&rsquo;re buying, selling, or just dreaming &mdash; start here. Four ways we help you move forward.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="cb8-page__body">
+                                <div class="cb8-grid cb8-grid--4">
+                                    <a href="#" class="cb8-card cb8-card--action" data-cb8-card data-cursor="Explore" style="--fl-dur:12.4s;--fl-delay:-3s;--fl-y:9px;--fl-rot:-0.7deg">
+                                        <div class="cb8-card__inner">
+                                            <h3 class="cb8-h3">Find a Home</h3>
+                                            <p class="cb8-p">Browse available properties across San Angelo and the Concho Valley.</p>
+                                            <span class="cb8-go">Explore </span>
+                                        </div>
+                                    </a>
+                                    <a href="#" class="cb8-card cb8-card--action" data-cb8-card data-cursor="Value" style="--fl-dur:9.8s;--fl-delay:-6.2s;--fl-y:15px;--fl-rot:0.4deg">
+                                        <div class="cb8-card__inner">
+                                            <h3 class="cb8-h3">Sell Your Home</h3>
+                                            <p class="cb8-p">Get a free home valuation and connect with an expert agent.</p>
+                                            <span class="cb8-go">Get value </span>
+                                        </div>
+                                    </a>
+                                    <a href="#" class="cb8-card cb8-card--action" data-cb8-card data-cursor="Meet" style="--fl-dur:10.8s;--fl-delay:-0.7s;--fl-y:11px;--fl-rot:-0.6deg">
+                                        <div class="cb8-card__inner">
+                                            <h3 class="cb8-h3">Meet Our Team</h3>
+                                            <p class="cb8-p">Connect with experienced agents who know San Angelo inside and out.</p>
+                                            <span class="cb8-go">Meet us </span>
+                                        </div>
+                                    </a>
+                                    <a href="#" class="cb8-card cb8-card--action" data-cb8-card data-cursor="Visit" style="--fl-dur:8.5s;--fl-delay:0s;--fl-y:10px;--fl-rot:0.6deg">
+                                        <div class="cb8-card__inner">
+                                            <h3 class="cb8-h3">Visit Our Office</h3>
+                                            <p class="cb8-p">Stop by our office on Knickerbocker Road. We&rsquo;d love to meet you.</p>
+                                            <span class="cb8-go">Directions </span>
+                                        </div>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 2 -- FEATURED LISTINGS (live MLS) --------------------------- -->
+        <section class="cb8-page" data-cb8-page="2" id="cb8-listings" aria-label="Featured listings">
+            <div class="cb8-page__float">
+                <div class="cb8-page__skin">
+                    <img class="cb8-page__plate" src="../theme/assets/images/webgl/03-listings.jpg" alt="" aria-hidden="true" decoding="async">                    <div class="cb8-page__scroll" tabindex="0">
+                        <div class="cb8-page__inner">
+                            <div class="cb8-lod">
+                                <div class="cb8-card cb8-card--head" data-cb8-card style="--fl-dur:10s;--fl-delay:-2.3s;--fl-y:14px;--fl-rot:-0.8deg">
+                                    <div class="cb8-card__inner">
+                                        <span class="cb8-eyebrow">Featured Properties</span>
+                                        <h2 class="cb8-h2">The latest on the market.</h2>
+                                        <p class="cb8-p">A hand-picked look at premier San Angelo homes, updated live from the MLS.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="cb8-page__body">
+                                <div class="cb8-card cb8-card--frame" data-cb8-card data-cb8-frame style="--fl-dur:9.2s;--fl-delay:-4.1s;--fl-y:8px;--fl-rot:0.5deg">
+                                    <div class="cb8-card__inner">
+                                        <div class="cb8-grid cb8-grid--3"><article class="h-listing"><div class="h-listing__img" data-tag="New"></div><div class="h-listing__body"><div class="h-listing__price">$439,000</div><div class="h-listing__addr">2841 Sunset Drive</div><div class="h-listing__meta">4 bd &middot; 3 ba &middot; 2,640 sqft</div></div></article><article class="h-listing"><div class="h-listing__img" data-tag="Featured"></div><div class="h-listing__body"><div class="h-listing__price">$312,500</div><div class="h-listing__addr">1907 College Hills Blvd</div><div class="h-listing__meta">3 bd &middot; 2 ba &middot; 1,880 sqft</div></div></article><article class="h-listing"><div class="h-listing__img" data-tag="Open"></div><div class="h-listing__body"><div class="h-listing__price">$675,000</div><div class="h-listing__addr">42 Lake Nasworthy Road</div><div class="h-listing__meta">5 bd &middot; 4 ba &middot; 3,910 sqft</div></div></article><article class="h-listing"><div class="h-listing__img" data-tag="New"></div><div class="h-listing__body"><div class="h-listing__price">$289,900</div><div class="h-listing__addr">515 Bentwood Court</div><div class="h-listing__meta">3 bd &middot; 2 ba &middot; 1,740 sqft</div></div></article><article class="h-listing"><div class="h-listing__img" data-tag="Featured"></div><div class="h-listing__body"><div class="h-listing__price">$1,150,000</div><div class="h-listing__addr">700 Concho River Walk</div><div class="h-listing__meta">6 bd &middot; 5 ba &middot; 5,200 sqft</div></div></article><article class="h-listing"><div class="h-listing__img" data-tag="Price cut"></div><div class="h-listing__body"><div class="h-listing__price">$225,000</div><div class="h-listing__addr">108 Christoval Lane</div><div class="h-listing__meta">3 bd &middot; 1 ba &middot; 1,320 sqft</div></div></article></div>                                    </div>
+                                </div>
+                                <div class="cb8-card cb8-card--cta-row" data-cb8-card style="--fl-dur:11.5s;--fl-delay:-1.2s;--fl-y:16px;--fl-rot:-0.5deg">
+                                    <div class="cb8-card__inner">
+                                        <a href="#" class="cb-btn cb-btn--primary">View All Properties</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3 -- LEGACY / STATS ----------------------------------------- -->
+        <section class="cb8-page" data-cb8-page="3" id="cb8-legacy" aria-label="Our track record">
+            <div class="cb8-page__float">
+                <div class="cb8-page__skin">
+                    <img class="cb8-page__plate" src="../theme/assets/images/webgl/04-legacy.jpg" alt="" aria-hidden="true" decoding="async">                    <div class="cb8-page__scroll" tabindex="0">
+                        <div class="cb8-page__inner">
+                            <div class="cb8-lod">
+                                <div class="cb8-card cb8-card--head" data-cb8-card style="--fl-dur:7.8s;--fl-delay:-5.6s;--fl-y:12px;--fl-rot:0.9deg">
+                                    <div class="cb8-card__inner">
+                                        <span class="cb8-eyebrow">Since 2000</span>
+                                        <h2 class="cb8-h2">A legacy of results in the Concho&nbsp;Valley.</h2>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="cb8-page__body">
+                                <div class="cb8-grid cb8-grid--4">
+                                    <div class="cb8-card cb8-card--stat" data-cb8-card style="--fl-dur:12.4s;--fl-delay:-3s;--fl-y:9px;--fl-rot:-0.7deg">
+                                        <div class="cb8-card__inner">
+                                            <div class="cb8-stat__num" data-count="1200">0</div>
+                                            <div class="cb8-stat__label">Homes Sold</div>
+                                        </div>
+                                    </div>
+                                    <div class="cb8-card cb8-card--stat" data-cb8-card style="--fl-dur:9.8s;--fl-delay:-6.2s;--fl-y:15px;--fl-rot:0.4deg">
+                                        <div class="cb8-card__inner">
+                                            <div class="cb8-stat__num" data-count="30">0</div>
+                                            <div class="cb8-stat__label">Expert Agents</div>
+                                        </div>
+                                    </div>
+                                    <div class="cb8-card cb8-card--stat" data-cb8-card style="--fl-dur:10.8s;--fl-delay:-0.7s;--fl-y:11px;--fl-rot:-0.6deg">
+                                        <div class="cb8-card__inner">
+                                            <div class="cb8-stat__num" data-count="25">0</div>
+                                            <div class="cb8-stat__label">Years Serving San Angelo</div>
+                                        </div>
+                                    </div>
+                                    <div class="cb8-card cb8-card--stat" data-cb8-card style="--fl-dur:8.5s;--fl-delay:0s;--fl-y:10px;--fl-rot:0.6deg">
+                                        <div class="cb8-card__inner">
+                                            <div class="cb8-stat__num" data-count="20">0</div>
+                                            <div class="cb8-stat__label">Communities Served</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4 -- BUYERS ------------------------------------------------- -->
+        <section class="cb8-page" data-cb8-page="4" id="cb8-buy" aria-label="Browse homes">
+            <div class="cb8-page__float">
+                <div class="cb8-page__skin">
+                    <img class="cb8-page__plate" src="../theme/assets/images/webgl/05-door.jpg" alt="" aria-hidden="true" decoding="async">                    <div class="cb8-page__scroll" tabindex="0">
+                        <div class="cb8-page__inner">
+                            <div class="cb8-lod">
+                                <div class="cb8-card cb8-card--head" data-cb8-card style="--fl-dur:10s;--fl-delay:-2.3s;--fl-y:14px;--fl-rot:-0.8deg">
+                                    <div class="cb8-card__inner">
+                                        <span class="cb8-eyebrow">For Buyers</span>
+                                        <h2 class="cb8-h2">Open the door to San&nbsp;Angelo living.</h2>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="cb8-page__body">
+                                <div class="cb8-card cb8-card--cta" data-cb8-card style="--fl-dur:9.2s;--fl-delay:-4.1s;--fl-y:8px;--fl-rot:0.5deg">
+                                    <div class="cb8-card__inner">
+                                        <p class="cb8-p" style="margin-top:0">Search every active listing in the Concho Valley &mdash; filtered, mapped, and updated in real time.</p>
+                                        <a href="#" class="cb-btn cb-btn--primary cb-btn--lg">Browse San Angelo Homes</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5 -- COMMUNITIES -------------------------------------------- -->
+        <section class="cb8-page" data-cb8-page="5" id="cb8-communities" aria-label="Featured communities">
+            <div class="cb8-page__float">
+                <div class="cb8-page__skin">
+                    <img class="cb8-page__plate" src="../theme/assets/images/webgl/06-communities.jpg" alt="" aria-hidden="true" decoding="async">                    <div class="cb8-page__scroll" tabindex="0">
+                        <div class="cb8-page__inner">
+                            <div class="cb8-lod">
+                                <div class="cb8-card cb8-card--head" data-cb8-card style="--fl-dur:11.5s;--fl-delay:-1.2s;--fl-y:16px;--fl-rot:-0.5deg">
+                                    <div class="cb8-card__inner">
+                                        <span class="cb8-eyebrow">Explore the Area</span>
+                                        <h2 class="cb8-h2">From the river to the ranch&nbsp;land.</h2>
+                                        <p class="cb8-p">From downtown San Angelo to the scenic shores of Lake Nasworthy, find the neighborhood that fits your life.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="cb8-page__body">
+                                <div class="cb8-grid cb8-grid--3">
+                                                                            <a href="#"
+                                           class="cb8-card cb8-card--community" data-cb8-card data-cursor="View" style="--fl-dur:7.8s;--fl-delay:-5.6s;--fl-y:12px;--fl-rot:0.9deg">
+                                            <div class="cb8-card__inner">
+                                                                                                <div class="cb8-community__overlay">
+                                                    <h3 class="cb8-h3">Grape Creek</h3>
+                                                    <span class="cb8-go">View Listings</span>
+                                                </div>
+                                            </div>
+                                        </a>
+                                                                            <a href="#"
+                                           class="cb8-card cb8-card--community" data-cb8-card data-cursor="View" style="--fl-dur:12.4s;--fl-delay:-3s;--fl-y:9px;--fl-rot:-0.7deg">
+                                            <div class="cb8-card__inner">
+                                                                                                    <img src="../theme/assets/images/communities/bentwood.webp" alt="Bentwood, San Angelo TX" class="cb8-community__img" decoding="async">
+                                                                                                <div class="cb8-community__overlay">
+                                                    <h3 class="cb8-h3">Bentwood</h3>
+                                                    <span class="cb8-go">View Listings</span>
+                                                </div>
+                                            </div>
+                                        </a>
+                                                                            <a href="#"
+                                           class="cb8-card cb8-card--community" data-cb8-card data-cursor="View" style="--fl-dur:9.8s;--fl-delay:-6.2s;--fl-y:15px;--fl-rot:0.4deg">
+                                            <div class="cb8-card__inner">
+                                                                                                    <img src="../theme/assets/images/communities/college-hills.webp" alt="College Hills, San Angelo TX" class="cb8-community__img" decoding="async">
+                                                                                                <div class="cb8-community__overlay">
+                                                    <h3 class="cb8-h3">College Hills</h3>
+                                                    <span class="cb8-go">View Listings</span>
+                                                </div>
+                                            </div>
+                                        </a>
+                                                                            <a href="#"
+                                           class="cb8-card cb8-card--community" data-cb8-card data-cursor="View" style="--fl-dur:10.8s;--fl-delay:-0.7s;--fl-y:11px;--fl-rot:-0.6deg">
+                                            <div class="cb8-card__inner">
+                                                                                                    <img src="../theme/assets/images/communities/christoval.webp" alt="Christoval, San Angelo TX" class="cb8-community__img" decoding="async">
+                                                                                                <div class="cb8-community__overlay">
+                                                    <h3 class="cb8-h3">Christoval</h3>
+                                                    <span class="cb8-go">View Listings</span>
+                                                </div>
+                                            </div>
+                                        </a>
+                                                                            <a href="#"
+                                           class="cb8-card cb8-card--community" data-cb8-card data-cursor="View" style="--fl-dur:8.5s;--fl-delay:0s;--fl-y:10px;--fl-rot:0.6deg">
+                                            <div class="cb8-card__inner">
+                                                                                                    <img src="../theme/assets/images/communities/wall.webp" alt="Wall, San Angelo TX" class="cb8-community__img" decoding="async">
+                                                                                                <div class="cb8-community__overlay">
+                                                    <h3 class="cb8-h3">Wall</h3>
+                                                    <span class="cb8-go">View Listings</span>
+                                                </div>
+                                            </div>
+                                        </a>
+                                                                            <a href="#"
+                                           class="cb8-card cb8-card--community" data-cb8-card data-cursor="View" style="--fl-dur:10s;--fl-delay:-2.3s;--fl-y:14px;--fl-rot:-0.8deg">
+                                            <div class="cb8-card__inner">
+                                                                                                    <img src="../theme/assets/images/communities/lake-nasworthy.webp" alt="Lake Nasworthy, San Angelo TX" class="cb8-community__img" decoding="async">
+                                                                                                <div class="cb8-community__overlay">
+                                                    <h3 class="cb8-h3">Lake Nasworthy</h3>
+                                                    <span class="cb8-go">View Listings</span>
+                                                </div>
+                                            </div>
+                                        </a>
+                                                                    </div>
+                                <div class="cb8-card cb8-card--cta-row" data-cb8-card style="--fl-dur:9.2s;--fl-delay:-4.1s;--fl-y:8px;--fl-rot:0.5deg">
+                                    <div class="cb8-card__inner">
+                                        <a href="#" class="cb-btn cb-btn--outline">Explore All Communities</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6 -- SELLERS + PROPERTY WATCH ------------------------------- -->
+        <section class="cb8-page" data-cb8-page="6" id="cb8-sell" aria-label="Sell your home">
+            <div class="cb8-page__float">
+                <div class="cb8-page__skin">
+                    <img class="cb8-page__plate" src="../theme/assets/images/webgl/07-value.jpg" alt="" aria-hidden="true" decoding="async">                    <div class="cb8-page__scroll" tabindex="0">
+                        <div class="cb8-page__inner">
+                            <div class="cb8-lod">
+                                <div class="cb8-card cb8-card--head" data-cb8-card style="--fl-dur:11.5s;--fl-delay:-1.2s;--fl-y:16px;--fl-rot:-0.5deg">
+                                    <div class="cb8-card__inner">
+                                        <span class="cb8-eyebrow">For Sellers</span>
+                                        <h2 class="cb8-h2">What&rsquo;s my home worth today?</h2>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="cb8-page__body">
+                                <div class="cb8-grid cb8-grid--2">
+                                    <div class="cb8-card cb8-card--cta" data-cb8-card style="--fl-dur:7.8s;--fl-delay:-5.6s;--fl-y:12px;--fl-rot:0.9deg">
+                                        <div class="cb8-card__inner">
+                                            <p class="cb8-p" style="margin-top:0">Get a free, no-obligation valuation grounded in live San Angelo market data &mdash; usually within 24 hours.</p>
+                                            <a href="#" class="cb-btn cb-btn--primary cb-btn--lg">Get My Home Value</a>
+                                        </div>
+                                    </div>
+                                    <div class="cb8-card cb8-card--watch" data-cb8-card style="--fl-dur:12.4s;--fl-delay:-3s;--fl-y:9px;--fl-rot:-0.7deg">
+                                        <div class="cb8-card__inner">
+                                            <h3 class="cb8-h3">Never miss a listing</h3>
+                                            <p class="cb8-p">Property Watch emails you the moment a home matching your criteria hits the market.</p>
+                                            <form class="cb8-watch__form" data-cb-watch>
+                                                <input type="email" class="cb8-watch__input" name="email" placeholder="Enter your email address" aria-label="Email address" required>
+                                                <button type="submit" class="cb-btn cb-btn--primary">Sign Up</button>
+                                            </form>
+                                            <p class="cb8-watch__note">No spam. Unsubscribe anytime.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 7 -- TESTIMONIALS + BLOG + BRAND CLOSE ---------------------- -->
+        <section class="cb8-page" data-cb8-page="7" id="cb8-connect" aria-label="Reviews and stories">
+            <div class="cb8-page__float">
+                <div class="cb8-page__skin">
+                    <img class="cb8-page__plate" src="../theme/assets/images/webgl/08-connect.jpg" alt="" aria-hidden="true" decoding="async">                    <div class="cb8-page__scroll" tabindex="0">
+                        <div class="cb8-page__inner">
+                            <div class="cb8-lod">
+                                <div class="cb8-card cb8-card--head" data-cb8-card style="--fl-dur:9.8s;--fl-delay:-6.2s;--fl-y:15px;--fl-rot:0.4deg">
+                                    <div class="cb8-card__inner">
+                                        <span class="cb8-eyebrow">Client Stories</span>
+                                        <h2 class="cb8-h2">What our clients say.</h2>
+                                        <p class="cb8-p">Real reviews from Coldwell Banker Legacy San Angelo clients &mdash; verified via Testimonial Tree.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="cb8-page__body">
+                                <div class="cb8-card cb8-card--frame" data-cb8-card data-cb8-frame style="--fl-dur:10.8s;--fl-delay:-0.7s;--fl-y:11px;--fl-rot:-0.6deg">
+                                    <div class="cb8-card__inner">
+                                        <blockquote class="h-quote"><div class="h-quote__stars">&#9733;&#9733;&#9733;&#9733;&#9733;</div><p class="h-quote__text">&ldquo;They knew every street in this town. We had an offer in four days and closed without a single surprise.&rdquo;</p><div class="h-quote__who">The Walsh Family &middot; College Hills</div></blockquote>                                    </div>
+                                </div>
+                                <div class="cb8-card cb8-card--cta-row" data-cb8-card style="--fl-dur:8.5s;--fl-delay:0s;--fl-y:10px;--fl-rot:0.6deg">
+                                    <div class="cb8-card__inner">
+                                        <a href="#" class="cb-btn cb-btn--outline">Read All Reviews</a>
+                                    </div>
+                                </div>
+
+                                <div class="cb8-card cb8-card--head" data-cb8-card style="--fl-dur:10s;--fl-delay:-2.3s;--fl-y:14px;--fl-rot:-0.8deg">
+                                    <div class="cb8-card__inner">
+                                        <span class="cb8-eyebrow">From Our Blog</span>
+                                        <h2 class="cb8-h2 cb8-h2--sm">Local insight &amp; market news.</h2>
+                                    </div>
+                                </div>
+                                <div class="cb8-grid cb8-grid--3">
+                                                                            <article class="cb8-card cb8-card--blog" data-cb8-card style="--fl-dur:9.2s;--fl-delay:-4.1s;--fl-y:8px;--fl-rot:0.5deg">
+                                            <div class="cb8-card__inner">
+                                                <div class="cb8-blog__image cb8-blog__image--ph" aria-hidden="true"></div>
+                                                <div class="cb8-blog__body">
+                                                    <span class="cb8-blog__cat">Community</span>
+                                                    <h3 class="cb8-h3"><a href="#">12 San Angelo Secrets Only Locals Know</a></h3>
+                                                    <p class="cb8-p">Discover the latest insights about San Angelo real estate and community living.</p>
+                                                    <span class="cb8-blog__meta">April 10, 2026</span>
+                                                </div>
+                                            </div>
+                                        </article>
+                                                                            <article class="cb8-card cb8-card--blog" data-cb8-card style="--fl-dur:11.5s;--fl-delay:-1.2s;--fl-y:16px;--fl-rot:-0.5deg">
+                                            <div class="cb8-card__inner">
+                                                <div class="cb8-blog__image cb8-blog__image--ph" aria-hidden="true"></div>
+                                                <div class="cb8-blog__body">
+                                                    <span class="cb8-blog__cat">Market Update</span>
+                                                    <h3 class="cb8-h3"><a href="#">Spring 2026 San Angelo Market Report</a></h3>
+                                                    <p class="cb8-p">Discover the latest insights about San Angelo real estate and community living.</p>
+                                                    <span class="cb8-blog__meta">April 5, 2026</span>
+                                                </div>
+                                            </div>
+                                        </article>
+                                                                            <article class="cb8-card cb8-card--blog" data-cb8-card style="--fl-dur:7.8s;--fl-delay:-5.6s;--fl-y:12px;--fl-rot:0.9deg">
+                                            <div class="cb8-card__inner">
+                                                <div class="cb8-blog__image cb8-blog__image--ph" aria-hidden="true"></div>
+                                                <div class="cb8-blog__body">
+                                                    <span class="cb8-blog__cat">Buying Tips</span>
+                                                    <h3 class="cb8-h3"><a href="#">First-Time Home Buyer Guide for West Texas</a></h3>
+                                                    <p class="cb8-p">Discover the latest insights about San Angelo real estate and community living.</p>
+                                                    <span class="cb8-blog__meta">March 28, 2026</span>
+                                                </div>
+                                            </div>
+                                        </article>
+                                                                    </div>
+
+                                <div class="cb8-card cb8-card--mark" data-cb8-card style="--fl-dur:12.4s;--fl-delay:-3s;--fl-y:9px;--fl-rot:-0.7deg">
+                                    <div class="cb8-card__inner">
+                                        <img src="../theme/assets/images/logos/monogram-vertical-stacked.svg" alt="Coldwell Banker Legacy" class="cb8-mark__logo">
+                                        <p class="cb8-mark__tag">Live Well With Coldwell&#8480;</p>
+                                        <p class="cb8-mark__line">At home in San Angelo, Texas.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </div><!-- /.cb8-pages -->
 </div><!-- /.cb8-stage -->
 
 <footer class="cb-footer">
@@ -483,8 +598,8 @@
 <script>
 (function () {
   // Mirrors deploy/cb-home8-preview.php's gate, so the harness tests the same
-  // three conditions the real page ships with. Capture mode bypasses the gate:
-  // a headless window still passes it, but an explicit bypass means a failed
+  // three conditions the real page ships with. Capture mode bypasses it: a
+  // headless window passes anyway, but an explicit bypass means a failed
   // screenshot is never silently a gate problem.
   var cap = /[?&]cb_capture=(1|true)/.test(location.search);
   var ok = cap;
@@ -497,7 +612,7 @@
   } catch (e) { ok = false; }
 
   if (!ok) {
-    if (window.console) { console.info('[cb8 harness] gated off -- showing the flat fallback. This is correct below 1025px, on touch, or with reduced-motion.'); }
+    if (window.console) { console.info('[cb8 harness] gated off -- showing the flat fallback. Correct below 1025px, on touch, or with reduced-motion.'); }
     return;
   }
   if (!window.CBHome8) {

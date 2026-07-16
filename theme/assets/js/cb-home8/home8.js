@@ -77,8 +77,18 @@
 
   // Page depth curve. D0 is BOTH the reading distance and the plane screenToWorld
   // already uses for bursts -- keeping them equal is what makes s == 1 at dwell.
-  var D0 = 12, D_FAR = 34, D_NEAR = 4;
+  //
+  // The range is deliberately narrow: s = D0/d, so 16 -> 0.75x and 8.6 -> 1.4x.
+  // The first cut ran 34 -> 4 (0.35x .. 3x), which read as a dramatic fly-past and
+  // buried Home 7's gentler fade-up. Widen these two numbers and the drama comes
+  // back -- they are the whole zoom dial.
+  var D0 = 12, D_FAR = 16, D_NEAR = 8.6;
   var U_FAR = -1.20, U_IN = -0.35, U_OUT = 0.25, U_GONE = 1.20;
+  // LOD flip point, in curve space rather than in scale. It used to be `s > 0.6`,
+  // which silently stopped meaning anything the moment the zoom range narrowed --
+  // s never drops below 0.75 now, so the body would always have been live and the
+  // LOD would have been dead code. Anchor it to the curve, not to a scale value.
+  var U_BODY = -0.75;
   var PAGE_W_MAX = 1100, PAGE_H_MAX = 720;
 
   var PAL = [
@@ -430,7 +440,13 @@
     for (var i = 0; i < signage.length; i++) {
       var s = signage[i];
       var on = clamp01(1 - (Math.abs(camera.position.z - s.z) - 4) / 12);
-      s.mat.opacity = on * corridorAssembly;
+      // Recede while a page is being read. The reception mark sits at z=-10.85 and
+      // the camera parks at z=-9, so it blooms to full size across the middle of
+      // the screen -- straight behind the text. Home 7 could let it blaze because
+      // its cards were opaque boxes over it; Home 8's pages are transparent, so it
+      // reads through the copy. Same instinct as damping the parallax: the world
+      // gets out of the way while you read.
+      s.mat.opacity = on * corridorAssembly * (1 - _reading * 0.72);
     }
   }
 
@@ -512,8 +528,25 @@
     var t2 = clamp01((u - U_OUT) / (U_GONE - U_OUT));
     return D0 + (D_NEAR - D0) * (t2 * t2);             // 12 -> 4, accelerating past
   }
+  /**
+   * Opacity. The two windows are COMPLEMENTARY, and that is the whole point:
+   * consecutive pages sit exactly 1.0 apart in g, so page i's fade-out
+   * ([0.25, 0.75]) lines up with page i+1's fade-in (the same window shifted by
+   * -1, i.e. [-0.75, -0.25]). They cross at g = i+0.5, one going up as the other
+   * goes down.
+   *
+   * Get this wrong and you get mush. It first faded out over [0.5, 1.15] while the
+   * next page finished fading IN at -0.8 -- so from g=i+0.2 to g=i+0.5 BOTH pages
+   * were at full opacity, and you could read the previous page's cards straight
+   * through the current one. The wide 0.35x..3x zoom hid it (the old page was
+   * obviously huge and leaving); at 0.75x..1.4x the two pages are near enough the
+   * same size that they simply collide.
+   *
+   * Both windows are also clear of the dwell ([U_IN, U_OUT] = [-0.35, 0.25]), so a
+   * page being read is always at a solid opacity: 1.
+   */
   function aCurve(u) {
-    return band(u, U_FAR, U_FAR + 0.4) * (1 - band(u, 0.5, 1.15));
+    return band(u, -0.85, U_IN) * (1 - band(u, U_OUT, 0.75));
   }
   function readAmount(u) {
     return band(u, U_IN - 0.2, U_IN) * (1 - band(u, U_OUT, U_OUT + 0.2));
@@ -596,9 +629,9 @@
     // restoration, a deep link, capture mode) and page 3 is already 'exiting', so
     // 'reading' never fires and every card stays at opacity:0 under a heading
     // that renders fine. Revealing with the body means the page is correct at any
-    // entry point, and the stagger now plays as the page zooms in -- which is the
-    // beat we wanted anyway.
-    staggerCards(p);
+    // entry point, and the cards form as the page zooms in -- which is the beat
+    // we wanted anyway.
+    formCards(p);
     countUp(p);
     // Shortcode JS ([cb_listings], [cb_testimonials]) commonly measures its
     // container on init. Under content-visibility:hidden it measures 0 and stays
@@ -611,45 +644,79 @@
     p.el.classList.remove('is-body-on');
   }
 
-  function staggerCards(p) {
+  // ---- form from dust / crumble (Home 7's card behaviour, page-driven) -----
+  // Home 7 drove these off an IntersectionObserver, which cannot work here: every
+  // page is position:fixed and therefore always intersecting, so IO would form all
+  // 8 pages' cards at once, on load. The page state machine is the arbiter
+  // instead -- same look, one clock, no event-ordering races.
+  //
+  // The transform lives on .cb8-card and the idle float on .cb8-card__inner, so
+  // the one-shot reveal and the infinite float never fight over `transform`.
+  function staggerFor(i) { return clamp(i * 90, 0, 420); }
+
+  function formCards(p) {
     if (p.cardsIn) { return; }
     p.cardsIn = true;
     var cards = p.el.querySelectorAll('[data-cb8-card]');
     if (!cards.length) { return; }
-    var i;
+    var i, delay, el, isFrame;
 
-    // .is-in FIRST: it is the resting state, and under html.cb8-motion the CSS
-    // transition is off, so there is no flash and nothing to fight. Motion's
-    // inline writes override during playback and CSS holds the end state when it
-    // releases -- no commitStyles, no dependence on WAAPI fill behaviour.
-    for (i = 0; i < cards.length; i++) { cards[i].classList.add('is-in'); }
-
-    // Capture mode wants the RESTING state, not an animation caught mid-flight.
-    // Motion's animate() writes inline opacity:0 on its first tick and advances on
-    // its own clock, which --virtual-time-budget does not drive -- so a headless
-    // shot would freeze every card at opacity:0 and the page would photograph
-    // empty. .is-in above is already the final state; just stop here.
-    if (_capture) { return; }
-
-    if (M && M.animate) {
-      try {
-        M.animate(cards,
-          { opacity: [0, 1], transform: ['translateY(22px) scale(.965)', 'none'] },
-          { delay: M.stagger ? M.stagger(0.055) : 0, duration: 0.62, easing: [0.22, 0.61, 0.36, 1] }
-        );
-        return;
-      } catch (e) {}
+    // Capture mode wants the RESTING state, not an animation caught mid-flight:
+    // transitions do not advance under --virtual-time-budget, so a headless shot
+    // would freeze every card at opacity:0 and photograph an empty page.
+    if (_capture) {
+      for (i = 0; i < cards.length; i++) { cards[i].classList.add('is-formed'); cards[i].style.transitionDelay = ''; }
+      return;
     }
-    // No Motion: the CSS transition is live, so stagger with transitionDelay.
-    for (i = 0; i < cards.length; i++) { cards[i].style.transitionDelay = (i * 0.055) + 's'; }
+
+    for (i = 0; i < cards.length; i++) {
+      el = cards[i];
+      delay = staggerFor(i);
+      isFrame = el.hasAttribute('data-cb8-frame');
+      el.classList.remove('is-crumbling');
+      el.classList.add('is-forming');
+      el.style.transitionDelay = (delay / 1000) + 's';
+      (function (node, d, frame) {
+        raf(function () { node.classList.add('is-formed'); });
+        setTimeout(function () {
+          if (!document.hidden) { spawnBurst(node.getBoundingClientRect(), 'in', frame); }
+        }, d);
+        setTimeout(function () { node.classList.remove('is-forming'); }, d + 950);
+      })(el, delay, isFrame);
+    }
+    startCardFloats(p);
   }
-  function resetCards(p) {
+
+  function crumbleCards(p) {
     if (!p.cardsIn) { return; }
     p.cardsIn = false;
     var cards = p.el.querySelectorAll('[data-cb8-card]');
+    var i, delay, el, isFrame;
+    for (i = 0; i < cards.length; i++) {
+      el = cards[i];
+      delay = staggerFor(i);
+      isFrame = el.hasAttribute('data-cb8-frame');
+      el.classList.remove('is-formed');
+      el.classList.add('is-crumbling');
+      el.style.transitionDelay = (delay / 1000) + 's';
+      if (!_capture) {
+        (function (node, d, frame) {
+          setTimeout(function () {
+            if (!document.hidden) { spawnBurst(node.getBoundingClientRect(), 'out', frame); }
+          }, d);
+        })(el, delay, isFrame);
+      }
+    }
+  }
+
+  function resetCards(p) {
+    p.cardsIn = false;
+    var cards = p.el.querySelectorAll('[data-cb8-card]');
     for (var i = 0; i < cards.length; i++) {
-      cards[i].classList.remove('is-in');
-      cards[i].style.opacity = ''; cards[i].style.transform = ''; cards[i].style.transitionDelay = '';
+      cards[i].classList.remove('is-formed');
+      cards[i].classList.remove('is-forming');
+      cards[i].classList.remove('is-crumbling');
+      cards[i].style.transitionDelay = '';
     }
   }
 
@@ -679,21 +746,42 @@
     }
   }
 
-  function startFloat(p) {
-    if (p.floatAnim || !M || !M.animate) { return; }
-    try {
-      p.floatAnim = M.animate(p.floatEl,
-        { transform: [
-            'translateY(' + (-FL_Y[p.i] * 0.5) + 'px) rotate(' + (-FL_ROT[p.i]) + 'deg)',
-            'translateY(' + FL_Y[p.i] + 'px) rotate(' + FL_ROT[p.i] + 'deg)'
-          ] },
-        { duration: FL_DUR[p.i], repeat: Infinity, direction: 'alternate', easing: 'ease-in-out' }
-      );
-      // Negative delay equivalent: start each page mid-cycle so nothing syncs.
-      if (p.floatAnim && typeof p.floatAnim.currentTime === 'number') {
-        p.floatAnim.currentTime = Math.abs(FL_DEL[p.i]) * 1000;
-      }
-    } catch (e) { p.floatAnim = null; }
+  /**
+   * Per-card idle float, Home 7's signature. It lives on .cb8-card__inner while
+   * form/crumble owns .cb8-card's transform -- the same two-element split Home 7
+   * used, for the same reason.
+   *
+   * The bob composes multiplicatively with the page's projected scale, so a 12px
+   * float at s=0.75 lands as 9px on screen: a page further down the corridor
+   * wobbles less, for free.
+   *
+   * CSS keyframes (cb-home8.css) are the no-Motion fallback and look near enough
+   * identical; html.cb8-motion switches them off so the two never double up.
+   */
+  function startCardFloats(p) {
+    if (p.floatsOn || _capture) { return; }
+    p.floatsOn = true;
+    if (!M || !M.animate) { return; }   // CSS keyframes carry it
+    var inners = p.el.querySelectorAll('[data-cb8-card] > .cb8-card__inner');
+    for (var i = 0; i < inners.length; i++) {
+      // Frames hold live content (MLS grid, rotator) -- Home 7 exempts them from
+      // the float so a scrollable table is not drifting under the cursor.
+      if (inners[i].parentNode.hasAttribute('data-cb8-frame')) { continue; }
+      (function (node, k) {
+        try {
+          var a = M.animate(node,
+            { transform: [
+                'translateY(' + (-FL_Y[k] * 0.5) + 'px) rotate(' + (-FL_ROT[k]) + 'deg)',
+                'translateY(' + FL_Y[k] + 'px) rotate(' + FL_ROT[k] + 'deg)'
+              ] },
+            { duration: FL_DUR[k], repeat: Infinity, direction: 'alternate', easing: 'ease-in-out' }
+          );
+          // Negative-delay equivalent: start each card mid-cycle so a grid of them
+          // never pulses in unison.
+          if (a && typeof a.currentTime === 'number') { a.currentTime = Math.abs(FL_DEL[k]) * 1000; }
+        } catch (e) {}
+      })(inners[i], i % FL_DUR.length);
+    }
   }
 
   function setState(p, next) {
@@ -716,15 +804,11 @@
       p.el.style.visibility = 'hidden';
     } else {
       p.el.style.visibility = '';
-      // Bursts are the one thing that SHOULD stay on the state edge: they are a
-      // one-shot flourish tying the particle field to the page, and firing them
-      // on a cold arrival would look like a glitch rather than an arrival.
-      if (next === 'reading' && !_capture && !document.hidden && prev === 'approach') {
-        spawnBurst(p.el.getBoundingClientRect(), 'in', true);
-      }
-      if (next === 'exiting' && !_capture && !document.hidden && prev === 'reading') {
-        spawnBurst(p.el.getBoundingClientRect(), 'out', true);
-      }
+      // Cards crumble back into the dust as the page leaves, then re-form on the
+      // way back in. Only from 'reading' -> 'exiting': crumbling a page that was
+      // still approaching would fire on a cold arrival and read as a glitch.
+      if (next === 'exiting' && prev === 'reading') { crumbleCards(p); }
+      if (next === 'reading' && prev === 'exiting') { p.cardsIn = false; formCards(p); }
     }
   }
 
@@ -736,7 +820,7 @@
   // corridor on Windows, since this page always has a scrollbar.
   function projectPages() {
     var cx = camera.position.x, cy = camera.position.y;
-    var i, p, u, d, s, upp, sx, sy, a, blur, scrim;
+    var i, p, u, d, s, upp, sx, sy, a, blur;
     for (i = 0; i < _pages.length; i++) {
       p = _pages[i];
       u = _g - i;
@@ -762,27 +846,25 @@
       // moving, so the one-time repaint is invisible and re-rasterises at 1:1.
       p.el.style.willChange = (p.state === 'reading') ? 'auto' : 'transform';
 
-      // Depth of field. Opacity + a static scrim carry the long approach (blur on
-      // a live-DOM subtree forces its own render surface); animated blur is
-      // reserved for the short exit, quantised so the radius does not re-rasterise
-      // every frame.
+      // Depth of field. The page is a transparent container now, so opacity on the
+      // skin fades the whole cluster (cards AND plate) with no rectangle to give
+      // it away -- which is exactly why the old full-cover scrim had to go: over a
+      // frameless page it would have darkened a visible box floating in the
+      // corridor. Animated blur stays reserved for the exit, quantised so the
+      // radius does not re-rasterise a live-DOM subtree every frame.
       if (s > 1.05) {
-        blur = Math.min(5, (s - 1) * 2.5);
+        blur = Math.min(4, (s - 1) * 5);
         blur = Math.round(blur * 2) / 2;
-        p.skin.style.filter = blur > 0.4 ? ('blur(' + blur + 'px) brightness(1.15)') : '';
+        p.skin.style.filter = blur > 0.4 ? ('blur(' + blur + 'px) brightness(1.1)') : '';
       } else {
         p.skin.style.filter = '';
       }
-      if (p.scrim) {
-        scrim = clamp01((1 - s) * 1.15);
-        p.scrim.style.opacity = String(scrim);
-      }
 
-      // LOD: flip the live body in at s ~= 0.6, well before anybody reads, so the
-      // relayout hitch lands during fast camera motion instead of at the moment
-      // the page settles. content-visibility:auto cannot work here -- a fixed page
-      // always intersects the viewport, so it would never kick in.
-      if (s > 0.6) { revealBody(p); }
+      // LOD: flip the live body in partway through the approach, well before
+      // anybody reads, so the relayout hitch lands during fast camera motion
+      // rather than as the page settles. content-visibility:auto cannot work here
+      // -- a fixed page always intersects the viewport, so it would never engage.
+      if (u > U_BODY) { revealBody(p); }
     }
   }
 
@@ -911,12 +993,10 @@
         i: i,
         el: el,
         sec: sec,
-        floatEl: el.querySelector('.cb8-page__float'),
         skin: el.querySelector('.cb8-page__skin') || el,
-        scrim: el.querySelector('.cb8-page__scrim'),
         scroll: el.querySelector('.cb8-page__scroll'),
         body: el.querySelector('.cb8-page__body'),
-        state: '', bodyOn: false, cardsIn: false, floatAnim: null,
+        state: '', bodyOn: false, cardsIn: false, floatsOn: false,
         wx: 0, wy: 0
       });
     }
@@ -1010,7 +1090,6 @@
       catch (eo) { _corridorReady = false; if (window.console) { console.warn('[cb8] corridor build failed; running nebula+pages only.', eo); } }
 
       observeNav();
-      for (var i = 0; i < _pages.length; i++) { startFloat(_pages[i]); }
       if (window.CBCursor && window.CBCursor.init && !_capture) { try { window.CBCursor.init(); } catch (e2) {} }
 
       scrollY = _capture ? captureScrollFor(_captureG) : (window.pageYOffset || 0);
