@@ -211,6 +211,21 @@ $GLOBALS['h_posts'] = [
 $GLOBALS['h_i'] = -1;
 function h_post() { return $GLOBALS['h_posts'][max(0, $GLOBALS['h_i'])]; }
 
+/**
+ * A post's link.
+ *
+ * This echoed '#', which is worse than useless in a scroll-driven walkthrough:
+ * '#' navigates to the top of the DOCUMENT, scroll goes to 0, and the camera
+ * walks all the way back to the threshold. Clicking a blog headline in the last
+ * room sent you back to the start of the house.
+ *
+ * These three posts are harness fixtures, not real posts, so there is no real
+ * permalink to point at -- the blog index is the honest destination. In WordPress
+ * the_permalink() is WordPress's own function and already returns the real post
+ * URL; only this stub was ever wrong.
+ */
+function the_permalink() { echo home_url('/blog/'); }
+
 function has_post_thumbnail() { return true; }
 function the_post_thumbnail($size = '') {
     $p = h_post();
@@ -220,7 +235,6 @@ function the_post_thumbnail($size = '') {
     );
 }
 function get_the_category() { $c = new stdClass(); $c->name = h_post()['cat']; return [$c]; }
-function the_permalink() { echo '#'; }
 function the_title() { echo htmlspecialchars(h_post()['title'], ENT_QUOTES); }
 function the_title_attribute() { the_title(); }
 function get_the_excerpt() { return 'Discover the latest insights about San Angelo real estate and community living.'; }
