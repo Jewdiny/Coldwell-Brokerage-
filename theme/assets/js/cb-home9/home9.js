@@ -440,6 +440,18 @@
     return sRGB(new THREE.CanvasTexture(c));
   }
 
+  /** The soft pool of light a wall fitting throws on its own wall. */
+  function texGlow() {
+    var c = document.createElement('canvas'); c.width = 128; c.height = 128;
+    var g = c.getContext('2d');
+    var grd = g.createRadialGradient(64, 64, 2, 64, 64, 62);
+    grd.addColorStop(0, 'rgba(255,233,196,0.85)');
+    grd.addColorStop(0.45, 'rgba(255,214,150,0.30)');
+    grd.addColorStop(1, 'rgba(255,200,120,0)');
+    g.fillStyle = grd; g.fillRect(0, 0, 128, 128);
+    return new THREE.CanvasTexture(c);
+  }
+
   /** A soft contact shadow to sit under furniture. Nothing grounds an object like
    *  a shadow, and with no shadow maps this is what stops the sofa looking as if it
    *  is hovering half an inch above the floor. */
@@ -512,10 +524,30 @@
     MAT.linen = surf({ color: M_LINEN, roughness: 0.85 });
     MAT.cream = surf({ color: M_CREAM, roughness: 0.8 });
     MAT.rug = surf({ map: texRug(), roughness: 0.98 });    // wool reflects nothing
-    // Brass and lampshades are UNLIT on purpose: they are the things emitting the
-    // warmth, so shading them would make the light sources look dim.
-    MAT.brass = new THREE.MeshBasicMaterial({ color: M_BRASS });
+    // ONLY the shade is unlit. That distinction is the whole reason the sconces
+    // looked like they were floating, and no amount of moving them fixed it:
+    // MAT.brass was MeshBasicMaterial, so every piece of metal in the house --
+    // backplates, arms, picture frames, handles, lamp columns -- took NO shading
+    // whatsoever. Unlit metal has no depth and no relationship to the surface
+    // behind it; it renders as a flat gold cutout, i.e. a sticker. The geometry
+    // was already touching the wall. The material was what made it read as pasted
+    // on.
+    //
+    // A lampshade genuinely IS emitting, so it stays unlit -- shade it and the
+    // light source looks switched off. Brass is not a light; it is a thing the
+    // light falls on.
+    //
+    // metalness stays low: there is no envMap, and a mirror with nothing to
+    // reflect renders black. The emissive keeps it warm in the dark corners
+    // rather than going muddy where the lamps do not reach.
+    MAT.brass = surf({ color: M_BRASS, roughness: 0.3, metalness: 0.2, emissive: 0x140d02 });
     MAT.shade = new THREE.MeshBasicMaterial({ color: LAMP_HEX });
+    // The pool a fitting throws on the wall it is mounted to. Nothing says
+    // "attached" like the wall lighting up around it.
+    MAT.glow = new THREE.MeshBasicMaterial({
+      map: texGlow(), transparent: true, blending: THREE.AdditiveBlending,
+      depthWrite: false, opacity: 0.5
+    });
     MAT.glass = surf({ color: M_GLASS, roughness: 0.1, transparent: true, opacity: 0.35 });
     MAT.shadow = new THREE.MeshBasicMaterial({
       map: texShadow(), transparent: true, opacity: 0.9, depthWrite: false
@@ -543,16 +575,26 @@
     var face = ss * (HALL_X - WALL_T / 2);   // the plaster you mount it on
     var out = function (d) { return face - ss * d; };   // d units into the hallway
 
-    box(MAT.brass, out(0.02), 1.25, z, 0.1, 1.05, 0.34);   // backplate, on the wall
-    box(MAT.brass, out(0.06), 1.78, z, 0.06, 0.1, 0.42);   // its cap
-    box(MAT.brass, out(0.2), 1.62, z, 0.34, 0.07, 0.07);   // arm reaching out
-    cyl(MAT.brass, out(0.36), 1.5, z, 0.035, 0.3);         // riser to the shade
+    // The light it throws on its own wall. This does more for "mounted" than any
+    // amount of bracketry: a fitting that is ON lights the plaster around it, and
+    // the eye reads that pool as contact. Sits just proud of the face, additive.
+    var pool = new THREE.Mesh(GEO.plane, MAT.glow);
+    pool.position.set(out(0.012), 1.75, z);
+    pool.scale.set(2.6, 3.4, 1);
+    pool.rotation.y = ss > 0 ? -Math.PI / 2 : Math.PI / 2;
+    pool.renderOrder = 1;
+    houseGroup.add(pool);
+
+    box(MAT.brass, out(0.02), 1.25, z, 0.12, 1.05, 0.4);   // backplate, on the wall
+    box(MAT.brass, out(0.06), 1.78, z, 0.08, 0.1, 0.48);   // its cap
+    box(MAT.brass, out(0.16), 1.62, z, 0.3, 0.07, 0.07);   // arm reaching out
+    cyl(MAT.brass, out(0.29), 1.5, z, 0.035, 0.3);         // riser to the shade
 
     var shade = new THREE.Mesh(new THREE.CylinderGeometry(0.19, 0.3, 0.42, 14, 1, true), MAT.shade);
-    shade.position.set(out(0.36), 1.86, z);
+    shade.position.set(out(0.29), 1.86, z);
     houseGroup.add(shade);
 
-    _lampPts.push(new THREE.Vector3(out(0.5), 1.86, z));
+    _lampPts.push(new THREE.Vector3(out(0.42), 1.86, z));
   }
 
   /**
