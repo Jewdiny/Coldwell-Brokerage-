@@ -42,31 +42,68 @@ function esc_js($s)   { return (string) $s; }
 function home_url($p = '/') { return '#'; }
 function cb_get_svg_icon($n) { return ''; }
 function wp_reset_postdata() {}
-function has_post_thumbnail() { return false; }
-function the_post_thumbnail($size = '') {}
-function get_the_category() { return []; }
-function the_permalink() { echo '#'; }
-function the_title() { echo 'Stub'; }
-function the_title_attribute() { echo 'Stub'; }
-function get_the_excerpt() { return 'Stub excerpt'; }
-function get_the_date() { return 'April 1, 2026'; }
 
-/** Static stand-ins for the two live shortcodes. Deliberately tall enough to
- *  overflow their page -- the inner scroller is the thing under test. */
+/**
+ * Blog posts, stubbed WITH featured images.
+ *
+ * The obvious stub -- have_posts() false -- exercises the no-thumbnail branch, but
+ * it also means the harness renders three grey gradient boxes where production
+ * renders three photographs. That is not what the page looks like, so it is not
+ * worth previewing. These are the CC-licensed San Angelo landmark photos already
+ * in the repo, credited by the .cb8-credits block the partial emits.
+ *
+ * The gradient fallback still ships and is still correct -- it is just not the
+ * common case, so the harness should not present it as one.
+ */
+$GLOBALS['h_posts'] = [
+    ['title' => '12 San Angelo Secrets Only Locals Know',      'cat' => 'Community',     'date' => 'April 10, 2026', 'img' => 'alt-fortconcho.jpg'],
+    ['title' => 'Spring 2026 San Angelo Market Report',        'cat' => 'Market Update', 'date' => 'April 5, 2026',  'img' => 'alt-river-41.jpg'],
+    ['title' => 'First-Time Home Buyer Guide for West Texas',  'cat' => 'Buying Tips',   'date' => 'March 28, 2026', 'img' => 'alt-waterlily.jpg'],
+];
+$GLOBALS['h_i'] = -1;
+function h_post() { return $GLOBALS['h_posts'][max(0, $GLOBALS['h_i'])]; }
+
+function has_post_thumbnail() { return true; }
+function the_post_thumbnail($size = '') {
+    $p = h_post();
+    printf(
+        '<img src="%s/assets/images/scroll/_src/%s" alt="%s" decoding="async">',
+        CB_THEME_URI, $p['img'], htmlspecialchars($p['title'], ENT_QUOTES)
+    );
+}
+function get_the_category() { $c = new stdClass(); $c->name = h_post()['cat']; return [$c]; }
+function the_permalink() { echo '#'; }
+function the_title() { echo htmlspecialchars(h_post()['title'], ENT_QUOTES); }
+function the_title_attribute() { the_title(); }
+function get_the_excerpt() { return 'Discover the latest insights about San Angelo real estate and community living.'; }
+function get_the_date() { return h_post()['date']; }
+
+/**
+ * Static stand-ins for the two live shortcodes. Deliberately tall enough to
+ * overflow their page -- the inner scroller is the thing under test.
+ *
+ * The listing photos are the four unused home shots sitting in
+ * assets/images/scroll/_src/ (home-clayton/collyns/mason/walsh), plus two CC
+ * landmark stills. They stand in for [cb_listings]' live MLS photography, which
+ * only exists inside WordPress. Gradient boxes made the harness look like a
+ * wireframe of itself, which is not what needed previewing.
+ */
 function do_shortcode($s) {
     if (strpos($s, 'cb_listings') !== false) {
         $rows = [
-            ['$439,000', '2841 Sunset Drive',        '4 bd &middot; 3 ba &middot; 2,640 sqft', 'New'],
-            ['$312,500', '1907 College Hills Blvd',  '3 bd &middot; 2 ba &middot; 1,880 sqft', 'Featured'],
-            ['$675,000', '42 Lake Nasworthy Road',   '5 bd &middot; 4 ba &middot; 3,910 sqft', 'Open'],
-            ['$289,900', '515 Bentwood Court',       '3 bd &middot; 2 ba &middot; 1,740 sqft', 'New'],
-            ['$1,150,000', '700 Concho River Walk',  '6 bd &middot; 5 ba &middot; 5,200 sqft', 'Featured'],
-            ['$225,000', '108 Christoval Lane',      '3 bd &middot; 1 ba &middot; 1,320 sqft', 'Price cut'],
+            ['$439,000',   '2841 Sunset Drive',       '4 bd &middot; 3 ba &middot; 2,640 sqft', 'New',       'home-walsh.jpg'],
+            ['$312,500',   '1907 College Hills Blvd', '3 bd &middot; 2 ba &middot; 1,880 sqft', 'Featured',  'home-collyns.jpg'],
+            ['$675,000',   '42 Lake Nasworthy Road',  '5 bd &middot; 4 ba &middot; 3,910 sqft', 'Open',      'home-mason.jpg'],
+            ['$289,900',   '515 Bentwood Court',      '3 bd &middot; 2 ba &middot; 1,740 sqft', 'New',       'home-clayton.jpg'],
+            ['$1,150,000', '700 Concho River Walk',   '6 bd &middot; 5 ba &middot; 5,200 sqft', 'Featured',  'alt-river-42.jpg'],
+            ['$225,000',   '108 Christoval Lane',     '3 bd &middot; 1 ba &middot; 1,320 sqft', 'Price cut', 'alt-fortconcho.jpg'],
         ];
         $out = '<div class="cb8-grid cb8-grid--3">';
         foreach ($rows as $r) {
             $out .= '<article class="h-listing">'
-                  . '<div class="h-listing__img" data-tag="' . $r[3] . '"></div>'
+                  . '<div class="h-listing__img" data-tag="' . $r[3] . '">'
+                  . '<img src="' . CB_THEME_URI . '/assets/images/scroll/_src/' . $r[4] . '" alt="' . $r[1] . '" decoding="async">'
+                  . '</div>'
                   . '<div class="h-listing__body">'
                   . '<div class="h-listing__price">' . $r[0] . '</div>'
                   . '<div class="h-listing__addr">' . $r[1] . '</div>'
@@ -102,8 +139,8 @@ function cb_community_image_url($c) {
 
 class WP_Query {
     public function __construct($a = []) {}
-    public function have_posts() { return false; }   // exercise the placeholder branch
-    public function the_post() {}
+    public function have_posts() { return $GLOBALS['h_i'] + 1 < count($GLOBALS['h_posts']); }
+    public function the_post() { $GLOBALS['h_i']++; }
 }
 
 ob_start();
@@ -195,9 +232,13 @@ $head = <<<'HTML'
 
   /* Stand-in for [cb_listings]. */
   .h-listing { border-radius: 10px; overflow: hidden; background: rgba(12,30,72,.55); border: 1px solid rgba(184,207,234,.16); }
-  .h-listing__img { aspect-ratio: 16/11; background: linear-gradient(150deg, #1b4794, #08163a); position: relative; }
+  .h-listing__img {
+    aspect-ratio: 16/11; position: relative; overflow: hidden;
+    background: linear-gradient(150deg, #1b4794, #08163a);   /* shows through until the photo decodes */
+  }
+  .h-listing__img img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .h-listing__img::after {
-    content: attr(data-tag); position: absolute; left: .5rem; top: .5rem;
+    content: attr(data-tag); position: absolute; z-index: 1; left: .5rem; top: .5rem;
     background: var(--cb-bright-blue); color: #fff; font-size: .58rem; font-weight: 700;
     letter-spacing: .08em; text-transform: uppercase; padding: .18rem .45rem; border-radius: 4px;
   }

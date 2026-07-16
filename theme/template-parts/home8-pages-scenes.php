@@ -525,4 +525,36 @@ $cb8_plate = function ($i) use ($cb8_plates) {
         </section>
 
     </div><!-- /.cb8-pages -->
+
+    <?php
+    /*
+     * Photography credits -- REQUIRED, not decorative.
+     *
+     * The scene plates are Wikimedia Commons photographs under CC BY-SA 4.0 /
+     * CC BY 4.0. Those licences require attribution wherever the work is
+     * displayed. STORYBOARD.md: "Attribution is required by CC and lives in a
+     * .cb-photo-credits block at the bottom of front-page.php ... Keep it on the
+     * page." Home 2 ships it; Home 7 legitimately dropped it because its
+     * wireframe fork used no photographs at all. Home 8 puts the plates back, so
+     * the credits come back with them.
+     *
+     * Mirrors the block in home-scenes.php / front-page.php. If the plates ever
+     * go, this goes with them -- but while a plate renders, this ships.
+     */
+    ?>
+    <aside class="cb8-credits" aria-label="Photography credits">
+        <p>
+            San&nbsp;Angelo landmark photography &mdash;
+            <a href="https://commons.wikimedia.org/wiki/File:San_Angelo_September_2019_64_(skyline).jpg" rel="nofollow noopener" target="_blank">Downtown&nbsp;Skyline</a>,
+            <a href="https://commons.wikimedia.org/wiki/File:San_Angelo_September_2019_31_(Hilton_Hotel).jpg" rel="nofollow noopener" target="_blank">Cactus&nbsp;Hotel</a>,
+            <a href="https://commons.wikimedia.org/wiki/File:San_Angelo_September_2019_36_(E_Concho_Avenue).jpg" rel="nofollow noopener" target="_blank">E.&nbsp;Concho&nbsp;Avenue</a>,
+            <a href="https://commons.wikimedia.org/wiki/File:San_Angelo_September_2019_66_(Concho_River).jpg" rel="nofollow noopener" target="_blank">Concho&nbsp;River</a> &amp;
+            <a href="https://commons.wikimedia.org/wiki/File:San_Angelo_September_2019_27_(Cathedral_Church_of_the_Sacred_Heart)_-_cropped.jpg" rel="nofollow noopener" target="_blank">Sacred&nbsp;Heart&nbsp;Cathedral</a>
+            by Michael&nbsp;Barera, licensed under
+            <a href="https://creativecommons.org/licenses/by-sa/4.0/" rel="license nofollow noopener" target="_blank">CC&nbsp;BY-SA&nbsp;4.0</a>.
+            <a href="https://commons.wikimedia.org/wiki/File:Mason-Hughes_House_San_Angelo_Texas_2019.jpg" rel="nofollow noopener" target="_blank">Mason-Hughes&nbsp;House</a>
+            by Larry&nbsp;D.&nbsp;Moore, licensed under
+            <a href="https://creativecommons.org/licenses/by/4.0/" rel="license nofollow noopener" target="_blank">CC&nbsp;BY&nbsp;4.0</a>.
+        </p>
+    </aside>
 </div><!-- /.cb8-stage -->

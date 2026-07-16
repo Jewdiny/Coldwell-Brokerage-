@@ -82,9 +82,13 @@
 
   /* Stand-in for [cb_listings]. */
   .h-listing { border-radius: 10px; overflow: hidden; background: rgba(12,30,72,.55); border: 1px solid rgba(184,207,234,.16); }
-  .h-listing__img { aspect-ratio: 16/11; background: linear-gradient(150deg, #1b4794, #08163a); position: relative; }
+  .h-listing__img {
+    aspect-ratio: 16/11; position: relative; overflow: hidden;
+    background: linear-gradient(150deg, #1b4794, #08163a);   /* shows through until the photo decodes */
+  }
+  .h-listing__img img { width: 100%; height: 100%; object-fit: cover; display: block; }
   .h-listing__img::after {
-    content: attr(data-tag); position: absolute; left: .5rem; top: .5rem;
+    content: attr(data-tag); position: absolute; z-index: 1; left: .5rem; top: .5rem;
     background: var(--cb-bright-blue); color: #fff; font-size: .58rem; font-weight: 700;
     letter-spacing: .08em; text-transform: uppercase; padding: .18rem .45rem; border-radius: 4px;
   }
@@ -278,7 +282,7 @@
                             <div class="cb8-page__body">
                                 <div class="cb8-card cb8-card--frame" data-cb8-card data-cb8-frame style="--fl-dur:9.2s;--fl-delay:-4.1s;--fl-y:8px;--fl-rot:0.5deg">
                                     <div class="cb8-card__inner">
-                                        <div class="cb8-grid cb8-grid--3"><article class="h-listing"><div class="h-listing__img" data-tag="New"></div><div class="h-listing__body"><div class="h-listing__price">$439,000</div><div class="h-listing__addr">2841 Sunset Drive</div><div class="h-listing__meta">4 bd &middot; 3 ba &middot; 2,640 sqft</div></div></article><article class="h-listing"><div class="h-listing__img" data-tag="Featured"></div><div class="h-listing__body"><div class="h-listing__price">$312,500</div><div class="h-listing__addr">1907 College Hills Blvd</div><div class="h-listing__meta">3 bd &middot; 2 ba &middot; 1,880 sqft</div></div></article><article class="h-listing"><div class="h-listing__img" data-tag="Open"></div><div class="h-listing__body"><div class="h-listing__price">$675,000</div><div class="h-listing__addr">42 Lake Nasworthy Road</div><div class="h-listing__meta">5 bd &middot; 4 ba &middot; 3,910 sqft</div></div></article><article class="h-listing"><div class="h-listing__img" data-tag="New"></div><div class="h-listing__body"><div class="h-listing__price">$289,900</div><div class="h-listing__addr">515 Bentwood Court</div><div class="h-listing__meta">3 bd &middot; 2 ba &middot; 1,740 sqft</div></div></article><article class="h-listing"><div class="h-listing__img" data-tag="Featured"></div><div class="h-listing__body"><div class="h-listing__price">$1,150,000</div><div class="h-listing__addr">700 Concho River Walk</div><div class="h-listing__meta">6 bd &middot; 5 ba &middot; 5,200 sqft</div></div></article><article class="h-listing"><div class="h-listing__img" data-tag="Price cut"></div><div class="h-listing__body"><div class="h-listing__price">$225,000</div><div class="h-listing__addr">108 Christoval Lane</div><div class="h-listing__meta">3 bd &middot; 1 ba &middot; 1,320 sqft</div></div></article></div>                                    </div>
+                                        <div class="cb8-grid cb8-grid--3"><article class="h-listing"><div class="h-listing__img" data-tag="New"><img src="../theme/assets/images/scroll/_src/home-walsh.jpg" alt="2841 Sunset Drive" decoding="async"></div><div class="h-listing__body"><div class="h-listing__price">$439,000</div><div class="h-listing__addr">2841 Sunset Drive</div><div class="h-listing__meta">4 bd &middot; 3 ba &middot; 2,640 sqft</div></div></article><article class="h-listing"><div class="h-listing__img" data-tag="Featured"><img src="../theme/assets/images/scroll/_src/home-collyns.jpg" alt="1907 College Hills Blvd" decoding="async"></div><div class="h-listing__body"><div class="h-listing__price">$312,500</div><div class="h-listing__addr">1907 College Hills Blvd</div><div class="h-listing__meta">3 bd &middot; 2 ba &middot; 1,880 sqft</div></div></article><article class="h-listing"><div class="h-listing__img" data-tag="Open"><img src="../theme/assets/images/scroll/_src/home-mason.jpg" alt="42 Lake Nasworthy Road" decoding="async"></div><div class="h-listing__body"><div class="h-listing__price">$675,000</div><div class="h-listing__addr">42 Lake Nasworthy Road</div><div class="h-listing__meta">5 bd &middot; 4 ba &middot; 3,910 sqft</div></div></article><article class="h-listing"><div class="h-listing__img" data-tag="New"><img src="../theme/assets/images/scroll/_src/home-clayton.jpg" alt="515 Bentwood Court" decoding="async"></div><div class="h-listing__body"><div class="h-listing__price">$289,900</div><div class="h-listing__addr">515 Bentwood Court</div><div class="h-listing__meta">3 bd &middot; 2 ba &middot; 1,740 sqft</div></div></article><article class="h-listing"><div class="h-listing__img" data-tag="Featured"><img src="../theme/assets/images/scroll/_src/alt-river-42.jpg" alt="700 Concho River Walk" decoding="async"></div><div class="h-listing__body"><div class="h-listing__price">$1,150,000</div><div class="h-listing__addr">700 Concho River Walk</div><div class="h-listing__meta">6 bd &middot; 5 ba &middot; 5,200 sqft</div></div></article><article class="h-listing"><div class="h-listing__img" data-tag="Price cut"><img src="../theme/assets/images/scroll/_src/alt-fortconcho.jpg" alt="108 Christoval Lane" decoding="async"></div><div class="h-listing__body"><div class="h-listing__price">$225,000</div><div class="h-listing__addr">108 Christoval Lane</div><div class="h-listing__meta">3 bd &middot; 1 ba &middot; 1,320 sqft</div></div></article></div>                                    </div>
                                 </div>
                                 <div class="cb8-card cb8-card--cta-row" data-cb8-card style="--fl-dur:11.5s;--fl-delay:-1.2s;--fl-y:16px;--fl-rot:-0.5deg">
                                     <div class="cb8-card__inner">
@@ -533,10 +537,10 @@
                                 <div class="cb8-grid cb8-grid--3">
                                                                             <article class="cb8-card cb8-card--blog" data-cb8-card style="--fl-dur:9.2s;--fl-delay:-4.1s;--fl-y:8px;--fl-rot:0.5deg">
                                             <div class="cb8-card__inner">
-                                                <div class="cb8-blog__image cb8-blog__image--ph" aria-hidden="true"></div>
-                                                <div class="cb8-blog__body">
-                                                    <span class="cb8-blog__cat">Community</span>
-                                                    <h3 class="cb8-h3"><a href="#">12 San Angelo Secrets Only Locals Know</a></h3>
+                                                                                                    <div class="cb8-blog__image"><img src="../theme/assets/images/scroll/_src/alt-fortconcho.jpg" alt="12 San Angelo Secrets Only Locals Know" decoding="async"></div>
+                                                                                                <div class="cb8-blog__body">
+                                                                                                            <span class="cb8-blog__cat">Community</span>
+                                                                                                        <h3 class="cb8-h3"><a href="#">12 San Angelo Secrets Only Locals Know</a></h3>
                                                     <p class="cb8-p">Discover the latest insights about San Angelo real estate and community living.</p>
                                                     <span class="cb8-blog__meta">April 10, 2026</span>
                                                 </div>
@@ -544,10 +548,10 @@
                                         </article>
                                                                             <article class="cb8-card cb8-card--blog" data-cb8-card style="--fl-dur:11.5s;--fl-delay:-1.2s;--fl-y:16px;--fl-rot:-0.5deg">
                                             <div class="cb8-card__inner">
-                                                <div class="cb8-blog__image cb8-blog__image--ph" aria-hidden="true"></div>
-                                                <div class="cb8-blog__body">
-                                                    <span class="cb8-blog__cat">Market Update</span>
-                                                    <h3 class="cb8-h3"><a href="#">Spring 2026 San Angelo Market Report</a></h3>
+                                                                                                    <div class="cb8-blog__image"><img src="../theme/assets/images/scroll/_src/alt-river-41.jpg" alt="Spring 2026 San Angelo Market Report" decoding="async"></div>
+                                                                                                <div class="cb8-blog__body">
+                                                                                                            <span class="cb8-blog__cat">Market Update</span>
+                                                                                                        <h3 class="cb8-h3"><a href="#">Spring 2026 San Angelo Market Report</a></h3>
                                                     <p class="cb8-p">Discover the latest insights about San Angelo real estate and community living.</p>
                                                     <span class="cb8-blog__meta">April 5, 2026</span>
                                                 </div>
@@ -555,10 +559,10 @@
                                         </article>
                                                                             <article class="cb8-card cb8-card--blog" data-cb8-card style="--fl-dur:7.8s;--fl-delay:-5.6s;--fl-y:12px;--fl-rot:0.9deg">
                                             <div class="cb8-card__inner">
-                                                <div class="cb8-blog__image cb8-blog__image--ph" aria-hidden="true"></div>
-                                                <div class="cb8-blog__body">
-                                                    <span class="cb8-blog__cat">Buying Tips</span>
-                                                    <h3 class="cb8-h3"><a href="#">First-Time Home Buyer Guide for West Texas</a></h3>
+                                                                                                    <div class="cb8-blog__image"><img src="../theme/assets/images/scroll/_src/alt-waterlily.jpg" alt="First-Time Home Buyer Guide for West Texas" decoding="async"></div>
+                                                                                                <div class="cb8-blog__body">
+                                                                                                            <span class="cb8-blog__cat">Buying Tips</span>
+                                                                                                        <h3 class="cb8-h3"><a href="#">First-Time Home Buyer Guide for West Texas</a></h3>
                                                     <p class="cb8-p">Discover the latest insights about San Angelo real estate and community living.</p>
                                                     <span class="cb8-blog__meta">March 28, 2026</span>
                                                 </div>
@@ -581,6 +585,22 @@
         </section>
 
     </div><!-- /.cb8-pages -->
+
+        <aside class="cb8-credits" aria-label="Photography credits">
+        <p>
+            San&nbsp;Angelo landmark photography &mdash;
+            <a href="https://commons.wikimedia.org/wiki/File:San_Angelo_September_2019_64_(skyline).jpg" rel="nofollow noopener" target="_blank">Downtown&nbsp;Skyline</a>,
+            <a href="https://commons.wikimedia.org/wiki/File:San_Angelo_September_2019_31_(Hilton_Hotel).jpg" rel="nofollow noopener" target="_blank">Cactus&nbsp;Hotel</a>,
+            <a href="https://commons.wikimedia.org/wiki/File:San_Angelo_September_2019_36_(E_Concho_Avenue).jpg" rel="nofollow noopener" target="_blank">E.&nbsp;Concho&nbsp;Avenue</a>,
+            <a href="https://commons.wikimedia.org/wiki/File:San_Angelo_September_2019_66_(Concho_River).jpg" rel="nofollow noopener" target="_blank">Concho&nbsp;River</a> &amp;
+            <a href="https://commons.wikimedia.org/wiki/File:San_Angelo_September_2019_27_(Cathedral_Church_of_the_Sacred_Heart)_-_cropped.jpg" rel="nofollow noopener" target="_blank">Sacred&nbsp;Heart&nbsp;Cathedral</a>
+            by Michael&nbsp;Barera, licensed under
+            <a href="https://creativecommons.org/licenses/by-sa/4.0/" rel="license nofollow noopener" target="_blank">CC&nbsp;BY-SA&nbsp;4.0</a>.
+            <a href="https://commons.wikimedia.org/wiki/File:Mason-Hughes_House_San_Angelo_Texas_2019.jpg" rel="nofollow noopener" target="_blank">Mason-Hughes&nbsp;House</a>
+            by Larry&nbsp;D.&nbsp;Moore, licensed under
+            <a href="https://creativecommons.org/licenses/by/4.0/" rel="license nofollow noopener" target="_blank">CC&nbsp;BY&nbsp;4.0</a>.
+        </p>
+    </aside>
 </div><!-- /.cb8-stage -->
 
 <footer class="cb-footer">

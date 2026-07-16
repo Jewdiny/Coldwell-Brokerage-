@@ -161,10 +161,23 @@
   var _monoUrl = '', _monoStackUrl = '';
 
   // pages
-  var _pages = [];           // {el, float, skin, scrim, scroll, body, i, state, bodyOn, floatAnim, cardsIn}
+  var _pages = [];
   var _secTop = [], _secH = [];
   var _actTop = 0, _actH = 1;
-  var _g = 0, _reading = 0;
+
+  // ONE smoothed clock. _gRaw tracks scroll exactly; _g is the lagged value that
+  // EVERYTHING downstream reads -- camera waypoints, page depth, opacity, nav.
+  //
+  // It used to be two clocks: the camera took its target from the raw g and then
+  // lerped its POSITION toward it, while the pages took their depth from the raw g
+  // directly. So page scale responded instantly to scroll while the corridor
+  // dollied in ~0.33s behind it -- the zoom led the hallway, and on a fast scroll
+  // you could see the page racing the world it is supposed to be inside.
+  // Lagging the clock instead of the position keeps them exactly in step.
+  var _gRaw = 0, _g = 0, _reading = 0;
+  // Smoothed pointer. Raw mouse deltas went straight into the camera, so a jittery
+  // trackpad became jittery parallax on every page at once.
+  var _mx = 0, _my = 0;
 
   // capture mode
   var _capture = false, _captureG = 0, _captureFrames = 0;
@@ -619,10 +632,38 @@
     window.dispatchEvent(ev);
   }
 
+  /**
+   * Fade each image up as it decodes, rather than letting it pop in at full
+   * strength mid-approach. Images inside .cb8-page__body only start fetching when
+   * content-visibility releases them, so on a page like Communities six webp files
+   * land at once, several frames apart -- unmanaged, that is six separate pops
+   * over the top of a page that is already moving.
+   *
+   * `error` marks it loaded too: a 404 should leave a gap, not a permanently
+   * invisible element that still occupies its grid cell.
+   */
+  function onImgIn() { this.classList.add('is-loaded'); }
+  function watchImages(root) {
+    var imgs = root.querySelectorAll('img'), i, im;
+    for (i = 0; i < imgs.length; i++) {
+      im = imgs[i];
+      if (im.__cb8w) { continue; }
+      im.__cb8w = true;
+      // Capture wants the resting state: a CSS transition does not advance under
+      // --virtual-time-budget, so a fading image would photograph at opacity 0.
+      if (_capture || (im.complete && im.naturalWidth > 0)) { im.classList.add('is-loaded'); continue; }
+      im.addEventListener('load', onImgIn);
+      im.addEventListener('error', onImgIn);
+    }
+  }
+
   function revealBody(p) {
     if (p.bodyOn) { return; }
     p.bodyOn = true;
     p.el.classList.add('is-body-on');
+    // Body images do not exist to the loader until content-visibility releases
+    // them, so they must be watched here, not at init.
+    watchImages(p.el);
     // Card reveal and counters hang off VISIBILITY, not off the 'reading' state.
     // Tying them to 'reading' looks identical while scrolling forwards and is
     // silently broken on arrival: land at g=3.5 (reload mid-page, scroll
@@ -820,7 +861,7 @@
   // corridor on Windows, since this page always has a scrollbar.
   function projectPages() {
     var cx = camera.position.x, cy = camera.position.y;
-    var i, p, u, d, s, upp, sx, sy, a, blur;
+    var i, p, u, d, s, upp, sx, sy, a;
     for (i = 0; i < _pages.length; i++) {
       p = _pages[i];
       u = _g - i;
@@ -835,30 +876,35 @@
 
       setState(p, stateFor(u));
 
-      // Subpixel on purpose -- rounding jitters visibly during the fly-past.
-      p.el.style.transform = 'translate3d(' + sx + 'px,' + sy + 'px,0) scale(' + s + ')';
-      p.el.style.zIndex = String(1000 - Math.round(d * 10));
-      p.skin.style.opacity = String(a);
+      // Every write below is guarded against its last value. transform genuinely
+      // changes each frame; zIndex, opacity and will-change almost never do, and
+      // re-assigning them 60x/sec was pure style-recalc churn on 8 pages carrying
+      // live DOM. Fixed to 2dp / 4dp: finer than a pixel, coarse enough that a
+      // resting page stops writing at all. NOT rounded to whole pixels -- that
+      // jitters visibly as a page drifts.
+      var tf = 'translate3d(' + sx.toFixed(2) + 'px,' + sy.toFixed(2) + 'px,0) scale(' + s.toFixed(4) + ')';
+      if (p._tf !== tf) { p.el.style.transform = tf; p._tf = tf; }
+
+      var z = 1000 - Math.round(d * 10);
+      if (p._z !== z) { p.el.style.zIndex = String(z); p._z = z; }
+
+      var ao = a.toFixed(3);
+      if (p._op !== ao) { p.skin.style.opacity = ao; p._op = ao; }
 
       // Chrome stops updating raster scale for will-change:transform layers, so a
-      // page that entered at s=0.35 with it pinned would rasterise its text at
-      // 0.35x and STAY soft at s==1. Drop the hint while dwelling: nothing is
+      // page that entered at 0.75x with it pinned would rasterise its text at
+      // 0.75x and STAY soft at s==1. Drop the hint while dwelling: nothing is
       // moving, so the one-time repaint is invisible and re-rasterises at 1:1.
-      p.el.style.willChange = (p.state === 'reading') ? 'auto' : 'transform';
+      var wc = (p.state === 'reading') ? 'auto' : 'transform';
+      if (p._wc !== wc) { p.el.style.willChange = wc; p._wc = wc; }
 
-      // Depth of field. The page is a transparent container now, so opacity on the
-      // skin fades the whole cluster (cards AND plate) with no rectangle to give
-      // it away -- which is exactly why the old full-cover scrim had to go: over a
-      // frameless page it would have darkened a visible box floating in the
-      // corridor. Animated blur stays reserved for the exit, quantised so the
-      // radius does not re-rasterise a live-DOM subtree every frame.
-      if (s > 1.05) {
-        blur = Math.min(4, (s - 1) * 5);
-        blur = Math.round(blur * 2) / 2;
-        p.skin.style.filter = blur > 0.4 ? ('blur(' + blur + 'px) brightness(1.1)') : '';
-      } else {
-        p.skin.style.filter = '';
-      }
+      // Depth of field is opacity ALONE. The exit used to add a blur, quantised to
+      // 0.5px so the radius would not re-rasterise a live-DOM subtree every frame
+      // -- but once the zoom narrowed to 1.4x that blur peaks at ~2px, so the
+      // quantisation that made it affordable also made it visibly step through
+      // four values on the way out. Un-quantised it is a filter re-raster per
+      // frame on the biggest subtree on the page. Neither is worth 2px of blur:
+      // opacity already sells the depth, and it composites for free.
 
       // LOD: flip the live body in partway through the approach, well before
       // anybody reads, so the relayout hitch lands during fast camera motion
@@ -886,7 +932,18 @@
       uTime += dt;
       scrollY = window.pageYOffset || 0;
     }
-    _g = computeG();
+    _gRaw = computeG();
+
+    // Lag the CLOCK, not the camera's position -- see _g's declaration. Capture
+    // snaps it: a deterministic shot must not depend on how many frames it ran.
+    if (_capture) {
+      _g = _gRaw; _mx = 0; _my = 0;
+    } else {
+      _g += (_gRaw - _g) * lerpK(0.05, dt);
+      var km = lerpK(0.14, dt);
+      _mx += (mouseNX - _mx) * km;
+      _my += (mouseNY - _my) * km;
+    }
     material.uniforms.uTime.value = uTime;
 
     // readingness drives the parallax damp; compute before computeCamera().
@@ -905,13 +962,12 @@
     }
 
     var driftX = Math.sin(uTime * 0.13) * 1.1, driftY = Math.cos(uTime * 0.10) * 0.8;
-    if (_capture) {
-      oX = oTX; oY = oTY; oZ = oTZ; driftX = 0; driftY = 0;
-    } else {
-      var k = lerpK(0.05, dt);
-      oX += (oTX - oX) * k; oY += (oTY - oY) * k; oZ += (oTZ - oZ) * k;
-    }
-    var px = (mouseNX * 2.6 + driftX) * oP, py = (mouseNY * 1.9 + driftY) * oP;
+    if (_capture) { driftX = 0; driftY = 0; }
+    // No second lerp. The weight lives in _g now, and lerping here as well would
+    // put the camera a further ~0.33s behind the pages that are projected FROM it
+    // -- which reads as blur, not as lag.
+    oX = oTX; oY = oTY; oZ = oTZ;
+    var px = (_mx * 2.6 + driftX) * oP, py = (_my * 1.9 + driftY) * oP;
     camera.position.set(oX + px, oY + py, oZ);
 
     if (_corridorReady) {
@@ -1080,6 +1136,8 @@
 
       // Only now does the flat Home 2 layout become the floating one.
       document.documentElement.classList.add('cb8-on');
+      // Kills the image fade transitions -- see watchImages().
+      if (_capture) { document.documentElement.classList.add('cb8-capture'); }
       // Tells the CSS that Motion owns the card reveal + the idle float, so it
       // stands down (drops the transition, drops the keyframe fallback).
       if (M && M.animate) { document.documentElement.classList.add('cb8-motion'); }
@@ -1090,6 +1148,9 @@
       catch (eo) { _corridorReady = false; if (window.console) { console.warn('[cb8] corridor build failed; running nebula+pages only.', eo); } }
 
       observeNav();
+      // Plates live outside .cb8-page__body, so they start fetching immediately --
+      // watch them now. Body images are picked up in revealBody().
+      for (var pi = 0; pi < _pages.length; pi++) { watchImages(_pages[pi].el); }
       if (window.CBCursor && window.CBCursor.init && !_capture) { try { window.CBCursor.init(); } catch (e2) {} }
 
       scrollY = _capture ? captureScrollFor(_captureG) : (window.pageYOffset || 0);
