@@ -38,6 +38,9 @@
 
 $repo = dirname(__DIR__);
 
+// The route pages' colour system, derived from CB Blue by colour-wheel maths.
+require_once __DIR__ . '/palette.php';
+
 /**
  * Everything that differs between the two variants. The walk, the pages, the
  * cards and the content are identical -- only the world and its palette change.
@@ -107,14 +110,63 @@ function esc_js($s)   { return (string) $s; }
  * stand-in page that names the template that really serves it, and links back.
  * They are previews of the ROUTING, not of the pages -- the real ones need WP.
  */
+/*
+ * `h1` and `sections` are lifted from the templates THEMSELVES, not invented and
+ * not taken from coldwellbanker.com. Each route's real template is right there in
+ * the repo, so its own headings are the accurate answer to "what is on this page"
+ * -- and copying the national site's copy would be reproducing someone else's
+ * content into a brokerage's own build.
+ */
 $ROUTES = [
-    '/find-a-home/'   => ['file' => 'find-a-home',  'title' => 'Find a Home',      'tpl' => 'templates/template-find-home.php',     'blurb' => 'Live MLS search across San Angelo and the Concho Valley, filtered and mapped.'],
-    '/home-value/'    => ['file' => 'home-value',   'title' => 'What&rsquo;s My Home Worth?', 'tpl' => 'templates/template-home-value.php', 'blurb' => 'Free, no-obligation valuation grounded in live San Angelo market data.'],
-    '/our-team/'      => ['file' => 'our-team',     'title' => 'Meet Our Team',    'tpl' => 'templates/template-agents.php',        'blurb' => 'The agents who know San Angelo inside and out. Backed by single-cb_agent.php.'],
-    '/office/'        => ['file' => 'office',       'title' => 'Visit Our Office', 'tpl' => 'templates/template-contact.php',       'blurb' => 'Knickerbocker Road. Directions, hours, and how to reach us.'],
-    '/communities/'   => ['file' => 'communities',  'title' => 'Explore Communities', 'tpl' => 'template-community.php',            'blurb' => 'Every neighbourhood in the valley. Each one deepens into single-cb_community.php.'],
-    '/testimonials/'  => ['file' => 'testimonials', 'title' => 'Client Stories',   'tpl' => 'templates/template-testimonials.php',  'blurb' => 'Verified reviews via Testimonial Tree.'],
-    '/blog/'          => ['file' => 'blog',         'title' => 'Local Insight &amp; Market News', 'tpl' => 'index.php',             'blurb' => 'Market reports, buying guides, and news from the Concho Valley.'],
+    '/find-a-home/' => [
+        'file' => 'find-a-home', 'title' => 'Find a Home', 'tpl' => 'templates/template-find-home.php',
+        'h1' => 'Find a Home', 'kicker' => 'San Angelo MLS Search',
+        'blurb' => 'Search the live San Angelo MLS &mdash; filtered by neighbourhood, price and beds, with map view.',
+        'sections' => ['Your Search Advantage', 'Can&rsquo;t Find What You&rsquo;re Looking For?'],
+        'live' => 'Builds a live Spark <code>_filter</code> expression from the query string and scopes it to San Angelo and the Concho Valley.',
+    ],
+    '/home-value/' => [
+        'file' => 'home-value', 'title' => 'Home Value', 'tpl' => 'templates/template-home-value.php',
+        'h1' => 'What Is Your Home Worth?', 'kicker' => 'For Sellers',
+        'blurb' => 'A free, no-obligation valuation grounded in live San Angelo market data.',
+        'sections' => ['Get a Free CB Estimate Now', 'Want a More Accurate Estimate?', 'Current Market Snapshot'],
+        'live' => 'Pulls the market snapshot from <code>[cb_market_stats]</code>.',
+    ],
+    '/our-team/' => [
+        'file' => 'our-team', 'title' => 'Our Team', 'tpl' => 'templates/template-agents.php',
+        'h1' => 'Meet Our Team', 'kicker' => 'Coldwell Banker Legacy',
+        'blurb' => 'The agents who know San Angelo inside and out.',
+        'sections' => ['Ready to Get Started?'],
+        'live' => 'Each agent deepens into <code>single-cb_agent.php</code>.',
+    ],
+    '/office/' => [
+        'file' => 'office', 'title' => 'Contact', 'tpl' => 'templates/template-contact.php',
+        'h1' => 'Contact Us', 'kicker' => 'Knickerbocker Road',
+        'blurb' => 'Directions, hours, and how to reach us.',
+        'sections' => ['Send Us a Message'],
+        'live' => '',
+    ],
+    '/communities/' => [
+        'file' => 'communities', 'title' => 'Communities', 'tpl' => 'template-community.php',
+        'h1' => 'Explore the Area', 'kicker' => 'Concho Valley',
+        'blurb' => 'From downtown San Angelo to the shores of Lake Nasworthy.',
+        'sections' => ['Featured Communities'],
+        'live' => 'Each community deepens into <code>single-cb_community.php</code>, scoped by its own MLS expression.',
+    ],
+    '/testimonials/' => [
+        'file' => 'testimonials', 'title' => 'Client Stories', 'tpl' => 'templates/template-testimonials.php',
+        'h1' => 'What Our Clients Say', 'kicker' => 'Client Stories',
+        'blurb' => 'Verified reviews from Coldwell Banker Legacy San Angelo clients.',
+        'sections' => ['Ready to Work With Us?'],
+        'live' => 'Rendered by <code>[cb_testimonials type="list"]</code> via Testimonial Tree.',
+    ],
+    '/blog/' => [
+        'file' => 'blog', 'title' => 'Blog', 'tpl' => 'index.php',
+        'h1' => 'Local Insight &amp; Market News', 'kicker' => 'From Our Blog',
+        'blurb' => 'Market reports, buying guides, and news from the Concho Valley.',
+        'sections' => ['Latest Posts'],
+        'live' => '',
+    ],
 ];
 
 function home_url($p = '/') {
@@ -410,61 +462,144 @@ HTML;
  * page. Inventing content for /find-a-home/ here would only produce something
  * that has to be thrown away, and would misrepresent what is built.
  */
+/**
+ * The route page.
+ *
+ * COLOUR: every value comes from harness/palette.php, which derives the whole
+ * system from CB Blue #012169 by colour-wheel maths -- one hue for structure, its
+ * exact complement (the CONTRACT.md gold, which turns out to BE that complement to
+ * within 2.6 degrees) for anything that asks to be clicked, lightness doing the
+ * rest. Nothing here is eyeballed. Run `php harness/palette.php` for the
+ * derivation and the WCAG audit.
+ *
+ * STRUCTURE: taken from each route's real template in this repo, not from the
+ * national Coldwell Banker site. The templates are right here, so their own
+ * headings are the accurate answer -- and they are the brokerage's own work,
+ * unlike coldwellbanker.com's.
+ *
+ * Whitespace-first, per BRAND.md: "CB Blue + lots of white ... use Bright Blue +
+ * Celestial sparingly as energy accents."
+ */
 $SUB = <<<'HTML'
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{{ROUTE_TITLE}} — {{TITLE}}</title>
-<!-- GENERATED -- do not hand-edit. Rebuild: php harness/build-harness.php all -->
+<title>{{ROUTE_TITLE}} — Coldwell Banker Legacy</title>
+<!-- GENERATED -- do not hand-edit.
+     Rebuild : php harness/build-harness.php all
+     Colour  : harness/palette.php (derived from CB Blue; run it for the audit)
+     Content : {{ROUTE_TPL}} -- the real template that serves this route -->
 <style>
   :root {
-    --cb-blue: #012169; --cb-tide: #B8CFEA; --cb-bright-blue: #1F69FF;
-    --cb-gold: #C9A84C; --cb-cream: #F0EBE0; --cb-walnut: #2B1A10;
+    --ink: {{P_INK}}; --body: {{P_BODY}}; --surface: {{P_SURFACE}};
+    --surface-alt: {{P_SURFACEALT}}; --line: {{P_LINE}};
+    --primary: {{P_PRIMARY}}; --primary-lo: {{P_PRIMARYLO}}; --primary-hi: {{P_PRIMARYHI}};
+    --on-primary: {{P_ONPRIMARY}}; --accent: {{P_ACCENT}}; --accent-lo: {{P_ACCENTLO}};
+    --on-accent: {{P_ONACCENT}}; --muted: {{P_MUTED}};
     --font-heading: 'Familjen Grotesk', 'Segoe UI', system-ui, sans-serif;
     --font-subheader: 'Josefin Sans', 'Segoe UI', system-ui, sans-serif;
     --font-body: Roboto, 'Segoe UI', system-ui, sans-serif;
   }
   * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; min-height: 100%; }
-  body {
-    font-family: var(--font-body); background: {{FIELD}}; color: {{INK}};
-    display: flex; align-items: center; justify-content: center; padding: 2rem;
+  html, body { margin: 0; padding: 0; }
+  body { font-family: var(--font-body); background: var(--surface); color: var(--body); }
+  .wrap { max-width: 68rem; margin: 0 auto; padding: 0 1.5rem; }
+
+  .hd {
+    background: var(--primary); color: var(--on-primary);
+    height: 68px; display: flex; align-items: center;
   }
-  .r { max-width: 40rem; }
-  .r__eyebrow {
-    font-family: var(--font-subheader); font-size: .74rem; font-weight: 600;
-    letter-spacing: .18em; text-transform: uppercase; color: {{ACCENT}};
+  .hd img { height: 28px; filter: brightness(0) invert(1); }
+
+  /* CB Blue at two lightnesses off the SAME hue -- a gradient inside one hue
+     rather than a blend between two colours. */
+  .hero {
+    background: linear-gradient(160deg, var(--primary-hi), var(--primary) 45%, var(--primary-lo));
+    color: var(--on-primary); padding: clamp(3.5rem, 9vw, 6.5rem) 0;
   }
-  .r__h { font-family: var(--font-heading); font-weight: 600; font-size: clamp(1.9rem, 4vw, 3rem); line-height: 1.05; margin: .6rem 0 0; }
-  .r__blurb { font-size: 1.02rem; line-height: 1.6; opacity: .82; margin: 1rem 0 0; }
-  .r__note {
-    margin: 2rem 0 0; padding: 1rem 1.2rem; border-radius: 12px;
-    border: 1px solid rgba(255,255,255,.16); background: rgba(255,255,255,.05);
-    font-size: .84rem; line-height: 1.6; opacity: .8;
+  .kick {
+    font-family: var(--font-subheader); font-size: .76rem; font-weight: 600;
+    letter-spacing: .2em; text-transform: uppercase; color: var(--accent);
   }
-  .r__note code { font-family: ui-monospace, Consolas, monospace; color: {{ACCENT}}; }
-  .r__back {
-    display: inline-block; margin-top: 1.8rem; font-family: var(--font-subheader);
-    font-size: .78rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
-    color: {{ACCENT}}; text-decoration: none; border-bottom: 1px solid currentColor; padding-bottom: .2rem;
+  h1 { font-family: var(--font-heading); font-weight: 600; font-size: clamp(2.1rem, 5vw, 3.6rem); line-height: 1.04; margin: .7rem 0 0; letter-spacing: -.02em; }
+  .lede { font-size: clamp(1rem, 1.4vw, 1.16rem); line-height: 1.6; margin: 1.1rem 0 0; max-width: 46ch; opacity: .9; }
+  .btn {
+    display: inline-block; margin-top: 1.8rem; padding: .85rem 1.7rem; border-radius: 10px;
+    background: var(--accent); color: var(--on-accent); text-decoration: none;
+    font-family: var(--font-subheader); font-size: .8rem; font-weight: 700;
+    letter-spacing: .09em; text-transform: uppercase;
+  }
+  .btn:hover { background: var(--accent-lo); color: #fff; }
+
+  .sec { padding: clamp(2.5rem, 6vw, 4.5rem) 0; }
+  h2 { font-family: var(--font-heading); font-weight: 600; font-size: clamp(1.3rem, 2.4vw, 1.9rem); color: var(--ink); margin: 0 0 1.2rem; letter-spacing: -.01em; }
+  .grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr)); }
+  .card {
+    background: #fff; border: 1px solid var(--line); border-radius: 14px;
+    padding: 1.4rem; box-shadow: 0 1px 2px rgba(1,33,105,.04);
+  }
+  .card h3 { font-family: var(--font-heading); font-size: 1.02rem; margin: 0 0 .4rem; color: var(--ink); }
+  .card p { margin: 0; font-size: .9rem; line-height: 1.6; color: var(--muted); }
+  .rule { height: 3px; width: 44px; background: var(--accent); border-radius: 2px; margin-bottom: 1rem; }
+
+  .note {
+    background: var(--surface-alt); border-left: 3px solid var(--accent);
+    border-radius: 0 10px 10px 0; padding: 1.1rem 1.3rem; font-size: .88rem; line-height: 1.65;
+  }
+  .note code { font-family: ui-monospace, Consolas, monospace; color: var(--primary); font-weight: 600; }
+
+  .ft { background: var(--ink); color: rgba(255,255,255,.62); padding: 2.2rem 0; font-size: .8rem; }
+  .ft a { color: var(--accent); text-decoration: none; }
+  .back {
+    display: inline-block; font-family: var(--font-subheader); font-size: .76rem; font-weight: 700;
+    letter-spacing: .1em; text-transform: uppercase; color: var(--accent); text-decoration: none;
   }
 </style>
 </head>
 <body>
-<main class="r">
-  <span class="r__eyebrow">{{ROUTE_PATH}}</span>
-  <h1 class="r__h">{{ROUTE_TITLE}}</h1>
-  <p class="r__blurb">{{ROUTE_BLURB}}</p>
-  <p class="r__note">
-    <strong>Harness stand-in.</strong> This route is already built for real — WordPress
-    serves it from <code>{{ROUTE_TPL}}</code>. That template needs PHP, live MLS and
-    the database, so it cannot render from <code>file://</code>; this page exists so the
-    links in the walkthrough are followable while previewing.
-  </p>
-  <a class="r__back" href="{{BACK}}">&larr; Back to the walkthrough</a>
-</main>
+
+<header class="hd"><div class="wrap"><img src="../../theme/assets/images/logos/monogram-horizontal.svg" alt="Coldwell Banker Legacy"></div></header>
+
+<section class="hero">
+  <div class="wrap">
+    <span class="kick">{{ROUTE_KICKER}}</span>
+    <h1>{{ROUTE_H1}}</h1>
+    <p class="lede">{{ROUTE_BLURB}}</p>
+    <a class="btn" href="{{BACK}}">&larr; Back to the walkthrough</a>
+  </div>
+</section>
+
+<section class="sec">
+  <div class="wrap">
+    <div class="rule"></div>
+    <h2>On this page</h2>
+    <div class="grid">{{ROUTE_SECTIONS}}</div>
+  </div>
+</section>
+
+<section class="sec" style="padding-top:0">
+  <div class="wrap">
+    <p class="note">
+      <strong>Harness stand-in.</strong> This route is already built: WordPress serves
+      <code>{{ROUTE_PATH}}</code> from <code>{{ROUTE_TPL}}</code>. {{ROUTE_LIVE}}
+      That needs PHP, the database and the live MLS feed, none of which exist under
+      <code>file://</code> &mdash; so this page mirrors the real template's structure
+      and colour system, and exists so the walkthrough's links are followable while
+      previewing.
+    </p>
+  </div>
+</section>
+
+<footer class="ft">
+  <div class="wrap">
+    <a class="back" href="{{BACK}}">&larr; Back to the walkthrough</a>
+    <p style="margin:.9rem 0 0">Coldwell Banker Legacy &middot; harness build &middot; not a live page.
+      Colour derived from CB Blue by <a href="#">harness/palette.php</a>.</p>
+  </div>
+</footer>
+
 </body>
 </html>
 HTML;
@@ -503,13 +638,26 @@ foreach ($which as $n) {
     // ---- route stand-ins ---------------------------------------------------
     $subdir = __DIR__ . '/sub';
     if (!is_dir($subdir)) { mkdir($subdir); }
+    $P = cb_palette();
+    $ptok = [];
+    foreach ($P as $k => $hexv) { $ptok['{{P_' . strtoupper($k) . '}}'] = $hexv; }
+
     foreach ($ROUTES as $route => $r) {
-        $sub = strtr($SUB, array_merge($subs, [
-            '{{ROUTE_TITLE}}' => $r['title'],
-            '{{ROUTE_PATH}}'  => $route,
-            '{{ROUTE_TPL}}'   => $r['tpl'],
-            '{{ROUTE_BLURB}}' => $r['blurb'],
-            '{{BACK}}'        => '../' . $V['out'],
+        $cards = '';
+        foreach ($r['sections'] as $sname) {
+            $cards .= '<article class="card"><h3>' . $sname . '</h3>'
+                    . '<p>Rendered by the real template.</p></article>';
+        }
+        $sub = strtr($SUB, array_merge($subs, $ptok, [
+            '{{ROUTE_TITLE}}'    => $r['title'],
+            '{{ROUTE_H1}}'       => $r['h1'],
+            '{{ROUTE_KICKER}}'   => $r['kicker'],
+            '{{ROUTE_PATH}}'     => $route,
+            '{{ROUTE_TPL}}'      => $r['tpl'],
+            '{{ROUTE_BLURB}}'    => $r['blurb'],
+            '{{ROUTE_LIVE}}'     => $r['live'],
+            '{{ROUTE_SECTIONS}}' => $cards,
+            '{{BACK}}'           => '../' . $V['out'],
         ]));
         file_put_contents($subdir . '/' . $V['ns'] . '-' . $r['file'] . '.html', $sub);
     }
