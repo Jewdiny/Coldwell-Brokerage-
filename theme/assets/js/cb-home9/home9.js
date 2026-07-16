@@ -125,6 +125,7 @@
   // Anchor a page to a fixed orientation instead and this all ends: you would need
   // a real matrix3d/CSS3DRenderer pipeline the moment the yaw leaves zero.
   var HALL_X = 6, HALL_Y = 5, HALL_Z0 = 6, HALL_Z1 = -64;
+  var WALL_T = 0.5;     // wall thickness -- what gives a doorway its reveal
   var ROOM_D = 20;      // how far a room reaches past its doorway
   var ROOM_H = 7;       // half-depth of a room along the hallway
   var ROOM_IN = 8;      // how far into the room the camera stands at dwell
@@ -596,6 +597,63 @@
     img.src = basePath + R.art;
   }
 
+  /** A raised-panel outline on a Y-Z wall (a room's far wall), stood slightly
+   *  proud of the plaster. Four thin sticks of trim -- the cheapest possible
+   *  joinery, and the difference between a wall and a flat colour. */
+  function panelYZ(x, cy, cz, h, d, s) {
+    var o = -s * 0.05, t = 0.12;
+    box(MAT.trim, x + o, cy + h / 2, cz, 0.09, t, d + t);
+    box(MAT.trim, x + o, cy - h / 2, cz, 0.09, t, d + t);
+    box(MAT.trim, x + o, cy, cz - d / 2, 0.09, h, t);
+    box(MAT.trim, x + o, cy, cz + d / 2, 0.09, h, t);
+    box(MAT.wains, x + o * 0.5, cy, cz, 0.04, h, d);   // the panel field itself
+  }
+
+  /**
+   * A real entrance, not a hole.
+   *
+   * The wall has thickness (WALL_T), so an opening in it is a short tunnel: it
+   * needs lining. Without the reveal you see the wall's zero-width edge and the
+   * whole thing reads as paper -- which is exactly what it did. What sells a
+   * doorway is, in order: the reveal you can see the depth of, the architrave
+   * standing proud on BOTH faces, a threshold underfoot, and doors that are
+   * actually open.
+   */
+  function entrance(R) {
+    var s = R.side, z = R.z;
+    var xw = s * HALL_X;                    // wall centre-line
+    var half = WALL_T / 2;
+    var W = 6, H = 8.6, top = -HALL_Y + H;  // opening: 6 wide, to y = 3.6
+
+    // Reveal: line the inside faces of the opening.
+    box(MAT.trim, xw, -HALL_Y + H / 2, z - W / 2 + 0.08, WALL_T, H, 0.16);
+    box(MAT.trim, xw, -HALL_Y + H / 2, z + W / 2 - 0.08, WALL_T, H, 0.16);
+    box(MAT.trim, xw, top - 0.08, z, WALL_T, 0.16, W);
+
+    // Architrave on both faces. You see the hallway side on approach and the room
+    // side once you are through; casing only one face looks like a stage flat.
+    var faces = [xw - s * (half + 0.06), xw + s * (half + 0.06)];
+    for (var f = 0; f < 2; f++) {
+      var xf = faces[f];
+      box(MAT.trim, xf, -HALL_Y + H / 2 + 0.1, z - W / 2 - 0.16, 0.12, H + 0.2, 0.44);
+      box(MAT.trim, xf, -HALL_Y + H / 2 + 0.1, z + W / 2 + 0.16, 0.12, H + 0.2, 0.44);
+      box(MAT.trim, xf, top + 0.12, z, 0.12, 0.44, W + 1.1);
+    }
+
+    box(MAT.oak, xw, -HALL_Y + 0.035, z, WALL_T + 0.3, 0.07, W);   // threshold
+
+    // Two leaves, swung fully into the room. A door standing open is the single
+    // clearest signal that a room is somewhere you may go.
+    for (var i = -1; i <= 1; i += 2) {
+      var zj = z + i * (W / 2 - 0.08);
+      var xl = xw + s * (half + 1.5);
+      box(MAT.trim, xl, -HALL_Y + 4.2, zj - i * 0.09, 2.9, 8.2, 0.16);
+      box(MAT.wains, xl, -HALL_Y + 6.0, zj - i * 0.17, 2.1, 2.9, 0.04);   // upper panel
+      box(MAT.wains, xl, -HALL_Y + 2.2, zj - i * 0.17, 2.1, 2.9, 0.04);   // lower panel
+      cyl(MAT.brass, xw + s * (half + 2.7), -HALL_Y + 4.2, zj - i * 0.2, 0.09, 0.28);  // handle
+    }
+  }
+
   function buildRoom(R, basePath) {
     var s = R.side, z = R.z;
     var xIn = s * HALL_X, xFar = s * (HALL_X + ROOM_D);
@@ -612,15 +670,19 @@
     trimRun('z', z0, xIn, xFar, 1);
     trimRun('z', z1, xIn, xFar, -1);
 
-    // The doorway wall, built as three pieces around the opening.
-    var dh = 3.6;
-    plane(MAT.wall, s * (HALL_X + 0.02), (dh - HALL_Y) / 2 + dh / 2 + 0.7, z, 2 * ROOM_H, 2 * HALL_Y - dh - 1.4, s > 0 ? '-x' : '+x');
-    box(MAT.wall, xIn, 0, z - (ROOM_H + 3) / 2 - 1.5 + 1.5, 0.24, 2 * HALL_Y, ROOM_H - 3);
-    box(MAT.wall, xIn, 0, z + (ROOM_H + 3) / 2 + 1.5 - 1.5, 0.24, 2 * HALL_Y, ROOM_H - 3);
-    // Door casing -- the thing you actually turn to face.
-    box(MAT.trim, xIn, -0.7, z - 3, 0.34, 8.6, 0.34);
-    box(MAT.trim, xIn, -0.7, z + 3, 0.34, 8.6, 0.34);
-    box(MAT.trim, xIn, 3.7, z, 0.34, 0.34, 6.34);
+    // Panelling and a picture rail on the wall you stand and face. A single flat
+    // plane of plaster is what made this read as a box with a floor -- the
+    // mouldings are what say "room". Panels flank the art rather than sit behind
+    // it: the picture is 6.4 wide and would swallow a centre panel whole.
+    panelYZ(xFar, 0.7, z - 5.1, 4.4, 2.9, s);
+    panelYZ(xFar, 0.7, z + 5.1, 4.4, 2.9, s);
+    box(MAT.trim, xFar - s * 0.05, 3.5, z, 0.1, 0.16, 2 * ROOM_H);   // picture rail
+
+    // NOTE: the doorway wall is NOT built here. buildHall() already walls this
+    // side of the hallway everywhere except the openings, at this exact x -- the
+    // room used to draw its own pieces on top, which put two coincident surfaces
+    // at x = s*HALL_X and left them z-fighting. The room only dresses the opening.
+    entrance(R);
 
     plane(MAT.rug, xMid + s * 1.5, -HALL_Y + 0.02, z, 9, 7, 'up');
 
@@ -716,16 +778,20 @@
       for (k = 0; k < doors.length; k++) {
         z = doors[k];
         if (prev - (z + 3) > 0.1) {
-          plane(MAT.wall, s * HALL_X, 0, (prev + z + 3) / 2, prev - (z + 3), 2 * HALL_Y, s > 0 ? '-x' : '+x');
-          trimRun('x', s * HALL_X, z + 3, prev, s > 0 ? -1 : 1);
+          // A BOX, not a plane. A wall with no thickness gives its doorways no
+          // reveal -- you see a zero-width edge and walk through a hole in paper.
+          // The 0.5 of depth here is the entire reason entrance() has something
+          // to line.
+          box(MAT.wall, s * HALL_X, 0, (prev + z + 3) / 2, WALL_T, 2 * HALL_Y, prev - (z + 3));
+          trimRun('x', s * HALL_X - s * (WALL_T / 2), z + 3, prev, s > 0 ? -1 : 1);
         }
         // Over-door panel, so the opening reads as a doorway and not a missing wall.
-        plane(MAT.wall, s * HALL_X, 4.3, z, 6, 1.4, s > 0 ? '-x' : '+x');
+        box(MAT.wall, s * HALL_X, 4.3, z, WALL_T, 1.4, 6);
         prev = z - 3;
       }
       if (prev - HALL_Z1 > 0.1) {
-        plane(MAT.wall, s * HALL_X, 0, (prev + HALL_Z1) / 2, prev - HALL_Z1, 2 * HALL_Y, s > 0 ? '-x' : '+x');
-        trimRun('x', s * HALL_X, HALL_Z1, prev, s > 0 ? -1 : 1);
+        box(MAT.wall, s * HALL_X, 0, (prev + HALL_Z1) / 2, WALL_T, 2 * HALL_Y, prev - HALL_Z1);
+        trimRun('x', s * HALL_X - s * (WALL_T / 2), HALL_Z1, prev, s > 0 ? -1 : 1);
       }
     }
 

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Meet Our Team — CB Home 8 -- Floating Pages harness</title>
+<!-- GENERATED -- do not hand-edit. Rebuild: php harness/build-harness.php all -->
+<style>
+  :root {
+    --cb-blue: #012169; --cb-tide: #B8CFEA; --cb-bright-blue: #1F69FF;
+    --cb-gold: #C9A84C; --cb-cream: #F0EBE0; --cb-walnut: #2B1A10;
+    --font-heading: 'Familjen Grotesk', 'Segoe UI', system-ui, sans-serif;
+    --font-subheader: 'Josefin Sans', 'Segoe UI', system-ui, sans-serif;
+    --font-body: Roboto, 'Segoe UI', system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; min-height: 100%; }
+  body {
+    font-family: var(--font-body); background: radial-gradient(130% 115% at 50% -5%, #16409c 0%, #0c2a72 30%, #071c52 58%, #040c2c 100%) fixed; color: #fff;
+    display: flex; align-items: center; justify-content: center; padding: 2rem;
+  }
+  .r { max-width: 40rem; }
+  .r__eyebrow {
+    font-family: var(--font-subheader); font-size: .74rem; font-weight: 600;
+    letter-spacing: .18em; text-transform: uppercase; color: var(--cb-bright-blue);
+  }
+  .r__h { font-family: var(--font-heading); font-weight: 600; font-size: clamp(1.9rem, 4vw, 3rem); line-height: 1.05; margin: .6rem 0 0; }
+  .r__blurb { font-size: 1.02rem; line-height: 1.6; opacity: .82; margin: 1rem 0 0; }
+  .r__note {
+    margin: 2rem 0 0; padding: 1rem 1.2rem; border-radius: 12px;
+    border: 1px solid rgba(255,255,255,.16); background: rgba(255,255,255,.05);
+    font-size: .84rem; line-height: 1.6; opacity: .8;
+  }
+  .r__note code { font-family: ui-monospace, Consolas, monospace; color: var(--cb-bright-blue); }
+  .r__back {
+    display: inline-block; margin-top: 1.8rem; font-family: var(--font-subheader);
+    font-size: .78rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--cb-bright-blue); text-decoration: none; border-bottom: 1px solid currentColor; padding-bottom: .2rem;
+  }
+</style>
+</head>
+<body>
+<main class="r">
+  <span class="r__eyebrow">/our-team/</span>
+  <h1 class="r__h">Meet Our Team</h1>
+  <p class="r__blurb">The agents who know San Angelo inside and out. Backed by single-cb_agent.php.</p>
+  <p class="r__note">
+    <strong>Harness stand-in.</strong> This route is already built for real — WordPress
+    serves it from <code>templates/template-agents.php</code>. That template needs PHP, live MLS and
+    the database, so it cannot render from <code>file://</code>; this page exists so the
+    links in the walkthrough are followable while previewing.
+  </p>
+  <a class="r__back" href="../cb-home8-harness.html">&larr; Back to the walkthrough</a>
+</main>
+</body>
+</html>

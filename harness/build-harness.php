@@ -92,7 +92,38 @@ function esc_html($s) { return htmlspecialchars((string) $s, ENT_QUOTES); }
 function esc_attr($s) { return htmlspecialchars((string) $s, ENT_QUOTES); }
 function esc_url($s)  { return (string) $s; }
 function esc_js($s)   { return (string) $s; }
-function home_url($p = '/') { return '#'; }
+/**
+ * Where the links go.
+ *
+ * These destinations ALREADY EXIST as real theme templates -- the theme ships
+ * template-find-home.php, template-home-value.php, template-agents.php,
+ * template-contact.php, template-testimonials.php, template-community.php and
+ * single-cb_*.php. In WordPress, a Page is created per route and assigned the
+ * template, and the links resolve. Nothing about that needed building.
+ *
+ * What does not work is the HARNESS: it is static, so home_url() had nowhere to
+ * point and every href collapsed to '#'. Clicking did nothing, which reads as
+ * broken even though the markup is correct. So each route gets a generated
+ * stand-in page that names the template that really serves it, and links back.
+ * They are previews of the ROUTING, not of the pages -- the real ones need WP.
+ */
+$ROUTES = [
+    '/find-a-home/'   => ['file' => 'find-a-home',  'title' => 'Find a Home',      'tpl' => 'templates/template-find-home.php',     'blurb' => 'Live MLS search across San Angelo and the Concho Valley, filtered and mapped.'],
+    '/home-value/'    => ['file' => 'home-value',   'title' => 'What&rsquo;s My Home Worth?', 'tpl' => 'templates/template-home-value.php', 'blurb' => 'Free, no-obligation valuation grounded in live San Angelo market data.'],
+    '/our-team/'      => ['file' => 'our-team',     'title' => 'Meet Our Team',    'tpl' => 'templates/template-agents.php',        'blurb' => 'The agents who know San Angelo inside and out. Backed by single-cb_agent.php.'],
+    '/office/'        => ['file' => 'office',       'title' => 'Visit Our Office', 'tpl' => 'templates/template-contact.php',       'blurb' => 'Knickerbocker Road. Directions, hours, and how to reach us.'],
+    '/communities/'   => ['file' => 'communities',  'title' => 'Explore Communities', 'tpl' => 'template-community.php',            'blurb' => 'Every neighbourhood in the valley. Each one deepens into single-cb_community.php.'],
+    '/testimonials/'  => ['file' => 'testimonials', 'title' => 'Client Stories',   'tpl' => 'templates/template-testimonials.php',  'blurb' => 'Verified reviews via Testimonial Tree.'],
+    '/blog/'          => ['file' => 'blog',         'title' => 'Local Insight &amp; Market News', 'tpl' => 'index.php',             'blurb' => 'Market reports, buying guides, and news from the Concho Valley.'],
+];
+
+function home_url($p = '/') {
+    $r = $GLOBALS['ROUTES'];
+    if (isset($r[$p])) { return 'sub/' . $GLOBALS['NS'] . '-' . $r[$p]['file'] . '.html'; }
+    // Community permalinks are /communities/{slug}/ -- all land on the index here.
+    if (strpos($p, '/communities/') === 0) { return 'sub/' . $GLOBALS['NS'] . '-communities.html'; }
+    return 'sub/' . $GLOBALS['NS'] . '-communities.html';
+}
 function cb_get_svg_icon($n) { return ''; }
 function wp_reset_postdata() {}
 
@@ -373,6 +404,71 @@ $tail = <<<'HTML'
 </html>
 HTML;
 
+/**
+ * The route stand-in. Deliberately plain and deliberately honest: it says which
+ * real template serves the route in WordPress rather than pretending to BE that
+ * page. Inventing content for /find-a-home/ here would only produce something
+ * that has to be thrown away, and would misrepresent what is built.
+ */
+$SUB = <<<'HTML'
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>{{ROUTE_TITLE}} — {{TITLE}}</title>
+<!-- GENERATED -- do not hand-edit. Rebuild: php harness/build-harness.php all -->
+<style>
+  :root {
+    --cb-blue: #012169; --cb-tide: #B8CFEA; --cb-bright-blue: #1F69FF;
+    --cb-gold: #C9A84C; --cb-cream: #F0EBE0; --cb-walnut: #2B1A10;
+    --font-heading: 'Familjen Grotesk', 'Segoe UI', system-ui, sans-serif;
+    --font-subheader: 'Josefin Sans', 'Segoe UI', system-ui, sans-serif;
+    --font-body: Roboto, 'Segoe UI', system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; min-height: 100%; }
+  body {
+    font-family: var(--font-body); background: {{FIELD}}; color: {{INK}};
+    display: flex; align-items: center; justify-content: center; padding: 2rem;
+  }
+  .r { max-width: 40rem; }
+  .r__eyebrow {
+    font-family: var(--font-subheader); font-size: .74rem; font-weight: 600;
+    letter-spacing: .18em; text-transform: uppercase; color: {{ACCENT}};
+  }
+  .r__h { font-family: var(--font-heading); font-weight: 600; font-size: clamp(1.9rem, 4vw, 3rem); line-height: 1.05; margin: .6rem 0 0; }
+  .r__blurb { font-size: 1.02rem; line-height: 1.6; opacity: .82; margin: 1rem 0 0; }
+  .r__note {
+    margin: 2rem 0 0; padding: 1rem 1.2rem; border-radius: 12px;
+    border: 1px solid rgba(255,255,255,.16); background: rgba(255,255,255,.05);
+    font-size: .84rem; line-height: 1.6; opacity: .8;
+  }
+  .r__note code { font-family: ui-monospace, Consolas, monospace; color: {{ACCENT}}; }
+  .r__back {
+    display: inline-block; margin-top: 1.8rem; font-family: var(--font-subheader);
+    font-size: .78rem; font-weight: 600; letter-spacing: .1em; text-transform: uppercase;
+    color: {{ACCENT}}; text-decoration: none; border-bottom: 1px solid currentColor; padding-bottom: .2rem;
+  }
+</style>
+</head>
+<body>
+<main class="r">
+  <span class="r__eyebrow">{{ROUTE_PATH}}</span>
+  <h1 class="r__h">{{ROUTE_TITLE}}</h1>
+  <p class="r__blurb">{{ROUTE_BLURB}}</p>
+  <p class="r__note">
+    <strong>Harness stand-in.</strong> This route is already built for real — WordPress
+    serves it from <code>{{ROUTE_TPL}}</code>. That template needs PHP, live MLS and
+    the database, so it cannot render from <code>file://</code>; this page exists so the
+    links in the walkthrough are followable while previewing.
+  </p>
+  <a class="r__back" href="{{BACK}}">&larr; Back to the walkthrough</a>
+</main>
+</body>
+</html>
+HTML;
+
 foreach ($which as $n) {
     $V = $VARIANTS[$n];
     $GLOBALS['NS'] = $V['ns'];
@@ -403,6 +499,21 @@ foreach ($which as $n) {
     $dest = __DIR__ . '/' . $V['out'];
     file_put_contents($dest, $page);
     printf("wrote %s (%d bytes, partial %d bytes)\n", $V['out'], strlen($page), strlen($partial));
+
+    // ---- route stand-ins ---------------------------------------------------
+    $subdir = __DIR__ . '/sub';
+    if (!is_dir($subdir)) { mkdir($subdir); }
+    foreach ($ROUTES as $route => $r) {
+        $sub = strtr($SUB, array_merge($subs, [
+            '{{ROUTE_TITLE}}' => $r['title'],
+            '{{ROUTE_PATH}}'  => $route,
+            '{{ROUTE_TPL}}'   => $r['tpl'],
+            '{{ROUTE_BLURB}}' => $r['blurb'],
+            '{{BACK}}'        => '../' . $V['out'],
+        ]));
+        file_put_contents($subdir . '/' . $V['ns'] . '-' . $r['file'] . '.html', $sub);
+    }
+    printf("  + %d route stand-ins in harness/sub/\n", count($ROUTES));
 }
 
 
