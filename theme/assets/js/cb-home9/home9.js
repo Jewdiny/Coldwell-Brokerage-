@@ -145,7 +145,7 @@
     { z: -32, side: -1, p: 0.85, theme: 'entry',   art: '05-door.jpg' },
     { z: -40, side: 1,  p: 0.85, theme: 'dining',  art: '06-communities.jpg' },
     { z: -48, side: -1, p: 0.55, theme: 'kitchen', art: '07-value.jpg' },
-    { z: -56, side: 1,  p: 0.70, theme: 'hearth',  art: '08-connect.jpg' }
+    { z: -56, side: 1,  p: 0.70, theme: 'hearth',  art: '08-connect.jpg', artY: 3.5, artW: 4.6, artH: 2.4 }
   ];
 
   // Only two states are authored: standing in a room (flat), and the arc between
@@ -619,7 +619,12 @@
   function hangArt(R, basePath) {
     if (!basePath || !R.art) { return; }
     var s = R.side, xw = s * (HALL_X + ROOM_D);
-    var w = 6.4, h = 4.2;
+    // Per-room, because the far wall is not always empty. Defaults suit a bare
+    // wall; a room with something large already on it says so. The alternative --
+    // assuming every wall is clear -- is what put a door through the middle of the
+    // entry room's picture and a fireplace through the bottom of the hearth's.
+    var w = R.artW || 6.4, h = R.artH || 4.2;
+    var ay = (R.artY === undefined) ? 1.1 : R.artY;
     // Depth order matters and is easy to get wrong: the camera stands at x = s*8
     // looking outward, so CLOSER means further from the far wall. The frame is a
     // solid box, not an outline -- the first pass centred it at xFar-0.16 with a
@@ -628,8 +633,8 @@
     // nothing errored, because nothing was wrong except the arithmetic.
     var xFrame = xw - s * 0.06;      // sits against the wall
     var xArt = xw - s * 0.14;        // clear of the frame's near face, toward you
-    box(MAT.brass, xFrame, 1.1, R.z, 0.10, h + 0.44, w + 0.44);      // frame
-    box(MAT.cream, xFrame - s * 0.02, 1.1, R.z, 0.08, h + 0.18, w + 0.18);  // mount
+    box(MAT.brass, xFrame, ay, R.z, 0.10, h + 0.44, w + 0.44);       // frame
+    box(MAT.cream, xFrame - s * 0.02, ay, R.z, 0.08, h + 0.18, w + 0.18);   // mount
     var img = new Image();
     _pendingTex++;
     img.onload = function () {
@@ -637,7 +642,7 @@
         var tex = new THREE.Texture(img); tex.needsUpdate = true;
         if (THREE.SRGBColorSpace) { tex.colorSpace = THREE.SRGBColorSpace; }
         var m = new THREE.Mesh(GEO.plane, new THREE.MeshLambertMaterial({ map: tex }));
-        m.position.set(xArt, 1.1, R.z);
+        m.position.set(xArt, ay, R.z);
         m.scale.set(w, h, 1);
         m.rotation.y = s > 0 ? -Math.PI / 2 : Math.PI / 2;
         if (houseGroup) { houseGroup.add(m); }
@@ -771,11 +776,24 @@
         for (i = 0; i < 4; i++) { box(MAT.trim, s * 21.1, -4.2 + i * 1.8, z - 4.6, 0.1, 0.1, 3.2); }
         lamp(s * 19.6, -2.7, z + 2, -3.57);   // desk top
         break;
-      case 'entry':                                                // the front door
+      case 'entry':
+        // The front door USED to stand here, dead centre of the far wall -- which
+        // is exactly where hangArt() hangs the scene plate. The door is 3.6 wide,
+        // the picture 6.4, and the door sits nearer the camera, so it covered the
+        // middle and left the photograph showing as two slivers down either side.
+        // It read as two black rectangles because it WAS one picture with a door
+        // in front of it.
+        //
+        // The door is gone rather than moved: this room already has a real
+        // entrance -- the hallway doorway with both leaves standing open, built by
+        // entrance() -- so "open the door to San Angelo living" is still literally
+        // what you just walked through to get here. A second door on the far wall
+        // was always redundant, and it was costing us the picture.
         shadowPad(s * 17, z + 4.4, 3, 4);
-        box(MAT.walnut, s * (HALL_X + ROOM_D - 0.3), -1, z, 0.3, 8, 3.6);
-        box(MAT.brass, s * (HALL_X + ROOM_D - 0.55), -1, z + 1.3, 0.14, 0.14, 0.5);
-        box(MAT.trim, s * (HALL_X + ROOM_D - 0.2), -1, z, 0.5, 8.7, 4.3);
+        shadowPad(s * 21, z, 2.6, 7);
+        box(MAT.walnut, s * 21, -4.05, z, 1.1, 1.9, 6);            // console under the art
+        box(MAT.brass, s * 20.4, -3.6, z - 1.4, 0.06, 0.5, 0.06);  // a pair of candlesticks
+        box(MAT.brass, s * 20.4, -3.5, z + 1.4, 0.06, 0.7, 0.06);
         box(MAT.walnut, s * 17, -4.4, z + 4.4, 1.2, 1.2, 2.2);     // bench
         shadowPad(s * 21, z - 4.6, 2, 3);
         box(MAT.walnut, s * 21, -4.1, z - 4.6, 1.1, 1.8, 2.4);     // top at y = -3.2
@@ -1914,6 +1932,7 @@
   window.CBHome9 = { init: init };
 
 })(window, document);
+
 
 
 
