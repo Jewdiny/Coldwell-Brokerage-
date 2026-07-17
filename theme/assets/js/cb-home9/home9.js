@@ -1359,18 +1359,45 @@
    * `error` marks it loaded too: a 404 should leave a gap, not a permanently
    * invisible element that still occupies its grid cell.
    */
-  function onImgIn() { this.classList.add('is-loaded'); }
+  function markLoaded(im) { im.classList.add('is-loaded'); }
+  function onImgIn() { markLoaded(this); }
+  /**
+   * Fade each image up as it decodes -- and NEVER leave one invisible.
+   *
+   * The image starts at opacity:0 and only becomes visible when .is-loaded is
+   * added. If that one signal is missed, the image stays at opacity:0 forever --
+   * which is exactly the blog-image bug in the Connect room. The miss is a classic
+   * CACHED-image race: on a warm cache (e.g. after reloading the page a few times)
+   * a body image, released by content-visibility, can finish loading in the gap
+   * between the `im.complete` check below reading false and addEventListener
+   * running, so its `load` fires before the listener exists. is-loaded is never
+   * set; the image never appears. Intermittent, cache-dependent, invisible in
+   * capture mode (which forces is-loaded) -- everything the report describes.
+   *
+   * Four independent ways an image ends up marked, so no single miss can strand it:
+   *   1. already complete when we look;
+   *   2. the load/error listener;
+   *   3. a re-check AFTER attaching, which closes the cache race;
+   *   4. decode() + a 4s safety net, so even a dropped event cannot leave it dark.
+   * The guard is is-loaded itself, not a one-shot flag, so re-scanning is cheap
+   * and idempotent (see setState -> 'reading').
+   */
   function watchImages(root) {
     var imgs = root.querySelectorAll('img'), i, im;
     for (i = 0; i < imgs.length; i++) {
       im = imgs[i];
-      if (im.__cb9w) { continue; }
-      im.__cb9w = true;
+      if (im.classList.contains('is-loaded')) { continue; }
       // Capture wants the resting state: a CSS transition does not advance under
       // --virtual-time-budget, so a fading image would photograph at opacity 0.
-      if (_capture || (im.complete && im.naturalWidth > 0)) { im.classList.add('is-loaded'); continue; }
+      if (_capture || (im.complete && im.naturalWidth > 0)) { markLoaded(im); continue; }
+      if (im.__cb9w) { continue; }
+      im.__cb9w = true;
       im.addEventListener('load', onImgIn);
-      im.addEventListener('error', onImgIn);
+      im.addEventListener('error', onImgIn);   // a 404 leaves a gap, not a dark cell
+      // The image can finish between the complete-check above and here; re-check.
+      if (im.complete && im.naturalWidth > 0) { markLoaded(im); continue; }
+      if (im.decode) { im.decode().then((function (x) { return function () { markLoaded(x); }; })(im), function () {}); }
+      (function (x) { setTimeout(function () { markLoaded(x); }, 4000); })(im);
     }
   }
 
@@ -1567,6 +1594,11 @@
       // still approaching would fire on a cold arrival and read as a glitch.
       if (next === 'exiting' && prev === 'reading') { crumbleCards(p); }
       if (next === 'reading' && prev === 'exiting') { p.cardsIn = false; formCards(p); }
+      // Re-scan images whenever a page becomes the one being read. watchImages is
+      // idempotent (guarded on is-loaded), so this is a cheap safety net that
+      // catches any image the first reveal's listeners missed -- the Connect
+      // room's blog thumbnails, whose fade could otherwise stick at opacity 0.
+      if (next === 'reading' && p.bodyOn) { watchImages(p.el); }
     }
   }
 

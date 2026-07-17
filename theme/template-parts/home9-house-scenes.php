@@ -488,7 +488,10 @@ $cb9_plate = function ($i) use ($cb9_plates) {
                                         <article class="cb9-card cb9-card--blog" data-cb9-card <?php echo $cb9_fl(); ?>>
                                             <div class="cb9-card__inner">
                                                 <?php if (has_post_thumbnail()) : ?>
-                                                    <div class="cb9-blog__image"><?php the_post_thumbnail('cb-blog-thumb'); ?></div>
+                                                    <?php /* loading=eager, not WordPress's default lazy: a position:fixed
+                                                             page always intersects the viewport, so a lazy blog thumbnail
+                                                             here can defer forever and never appear. */ ?>
+                                                    <div class="cb9-blog__image"><?php the_post_thumbnail('cb-blog-thumb', ['loading' => 'eager', 'decoding' => 'async']); ?></div>
                                                 <?php else : ?>
                                                     <div class="cb9-blog__image cb9-blog__image--ph" aria-hidden="true"></div>
                                                 <?php endif; ?>
