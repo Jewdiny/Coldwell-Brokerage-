@@ -197,11 +197,16 @@
   var M_NAVY = 0x012169;     // BRAND.md CB Blue     -- the signature
   var M_SLATE = 0x1b3c55;    // BRAND.md Slate       -- "mid-tone navy"
   var M_MIDNIGHT = 0x0a1730; // BRAND.md Midnight    -- "navy depth"
-  // The accent wall wants CB Blue, but #012169 at L=21% under this deliberately
-  // low fill renders as flat black -- the brand colour disappears into the dark.
-  // This is the same navy lifted toward Slate: bright enough to READ as navy blue
-  // rather than a black wall, while staying unmistakably the brand's blue.
-  var M_WALLNAVY = 0x2f5088;
+  // The wall navy. The TARGET -- the colour the walls should read as on screen --
+  // is #063970. This material value is deliberately much brighter and cooler than
+  // that, because the plaster map and the cool room light multiply the colour DOWN
+  // and toward blue before it reaches the eye: painting the literal #063970 sampled
+  // near-black (~#000924). This value was tuned against capture pixel-samples until
+  // a representative lit wall reads ~rgb(0,56,112) -- i.e. #063970 on the two
+  // channels that define it (red is fully absorbed by the cool light either way, so
+  // the on-screen R sits at 0 vs the swatch's 6, which is imperceptible). Retune
+  // this if the room lighting changes.
+  var M_WALLNAVY = 0x2d8cd9;
   var M_TRIM = 0xffffff;     // BRAND.md White       -- "whitespace-first foundation"
   var M_BRASS = 0xc9a84c;    // CONTRACT.md gold: CB Blue's complement
   var M_CREAM = 0xf0ebe0;    // CONTRACT.md cream
