@@ -252,6 +252,8 @@
   var oX = 0, oY = 0, oZ = CAMZ, oTX = 0, oTY = 0, oTZ = CAMZ, oP = 1;
   var corridorAssembly = 0;
   var _artBase = '';   // where the framed scene plates are loaded from
+  var _texBase = '';   // where the generated material samples live
+  var _texLoader = null;
   var _fpsAcc = 0, _fpsN = 0, _degraded = false;
   var _v = null, _dir = null, _out = null, _pv = null, _mwi = null, _fwd = null;
   var _monoUrl = '', _monoStackUrl = '';
@@ -496,30 +498,74 @@
     return new THREE.MeshStandardMaterial(o);
   }
 
+  /**
+   * A photographic material sample (Higgsfield-generated, in assets/images/
+   * textures/), loaded async and repeated across the surface.
+   *
+   * Returns null when there is no texture base -- the flat fallback, no-JS, or a
+   * missing file -- and every caller falls back to the procedural canvas texture
+   * or a flat colour. So the generated look is a pure enhancement: nothing depends
+   * on it. Hooks _pendingTex so capture waits for the maps to decode, the same as
+   * the framed art. Tinting is left to the material's `color`: the plaster sample
+   * is deliberately near-neutral so a `color` of Icy Blue / Mist / CB Blue paints
+   * the same wall three brand shades without three textures.
+   */
+  function photoTex(file, rx, ry) {
+    if (!_texBase) { return null; }
+    if (!_texLoader) { _texLoader = new THREE.TextureLoader(); }
+    _pendingTex++;
+    var done = function () { _pendingTex--; };
+    var t = _texLoader.load(_texBase + file, done, undefined, done);
+    if (THREE.SRGBColorSpace) { t.colorSpace = THREE.SRGBColorSpace; }
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    t.repeat.set(rx, ry);
+    // Anisotropy matters most on the hall floor, seen at a grazing angle down its
+    // whole length -- without it the boards smear to mush in the distance.
+    try { if (renderer) { t.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy()); } } catch (e) {}
+    return t;
+  }
+
   function buildMaterials() {
-    var wood = texWood(), plaster = texPlaster();
-    MAT.floor = surf({ map: wood, roughness: 0.42 });      // polished boards catch the lamps
-    MAT.floor.map.repeat.set(6, 10);
-    var hw = wood.clone(); hw.wrapS = hw.wrapT = THREE.RepeatWrapping; hw.repeat.set(3, 30); hw.needsUpdate = true;
-    MAT.hallFloor = surf({ map: hw, roughness: 0.42 });
-    MAT.wall = surf({ map: plaster, color: 0xffffff, roughness: 0.95 });   // plaster is dead matte
-    MAT.wall.map.repeat.set(4, 2);
+    // Photographic samples where they exist, procedural fall-backs where they do
+    // not. The generated oak, plaster and velvet replace the three surfaces the
+    // eye actually lands on -- floor, walls, upholstery -- which is where "boxes
+    // with flat colours" most gave itself away.
+    var oakRoom = photoTex('oak.jpg', 3, 4.5);
+    var oakHall = photoTex('oak.jpg', 2, 22);
+    var plasterW = photoTex('plaster.jpg', 3, 2);
+    var plasterA = photoTex('plaster.jpg', 3, 2);
+    var velvetT = photoTex('velvet.jpg', 2.4, 2.4);
+
+    if (oakRoom) { MAT.floor = surf({ map: oakRoom, roughness: 0.4 }); }
+    else { var wood = texWood(); wood.repeat.set(6, 10); MAT.floor = surf({ map: wood, roughness: 0.42 }); }
+
+    if (oakHall) { MAT.hallFloor = surf({ map: oakHall, roughness: 0.4 }); }
+    else { var hw = texWood(); hw.repeat.set(3, 30); MAT.hallFloor = surf({ map: hw, roughness: 0.42 }); }
+
+    // The plaster sample is neutral, so `color` does the branding: Icy Blue walls,
+    // Mist wainscot, CB Blue on the accent wall and the navy hallway dado -- one
+    // photographic texture, four brand shades, no seams between them.
+    MAT.wall = surf({ map: plasterW, color: M_ICY, roughness: 0.94 });
     MAT.ceil = surf({ color: M_TRIM, roughness: 0.95 });
     MAT.trim = surf({ color: M_TRIM, roughness: 0.55 });   // painted joinery has a slight sheen
-    MAT.wains = surf({ color: M_MIST, roughness: 0.7 });
+    MAT.wains = surf({ map: plasterW, color: M_MIST, roughness: 0.7 });
     // CB Blue below the chair rail, the length of the hallway. This is the brand
     // pushed past "tasteful accent": you are walking down a navy corridor, and it
     // is the first thing you see. It costs some of the domestic feel -- a house
     // does not usually commit a whole hallway to one colour -- which is the trade
     // that was chosen deliberately.
-    MAT.wainsNavy = surf({ color: M_NAVY, roughness: 0.78 });
+    MAT.wainsNavy = surf({ map: plasterA, color: M_NAVY, roughness: 0.78 });
     // The one wall you stand and face, in the signature colour. BRAND.md's rule is
     // "CB Blue + lots of white" -- so CB Blue is the accent the white is there to
     // set off, not the wallpaper. Every room has exactly one.
-    MAT.accent = surf({ color: M_NAVY, roughness: 0.92 });
+    MAT.accent = surf({ map: plasterA, color: M_NAVY, roughness: 0.9 });
+    if (!plasterW) { MAT.wall.map = MAT.wains.map = texPlaster(); }   // procedural fallback keeps the tooth
     MAT.walnut = surf({ color: M_WALNUT, roughness: 0.38 });
     MAT.oak = surf({ color: M_OAK, roughness: 0.5 });
-    MAT.navy = surf({ color: M_NAVY, roughness: 0.85 });   // upholstery
+    // Navy velvet upholstery. The sample is already the brand navy, so `color`
+    // stays white to keep its own colour; the low roughness lets the sheen read.
+    if (velvetT) { MAT.navy = surf({ map: velvetT, color: 0xffffff, roughness: 0.62 }); }
+    else { MAT.navy = surf({ color: M_NAVY, roughness: 0.85 }); }
     MAT.slate = surf({ color: M_SLATE, roughness: 0.28, metalness: 0.08 });  // stone
     MAT.linen = surf({ color: M_LINEN, roughness: 0.85 });
     MAT.cream = surf({ color: M_CREAM, roughness: 0.8 });
@@ -1877,6 +1923,11 @@
     // Directory holding Home 2's scene plates, which hang as framed art. Same
     // `basePath` contract Home 2's own loader uses.
     _artBase = opts.basePath || '';
+    // Material samples sit alongside the plates: .../assets/images/textures/. Take
+    // an explicit texBase if given, else derive it from the plate base so a single
+    // basePath keeps working. Empty -> photoTex() returns null -> procedural
+    // fallback, so a missing folder degrades rather than breaks.
+    _texBase = opts.texBase || (_artBase ? _artBase.replace(/webgl\/?$/, 'textures/') : '');
 
     var sel = opts.canvas || '#cb9-canvas';
     canvas = (typeof sel === 'string') ? document.querySelector(sel) : sel;
