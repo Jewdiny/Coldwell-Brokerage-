@@ -198,15 +198,13 @@
   var M_SLATE = 0x1b3c55;    // BRAND.md Slate       -- "mid-tone navy"
   var M_MIDNIGHT = 0x0a1730; // BRAND.md Midnight    -- "navy depth"
   // The wall navy. The TARGET -- the colour the walls should read as on screen --
-  // is #063970. This material value is deliberately much brighter and cooler than
-  // that, because the plaster map and the cool room light multiply the colour DOWN
-  // and toward blue before it reaches the eye: painting the literal #063970 sampled
-  // near-black (~#000924). This value was tuned against capture pixel-samples until
-  // a representative lit wall reads ~rgb(0,56,112) -- i.e. #063970 on the two
-  // channels that define it (red is fully absorbed by the cool light either way, so
-  // the on-screen R sits at 0 vs the swatch's 6, which is imperceptible). Retune
-  // this if the room lighting changes.
-  var M_WALLNAVY = 0x2d8cd9;
+  // is #063970. This material value is deliberately brighter, because the plaster
+  // map and the room light multiply the colour DOWN before it reaches the eye:
+  // painting the literal #063970 sampled near-black. Tuned against capture pixel-
+  // samples under the current (linear) tone mapping until a representative lit wall
+  // reads ~rgb(8,57,112) -- i.e. #063970. Retune if the tone mapping, the plaster
+  // map, or the room lighting changes.
+  var M_WALLNAVY = 0x0e7dea;
   var M_TRIM = 0xffffff;     // BRAND.md White       -- "whitespace-first foundation"
   var M_BRASS = 0xc9a84c;    // CONTRACT.md gold: CB Blue's complement
   var M_CREAM = 0xf0ebe0;    // CONTRACT.md cream
@@ -2151,12 +2149,15 @@
       _v = new THREE.Vector3(); _dir = new THREE.Vector3(); _out = new THREE.Vector3();
       _pv = new THREE.Vector3(); _fwd = new THREE.Vector3(); _mwi = new THREE.Matrix4();
       renderer.setClearColor(0x000000, 0);
-      // Filmic tone mapping. A physically-lit interior blows out around the lamps
-      // and crushes in the corners under Three's default linear-to-sRGB; ACES rolls
-      // the highlights off the way a camera does, which is most of the difference
-      // between "3D render" and "photograph of a room".
-      if (THREE.ACESFilmicToneMapping) { renderer.toneMapping = THREE.ACESFilmicToneMapping; }
-      renderer.toneMappingExposure = 1.15;
+      // Neutral (linear) tone mapping, NOT ACES. ACES rolls the highlights off like
+      // a camera, but it also crushes the shadows -- and that toe is what turned the
+      // walls and floor black everywhere the light did not directly land, no matter
+      // how the colour or the fill was tuned. This is a walkthrough whose entire job
+      // is to show the colours of the house, so keeping the shadows OPEN and the
+      // colours true beats a filmic highlight roll-off. Exposure is the master
+      // brightness knob now that no curve is compressing the range.
+      if (THREE.LinearToneMapping) { renderer.toneMapping = THREE.LinearToneMapping; }
+      renderer.toneMappingExposure = 1.0;
       vw = document.documentElement.clientWidth || 1;
       vh = document.documentElement.clientHeight || 1;
       // 1.25 -> 2. Home 8's cap is fine for glowing wireframe, where softness reads
