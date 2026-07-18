@@ -560,11 +560,15 @@
     // set off, not the wallpaper. Every room has exactly one.
     MAT.accent = surf({ map: plasterA, color: M_NAVY, roughness: 0.9 });
     if (!plasterW) { MAT.wall.map = MAT.wains.map = texPlaster(); }   // procedural fallback keeps the tooth
-    MAT.walnut = surf({ color: M_WALNUT, roughness: 0.38 });
+    var walnutT = photoTex('walnut.jpg', 1.6, 1.6);
+    MAT.walnut = walnutT ? surf({ map: walnutT, roughness: 0.4 }) : surf({ color: M_WALNUT, roughness: 0.38 });
     MAT.oak = surf({ color: M_OAK, roughness: 0.5 });
-    // Navy velvet upholstery. The sample is already the brand navy, so `color`
-    // stays white to keep its own colour; the low roughness lets the sheen read.
-    if (velvetT) { MAT.navy = surf({ map: velvetT, color: 0xffffff, roughness: 0.62 }); }
+    // Navy velvet upholstery, tinted DOWN to CB Blue. The raw sample is a brightish
+    // royal navy; multiplying by a mid periwinkle darkens it toward the signature
+    // #012169 so the upholstery, the accent walls and the rug all read as the one
+    // brand blue rather than three different navies. (Multiply can only darken, so
+    // the tint pulls a bright navy toward the dark CB Blue, not the reverse.)
+    if (velvetT) { MAT.navy = surf({ map: velvetT, color: 0x3a5aa6, roughness: 0.6 }); }
     else { MAT.navy = surf({ color: M_NAVY, roughness: 0.85 }); }
     MAT.slate = surf({ color: M_SLATE, roughness: 0.28, metalness: 0.08 });  // stone
     MAT.linen = surf({ color: M_LINEN, roughness: 0.85 });
@@ -641,6 +645,29 @@
     houseGroup.add(shade);
 
     _lampPts.push(new THREE.Vector3(out(0.42), 1.86, z));
+  }
+
+  /**
+   * A recessed ceiling downlight, flush with the ceiling: a white trim ring set
+   * into the plaster with a glowing lens, and the light itself hanging just below
+   * so it washes DOWN the hall rather than out from a wall.
+   */
+  function ceilingLight(cx, cz) {
+    var yc = HALL_Y;
+    // Trim ring flush with the ceiling. A short cylinder, its underside just proud
+    // of the plaster so it reads as set INTO it, not stuck under it.
+    cyl(MAT.trim, cx, yc - 0.03, cz, 0.4, 0.06);
+    // The lit lens, recessed a touch above the ring.
+    cyl(MAT.shade, cx, yc - 0.09, cz, 0.3, 0.05);
+    // A soft downward pool on the ceiling around it, so the fitting reads as ON.
+    var pool = new THREE.Mesh(GEO.plane, MAT.glow);
+    pool.position.set(cx, yc - 0.11, cz);
+    pool.scale.set(2.2, 2.2, 1);
+    pool.rotation.x = Math.PI / 2;   // faces down
+    pool.renderOrder = 1;
+    houseGroup.add(pool);
+    // Light hangs below the ceiling so it actually lights the hall from above.
+    _lampPts.push(new THREE.Vector3(cx, yc - 0.6, cz));
   }
 
   /**
@@ -1012,11 +1039,11 @@
       }
     }
 
-    // Sconces down the hallway -- the reason it is lit at all.
-    for (z = HALL_Z0 - 4; z > HALL_Z1 + 2; z -= 8) {
-      for (sIdx = 0; sIdx < 2; sIdx++) {
-        sconce(sides[sIdx], z);
-      }
+    // Recessed downlights flush in the ceiling, down the centre of the hall --
+    // replacing the wall sconces. A hallway is lit from above; wall fittings this
+    // regularly spaced read more like a hotel corridor than a home.
+    for (z = HALL_Z0 - 3; z > HALL_Z1 + 3; z -= 6) {
+      ceilingLight(0, z);
     }
   }
 
