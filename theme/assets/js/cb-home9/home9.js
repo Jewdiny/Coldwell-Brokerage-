@@ -194,6 +194,11 @@
   var M_NAVY = 0x012169;     // BRAND.md CB Blue     -- the signature
   var M_SLATE = 0x1b3c55;    // BRAND.md Slate       -- "mid-tone navy"
   var M_MIDNIGHT = 0x0a1730; // BRAND.md Midnight    -- "navy depth"
+  // The accent wall wants CB Blue, but #012169 at L=21% under this deliberately
+  // low fill renders as flat black -- the brand colour disappears into the dark.
+  // This is the same navy lifted toward Slate: bright enough to READ as navy blue
+  // rather than a black wall, while staying unmistakably the brand's blue.
+  var M_WALLNAVY = 0x2f5088;
   var M_TRIM = 0xffffff;     // BRAND.md White       -- "whitespace-first foundation"
   var M_BRASS = 0xc9a84c;    // CONTRACT.md gold: CB Blue's complement
   var M_CREAM = 0xf0ebe0;    // CONTRACT.md cream
@@ -454,6 +459,24 @@
     return new THREE.CanvasTexture(c);
   }
 
+  /** What is on the far side of a window: a bright bar of daylit sky, cool at the
+   *  top and paling toward the horizon. Used unlit and fog-exempt so the pane
+   *  glows like an actual opening onto the outdoors rather than a painted panel. */
+  function texSky() {
+    var c = document.createElement('canvas'); c.width = 64; c.height = 128;
+    var g = c.getContext('2d');
+    var grd = g.createLinearGradient(0, 0, 0, 128);
+    grd.addColorStop(0.00, '#6ea8e6');   // clear sky overhead
+    grd.addColorStop(0.55, '#bfe0f7');
+    grd.addColorStop(1.00, '#f3f8fc');   // haze at the horizon
+    g.fillStyle = grd; g.fillRect(0, 0, 64, 128);
+    // A couple of soft clouds so it is not a flat wash.
+    g.fillStyle = 'rgba(255,255,255,0.55)';
+    g.beginPath(); g.ellipse(20, 44, 16, 6, 0, 0, Math.PI * 2); g.fill();
+    g.beginPath(); g.ellipse(44, 70, 20, 7, 0, 0, Math.PI * 2); g.fill();
+    return sRGB(new THREE.CanvasTexture(c));
+  }
+
   /** A soft contact shadow to sit under furniture. Nothing grounds an object like
    *  a shadow, and with no shadow maps this is what stops the sofa looking as if it
    *  is hovering half an inch above the floor. */
@@ -557,8 +580,10 @@
     MAT.wainsNavy = surf({ map: plasterA, color: M_NAVY, roughness: 0.78 });
     // The one wall you stand and face, in the signature colour. BRAND.md's rule is
     // "CB Blue + lots of white" -- so CB Blue is the accent the white is there to
-    // set off, not the wallpaper. Every room has exactly one.
-    MAT.accent = surf({ map: plasterA, color: M_NAVY, roughness: 0.9 });
+    // set off, not the wallpaper. Every room has exactly one. Painted M_WALLNAVY,
+    // not raw CB Blue: at this fill level the true #012169 reads as black, so the
+    // wall is lifted just far enough to be seen as the navy it is meant to be.
+    MAT.accent = surf({ map: plasterA, color: M_WALLNAVY, roughness: 0.9 });
     if (!plasterW) { MAT.wall.map = MAT.wains.map = texPlaster(); }   // procedural fallback keeps the tooth
     var walnutT = photoTex('walnut.jpg', 1.6, 1.6);
     MAT.walnut = walnutT ? surf({ map: walnutT, roughness: 0.4 }) : surf({ color: M_WALNUT, roughness: 0.38 });
@@ -599,6 +624,10 @@
       depthWrite: false, opacity: 0.5
     });
     MAT.glass = surf({ color: M_GLASS, roughness: 0.1, transparent: true, opacity: 0.35 });
+    // Daylight seen THROUGH a window. Unlit (it is the source, not a lit surface)
+    // and fog:false so distance across the room cannot mute it toward Midnight --
+    // a window that dims with depth stops reading as an opening onto outside.
+    MAT.sky = new THREE.MeshBasicMaterial({ map: texSky(), fog: false });
     MAT.shadow = new THREE.MeshBasicMaterial({
       map: texShadow(), transparent: true, opacity: 0.9, depthWrite: false
     });
@@ -829,6 +858,29 @@
   }
 
   /**
+   * A window where panelYZ would otherwise hang a blind panel.
+   *
+   * Same footprint as a panel so it drops straight into the far-wall layout, but
+   * instead of a field of wainscot it is a white frame standing proud of the wall,
+   * a cross of glazing bars, and behind them a pane of daylit sky. The pane alone
+   * only LOOKS like a window; the room is actually lit from the opening by a light
+   * placed just inside it (see the gallery case), which is what the brief means by
+   * "natural light coming from the windows".
+   */
+  function windowYZ(x, cy, cz, h, d, s) {
+    var xFrame = x - s * 0.08;   // frame stands proud of the wall, into the room
+    var xGlass = x - s * 0.03;   // glass set behind the frame, just ahead of the wall
+    var t = 0.16;
+    box(MAT.trim, xFrame, cy + h / 2, cz, 0.14, t, d + t);        // head
+    box(MAT.trim, xFrame, cy - h / 2, cz, 0.14, t + 0.12, d + t); // sill, a touch deeper
+    box(MAT.trim, xFrame, cy, cz - d / 2, 0.14, h, t);           // jamb
+    box(MAT.trim, xFrame, cy, cz + d / 2, 0.14, h, t);           // jamb
+    box(MAT.trim, xFrame, cy, cz, 0.11, h, 0.08);               // vertical glazing bar
+    box(MAT.trim, xFrame, cy, cz, 0.11, 0.08, d);              // horizontal glazing bar
+    plane(MAT.sky, xGlass, cy, cz, d, h, s > 0 ? '-x' : '+x');   // the daylight itself
+  }
+
+  /**
    * A real entrance, not a hole.
    *
    * The wall has thickness (WALL_T), so an opening in it is a short tunnel: it
@@ -944,8 +996,17 @@
     // plane of plaster is what made this read as a box with a floor -- the
     // mouldings are what say "room". Panels flank the art rather than sit behind
     // it: the picture is 6.4 wide and would swallow a centre panel whole.
-    panelYZ(xFar, 0.7, z - 5.1, 4.4, 2.9, s);
-    panelYZ(xFar, 0.7, z + 5.1, 4.4, 2.9, s);
+    //
+    // The gallery takes windows in those two flanking slots instead of blind
+    // panels -- it is the room asked to feel daylit, so the far wall gives the
+    // light an actual opening to come through (see the gallery case for the light).
+    if (R.theme === 'gallery') {
+      windowYZ(xFar, 0.7, z - 5.1, 4.4, 2.9, s);
+      windowYZ(xFar, 0.7, z + 5.1, 4.4, 2.9, s);
+    } else {
+      panelYZ(xFar, 0.7, z - 5.1, 4.4, 2.9, s);
+      panelYZ(xFar, 0.7, z + 5.1, 4.4, 2.9, s);
+    }
     box(MAT.trim, xFar - s * 0.05, 3.5, z, 0.1, 0.16, 2 * ROOM_H);   // picture rail
 
     // NOTE: the doorway wall is NOT built here. buildHall() already walls this
@@ -956,7 +1017,7 @@
 
     plane(MAT.rug, xMid + s * 1.5, -HALL_Y + 0.02, z, 9, 7, 'up');
 
-    var i, fz;
+    var i, fz, wl;
     switch (R.theme) {
       case 'living':
         shadowPad(s * 19, z, 5.6, 8.4); shadowPad(s * 15.5, z, 4, 5.4);
@@ -969,9 +1030,22 @@
         break;
       case 'gallery':                                              // console + vases
         shadowPad(s * 21, z, 3.2, 8.6);
-        box(MAT.walnut, s * 21, -3.6, z, 1.1, 2.2, 7);
+        box(MAT.walnut, s * 21, -3.6, z, 1.1, 2.2, 7);   // console top at y = -2.5
         for (i = -1; i <= 1; i++) { cyl(MAT.glass, s * 21, -2.1, z + i * 2.2, 0.26, 0.8); }
-        lamp(s * 21, -1.4, z + 4.6, -2.5);   // console top
+        // The console runs z-3.5..z+3.5; the lamp was at z+4.6, a full unit off the
+        // end and floating. Brought back onto the top, near the far end, clear of
+        // the vase at z+2.2.
+        lamp(s * 21, -1.4, z + 3.0, -2.5);   // console top, near the far end
+        // Daylight actually coming IN from the two far-wall windows: a cool point
+        // just inside each opening, so the console, floor and navy wall are lit from
+        // the window rather than the wall merely carrying a bright rectangle. Short
+        // range + decay 2 keeps the spill from bleeding through the (shadowless)
+        // walls into the neighbouring rooms.
+        for (i = -1; i <= 1; i += 2) {
+          wl = new THREE.PointLight(0xd2e4ff, 2.6, 17, 2);
+          wl.position.set(xFar - s * 2.2, 0.4, z + i * 5.1);
+          scene.add(wl);
+        }
         break;
       case 'study':
         shadowPad(s * 19, z, 4.4, 6.6); shadowPad(s * 21.4, z - 4.6, 2.6, 5);
