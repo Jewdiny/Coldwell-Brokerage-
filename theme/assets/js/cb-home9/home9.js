@@ -91,8 +91,11 @@
   function now() { return (window.performance && performance.now) ? performance.now() : Date.now(); }
 
   // ---- config -------------------------------------------------------------
-  var AMB = 700;             // dust in the lamplight (Home 8 needs 1600 -- it has
-                             // a whole nebula to fill; a house has rooms)
+  var AMB = 150;             // a FEW dust motes in the light (Home 8 needs 1600 --
+                             // it has a whole nebula to fill; a house has rooms).
+                             // Was 700, which over navy walls read as a starfield --
+                             // additive points on a dark field are stars, not dust,
+                             // and a daylit house cannot have a night sky on its walls.
   // Home 8's STRUCT pool -- 1500 particles that condense out of dust onto the
   // wireframe -- does not exist here. A house does not assemble itself in front of
   // you; it is already there and you are the one arriving. The pool is gone rather
@@ -354,8 +357,9 @@
       pos[i * 3 + 2] = rand(HALL_Z1 + 2, HALL_Z0 - 1);
       c = PAL[(Math.random() < 0.22) ? (2 + (Math.random() * 4 | 0)) : (Math.random() < 0.5 ? 0 : 1)];
       color[i * 3] = c[0]; color[i * 3 + 1] = c[1]; color[i * 3 + 2] = c[2];
-      // Smaller and fainter than Home 8's: dust caught in lamplight, not stars.
-      size[i] = rand(0.5, 1.5); alpha[i] = rand(0.18, 0.5); phase[i] = Math.random() * TAU;
+      // Small and faint: dust caught in a shaft of light, not stars. Dropped well
+      // below the old 0.18-0.5 so an additive mote adds only a whisper over navy.
+      size[i] = rand(0.4, 1.0); alpha[i] = rand(0.05, 0.13); phase[i] = Math.random() * TAU;
     }
   }
   function initBurstBuffers() {
@@ -463,17 +467,28 @@
    *  top and paling toward the horizon. Used unlit and fog-exempt so the pane
    *  glows like an actual opening onto the outdoors rather than a painted panel. */
   function texSky() {
-    var c = document.createElement('canvas'); c.width = 64; c.height = 128;
-    var g = c.getContext('2d');
-    var grd = g.createLinearGradient(0, 0, 0, 128);
-    grd.addColorStop(0.00, '#6ea8e6');   // clear sky overhead
-    grd.addColorStop(0.55, '#bfe0f7');
-    grd.addColorStop(1.00, '#f3f8fc');   // haze at the horizon
-    g.fillStyle = grd; g.fillRect(0, 0, 64, 128);
-    // A couple of soft clouds so it is not a flat wash.
-    g.fillStyle = 'rgba(255,255,255,0.55)';
-    g.beginPath(); g.ellipse(20, 44, 16, 6, 0, 0, Math.PI * 2); g.fill();
-    g.beginPath(); g.ellipse(44, 70, 20, 7, 0, 0, Math.PI * 2); g.fill();
+    var c = document.createElement('canvas'); c.width = 96; c.height = 160;
+    var g = c.getContext('2d'), TAU = Math.PI * 2;
+    var grd = g.createLinearGradient(0, 0, 0, 160);
+    grd.addColorStop(0.00, '#5f9fe0');   // deeper blue overhead
+    grd.addColorStop(0.50, '#a9d2f2');
+    grd.addColorStop(1.00, '#d6e8f6');   // pale at the horizon, but NOT washed white
+    g.fillStyle = grd; g.fillRect(0, 0, 96, 160);
+    // Clouds as clusters of feathered radial puffs rather than hard ellipses, so
+    // their edges melt into the sky instead of reading as pasted-on stamps.
+    function puff(cx, cy, spread, a) {
+      for (var i = 0; i < 6; i++) {
+        var px = cx + (Math.random() - 0.5) * spread * 1.6;
+        var py = cy + (Math.random() - 0.5) * spread * 0.7;
+        var r = spread * (0.45 + Math.random() * 0.6);
+        var rg = g.createRadialGradient(px, py, 0, px, py, r);
+        rg.addColorStop(0, 'rgba(255,255,255,' + a + ')');
+        rg.addColorStop(1, 'rgba(255,255,255,0)');
+        g.fillStyle = rg;
+        g.beginPath(); g.arc(px, py, r, 0, TAU); g.fill();
+      }
+    }
+    puff(30, 50, 15, 0.5); puff(66, 92, 18, 0.42); puff(20, 116, 12, 0.32);
     return sRGB(new THREE.CanvasTexture(c));
   }
 
@@ -565,19 +580,21 @@
     if (oakHall) { MAT.hallFloor = surf({ map: oakHall, roughness: 0.4 }); }
     else { var hw = texWood(); hw.repeat.set(3, 30); MAT.hallFloor = surf({ map: hw, roughness: 0.42 }); }
 
-    // The plaster sample is neutral, so `color` does the branding: Icy Blue walls,
-    // Mist wainscot, CB Blue on the accent wall and the navy hallway dado -- one
-    // photographic texture, four brand shades, no seams between them.
-    MAT.wall = surf({ map: plasterW, color: M_ICY, roughness: 0.94 });
+    // The plaster sample is neutral, so `color` does the branding. The walls are
+    // now navy throughout -- every plane the same M_WALLNAVY as the accent wall, so
+    // there is no longer a "light" wall and a "navy" wall, just one navy field
+    // wrapping the room and the hall, set off by white trim. (Was Icy Blue; the
+    // brief now wants every wall navy.) One photographic texture, still no seams.
+    MAT.wall = surf({ map: plasterW, color: M_WALLNAVY, roughness: 0.94 });
     MAT.ceil = surf({ color: M_TRIM, roughness: 0.95 });
     MAT.trim = surf({ color: M_TRIM, roughness: 0.55 });   // painted joinery has a slight sheen
     MAT.wains = surf({ map: plasterW, color: M_MIST, roughness: 0.7 });
-    // CB Blue below the chair rail, the length of the hallway. This is the brand
-    // pushed past "tasteful accent": you are walking down a navy corridor, and it
-    // is the first thing you see. It costs some of the domestic feel -- a house
-    // does not usually commit a whole hallway to one colour -- which is the trade
-    // that was chosen deliberately.
-    MAT.wainsNavy = surf({ map: plasterA, color: M_NAVY, roughness: 0.78 });
+    // Navy below the chair rail -- the wainscot/dado, in both the rooms and the
+    // hallway. It is painted the SAME M_WALLNAVY as the walls above it: with every
+    // wall now navy, a wainscot in raw CB Blue read as a near-black band under the
+    // lighter field, exactly the "reads as black" problem the lift was meant to
+    // cure. Matched, the whole wall is one navy, articulated only by white trim.
+    MAT.wainsNavy = surf({ map: plasterA, color: M_WALLNAVY, roughness: 0.78 });
     // The one wall you stand and face, in the signature colour. BRAND.md's rule is
     // "CB Blue + lots of white" -- so CB Blue is the accent the white is there to
     // set off, not the wallpaper. Every room has exactly one. Painted M_WALLNAVY,
@@ -588,6 +605,12 @@
     var walnutT = photoTex('walnut.jpg', 1.6, 1.6);
     MAT.walnut = walnutT ? surf({ map: walnutT, roughness: 0.4 }) : surf({ color: M_WALNUT, roughness: 0.38 });
     MAT.oak = surf({ color: M_OAK, roughness: 0.5 });
+    // Oak with the floor's actual grain, for furniture asked to match the wood
+    // floor rather than read as dark walnut. Same sample as the floor at a tighter,
+    // furniture-scale repeat; falls back to the flat oak colour if the photo is
+    // absent, so it still "matches the oak" either way.
+    var oakFurn = photoTex('oak.jpg', 1.6, 2.6);
+    MAT.oakWood = oakFurn ? surf({ map: oakFurn, roughness: 0.44 }) : surf({ color: M_OAK, roughness: 0.44 });
     // Navy velvet upholstery, tinted DOWN to CB Blue. The raw sample is a brightish
     // royal navy; multiplying by a mid periwinkle darkens it toward the signature
     // #012169 so the upholstery, the accent walls and the rug all read as the one
@@ -793,7 +816,7 @@
       box(MAT.trim, fixed + off * 1.6, -HALL_Y + 2.86, mid, 0.2, 0.12, len);
       box(MAT.trim, fixed + off * 1.6, HALL_Y - 0.16, mid, 0.2, 0.32, len);
     } else {              // wall lies in the X-Y plane at z = fixed
-      box(MAT.wains, mid, -HALL_Y + 1.4, fixed + off, len, 2.8, 0.12);
+      box(mat, mid, -HALL_Y + 1.4, fixed + off, len, 2.8, 0.12);
       box(MAT.trim, mid, -HALL_Y + 0.18, fixed + off * 1.6, len, 0.36, 0.2);
       box(MAT.trim, mid, -HALL_Y + 2.86, fixed + off * 1.6, len, 0.12, 0.2);
       box(MAT.trim, mid, HALL_Y - 0.16, fixed + off * 1.6, len, 0.32, 0.2);
@@ -984,30 +1007,42 @@
 
     plane(MAT.floor, xMid, -HALL_Y, z, ROOM_D, 2 * ROOM_H, 'up');
     plane(MAT.ceil, xMid, HALL_Y, z, ROOM_D, 2 * ROOM_H, 'down');
+    // All three room walls navy now (MAT.accent and the lifted MAT.wall are the
+    // same navy) -- there is no longer a single accent wall; the whole room is navy.
     plane(MAT.accent, xFar, 0, z, 2 * ROOM_H, 2 * HALL_Y, s > 0 ? '-x' : '+x');
-    plane(MAT.accent, xMid, 0, z0, ROOM_D, 2 * HALL_Y, '+z');   // second accent wall
+    plane(MAT.accent, xMid, 0, z0, ROOM_D, 2 * HALL_Y, '+z');
     plane(MAT.wall, xMid, 0, z1, ROOM_D, 2 * HALL_Y, '-z');
 
-    trimRun('x', xFar, z0, z1, s > 0 ? -1 : 1);
-    trimRun('z', z0, xIn, xFar, 1);
-    trimRun('z', z1, xIn, xFar, -1);
+    // Navy wainscot to match the navy walls above it, so the whole wall reads as
+    // one colour broken only by the white chair rail, baseboard and crown.
+    trimRun('x', xFar, z0, z1, s > 0 ? -1 : 1, MAT.wainsNavy);
+    trimRun('z', z0, xIn, xFar, 1, MAT.wainsNavy);
+    trimRun('z', z1, xIn, xFar, -1, MAT.wainsNavy);
 
-    // Panelling and a picture rail on the wall you stand and face. A single flat
-    // plane of plaster is what made this read as a box with a floor -- the
-    // mouldings are what say "room". Panels flank the art rather than sit behind
-    // it: the picture is 6.4 wide and would swallow a centre panel whole.
+    // A picture rail and, flanking the art, two windows on the wall you stand and
+    // face. A single flat plane of plaster is what made this read as a box with a
+    // floor -- the mouldings are what say "room". Windows flank the art rather than
+    // sit behind it: the picture is up to 6.4 wide and would swallow a centre
+    // opening whole.
     //
-    // The gallery takes windows in those two flanking slots instead of blind
-    // panels -- it is the room asked to feel daylit, so the far wall gives the
-    // light an actual opening to come through (see the gallery case for the light).
-    if (R.theme === 'gallery') {
-      windowYZ(xFar, 0.7, z - 5.1, 4.4, 2.9, s);
-      windowYZ(xFar, 0.7, z + 5.1, 4.4, 2.9, s);
-    } else {
-      panelYZ(xFar, 0.7, z - 5.1, 4.4, 2.9, s);
-      panelYZ(xFar, 0.7, z + 5.1, 4.4, 2.9, s);
-    }
+    // Every room is daylit, so every room gets real windows here in place of blind
+    // panels (panelYZ, kept for reference). The pane is only the visible source;
+    // the light that actually reaches the room is the pair of points placed just
+    // inside the openings below. Because the rooms alternate sides of the hall --
+    // their far walls are ~52 units apart in x -- a room's window light never
+    // meaningfully bleeds into its neighbour's, so each room owns its own daylight.
+    windowYZ(xFar, 0.7, z - 5.1, 4.4, 2.9, s);
+    windowYZ(xFar, 0.7, z + 5.1, 4.4, 2.9, s);
     box(MAT.trim, xFar - s * 0.05, 3.5, z, 0.1, 0.16, 2 * ROOM_H);   // picture rail
+    // Brighter and longer-reaching than the first pass, with a gentler decay, so the
+    // daylight actually FILLS the room instead of pooling on the far wall and leaving
+    // the furniture to crush to black (the review's "bright window, dusk interior").
+    var wi, winL;
+    for (wi = -1; wi <= 1; wi += 2) {
+      winL = new THREE.PointLight(0xd8e8ff, 3.6, 24, 1.8);   // cool daylight
+      winL.position.set(xFar - s * 2.6, 0.9, z + wi * 5.1);   // just inside each opening
+      scene.add(winL);
+    }
 
     // NOTE: the doorway wall is NOT built here. buildHall() already walls this
     // side of the hallway everywhere except the openings, at this exact x -- the
@@ -1017,7 +1052,7 @@
 
     plane(MAT.rug, xMid + s * 1.5, -HALL_Y + 0.02, z, 9, 7, 'up');
 
-    var i, fz, wl;
+    var i, fz;
     switch (R.theme) {
       case 'living':
         shadowPad(s * 19, z, 5.6, 8.4); shadowPad(s * 15.5, z, 4, 5.4);
@@ -1034,23 +1069,13 @@
         for (i = -1; i <= 1; i++) { cyl(MAT.glass, s * 21, -2.1, z + i * 2.2, 0.26, 0.8); }
         // The console runs z-3.5..z+3.5; the lamp was at z+4.6, a full unit off the
         // end and floating. Brought back onto the top, near the far end, clear of
-        // the vase at z+2.2.
+        // the vase at z+2.2. (Daylight is added for every room up in buildRoom.)
         lamp(s * 21, -1.4, z + 3.0, -2.5);   // console top, near the far end
-        // Daylight actually coming IN from the two far-wall windows: a cool point
-        // just inside each opening, so the console, floor and navy wall are lit from
-        // the window rather than the wall merely carrying a bright rectangle. Short
-        // range + decay 2 keeps the spill from bleeding through the (shadowless)
-        // walls into the neighbouring rooms.
-        for (i = -1; i <= 1; i += 2) {
-          wl = new THREE.PointLight(0xd2e4ff, 2.6, 17, 2);
-          wl.position.set(xFar - s * 2.2, 0.4, z + i * 5.1);
-          scene.add(wl);
-        }
         break;
       case 'study':
         shadowPad(s * 19, z, 4.4, 6.6); shadowPad(s * 21.4, z - 4.6, 2.6, 5);
-        box(MAT.walnut, s * 19, -3.7, z, 2.6, 0.26, 5);            // desk
-        for (i = 0; i < 4; i++) { box(MAT.walnut, s * (18 + (i % 2) * 2), -4.4, z + (i < 2 ? -2.2 : 2.2), 0.2, 1.4, 0.2); }
+        box(MAT.oakWood, s * 19, -3.7, z, 2.6, 0.26, 5);          // desk: oak, to match the floor
+        for (i = 0; i < 4; i++) { box(MAT.oakWood, s * (18 + (i % 2) * 2), -4.4, z + (i < 2 ? -2.2 : 2.2), 0.2, 1.4, 0.2); }
         box(MAT.slate, s * 19, -3.2, z, 1.4, 0.9, 2.2);            // chair back
         bookcase(s, s * 21.4, z - 4.6);
         lamp(s * 19.6, -2.7, z + 2, -3.57);   // desk top
@@ -1211,28 +1236,38 @@
     for (i = 0; i < ROOM.length; i++) { if (ROOM[i].side !== 0) { buildRoom(ROOM[i], _artBase); } }
     for (i = 0; i < ROOM.length; i++) { if (ROOM[i].side !== 0) { hangArt(ROOM[i], _artBase); } }
 
-    // Lighting. EXACTLY three lights, forever: Three rebuilds every material's
-    // shader when the light count changes, which would hitch mid-walk. So instead
-    // of a light per lamp, one PointLight roves to whichever lamp is nearest and
-    // the rest are unlit glowing shades.
-    // Ambient is deliberately LOW. The first pass ran it at 0.62 and the house came
-    // out uniformly beige -- every surface the same value, which is exactly what
-    // makes cheap 3D look cheap. Luxury here is contrast: dark corners, warm pools
-    // of lamplight, and the fall-off between them. Let the lamps do the work.
-    // The FILL is cool, the LAMPS are warm. That split is the whole trick.
+    // Lighting. The count is FIXED once, here at build time -- Three rebuilds every
+    // material's shader when the light count changes, so nothing may add or remove a
+    // light once the walk is running. (One roving PointLight still follows the
+    // nearest lamp rather than one-light-per-lamp, for the same reason; the per-room
+    // window daylights, added in buildRoom above, are likewise all placed before the
+    // first frame.)
     //
-    // A warm ambient over Icy Blue walls renders them oatmeal -- which is exactly
-    // how the brand colour quietly disappeared in the first pass, and no amount of
-    // choosing a bluer wall would have fixed it, because the light was doing the
-    // tinting. Daylight fill is genuinely cool anyway, so this is not a cheat:
-    // the walls read as the brand's off-white, and the lamps still pool warm
-    // against them, which is what keeps a navy-and-white house from going clinical.
-    scene.add(new THREE.AmbientLight(0xdfe9f7, 0.34));
+    // The house is DAYLIT now: every room has real windows and a cool point just
+    // inside each, so the fill can come up from the old dusk level. It is still
+    // deliberately cool -- daylight is -- and still shy of flat: the first pass ran
+    // ambient at 0.62 and the house came out uniformly beige, every surface the same
+    // value, which is what makes cheap 3D look cheap. The warm lamps still pool
+    // against the cool daylight; that FILL-cool / LAMP-warm split is what keeps a
+    // navy-and-white house from going either clinical or muddy. A warm ambient over
+    // Icy Blue walls renders them oatmeal, which is how the brand colour quietly
+    // disappeared once before -- so the fill stays blue.
+    scene.add(new THREE.AmbientLight(0xdfe9f7, 0.56));
     // Ground colour is the oak bouncing back up -- warm, and not black: light
     // hitting a timber floor returns onto everything above it. Setting it
     // near-black (as this first did) is physically wrong and makes the underside of
     // every object read as a hole.
-    scene.add(new THREE.HemisphereLight(0xeef4fd, 0x6b4a2a, 0.46));
+    scene.add(new THREE.HemisphereLight(0xeef4fd, 0x6b4a2a, 0.70));
+    // The sun: one near-neutral directional from high and to the front, for the
+    // overall daytime gradient across every surface. Neutral rather than the old
+    // cool blue -- a blue sun over navy walls only deepened the dusk read the review
+    // flagged; a white sun keeps the daylight honest without warming the navy to
+    // mud. It cannot favour the far wall of every room (rooms alternate sides), so
+    // it stays a near-overhead wash and lets the per-room window points do the
+    // actual "light coming IN from the window".
+    var sun = new THREE.DirectionalLight(0xf5f2ea, 0.50);
+    sun.position.set(8, 34, 10);   // direction = origin - position: down, slightly -x/-z
+    scene.add(sun);
     _lampLight = new THREE.PointLight(LAMP_HEX, 3.2, 26, 2);
     scene.add(_lampLight);
     // A second light rides just behind the camera. Without it you cast no presence
@@ -1240,12 +1275,12 @@
     _handLight = new THREE.PointLight(0xffe3c0, 1.1, 20, 2);
     scene.add(_handLight);
 
-    // Fog does the work Home 8's depthFade did in the shaders: it hides the far end
-    // of the hallway and makes the house feel deep rather than finite. Midnight
-    // rather than the brown it started as -- BRAND.md gives Midnight as the depth
-    // colour ("dark hero overlays, footer, navy depth"), which is exactly this job,
-    // and brown haze over a navy-and-white interior just reads as dirt.
-    scene.fog = new THREE.Fog(M_MIDNIGHT, 10, 52);
+    // Fog still hides the far end of the hallway and keeps the house feeling deep
+    // rather than finite, but eased for daytime: the near plane is pushed back off
+    // the room content so daylit far walls are not muddied toward the depth colour,
+    // and the colour itself is lifted a little off pure Midnight so the fade reads
+    // as cool haze rather than a wall of black at the end of the corridor.
+    scene.fog = new THREE.Fog(0x14243d, 15, 60);
 
     // The brand mark, hung as a small plaque rather than blazing across the hall.
     bakeMonogram(_monoStackUrl, ROOM[7].side * (HALL_X + ROOM_D - 0.34), -2.6, ROOM[7].z + 4.6, 1.6, yawFor(ROOM[7].side));
