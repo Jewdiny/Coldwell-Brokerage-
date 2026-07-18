@@ -752,6 +752,27 @@
     return m;
   }
 
+  /**
+   * A rug laid ON the oak, not painted into it.
+   *
+   * A flat plane at floor level reads as an inlay in the boards; a rug is an object
+   * resting on top of them. So the rug is a thin slab whose edge stands a few
+   * millimetres proud of the floor -- you can see it has a thickness sitting on the
+   * wood -- over a soft contact shadow a little larger than the rug, so it reads as
+   * resting on the hardwood and casting a shadow rather than being part of it. The
+   * oak is left generously visible around every rug for the same reason: you only
+   * read "rug ON a floor" if you can see the floor it is on.
+   */
+  function rugOnFloor(cx, cz, w, d) {
+    var sh = new THREE.Mesh(GEO.plane, MAT.shadow);
+    sh.position.set(cx, -HALL_Y + 0.02, cz);
+    sh.rotation.x = -Math.PI / 2;
+    sh.scale.set(w + 1.1, d + 1.1, 1);
+    sh.renderOrder = 1;
+    houseGroup.add(sh);
+    box(MAT.rug, cx, -HALL_Y + 0.055, cz, w, 0.07, d);   // slab; the edge shows proud of the boards
+  }
+
   /** box(material, centre, size) -- everything in the house is a box or a plane. */
   function box(mat, cx, cy, cz, w, h, d) {
     var m = new THREE.Mesh(GEO.box, mat);
@@ -1055,7 +1076,7 @@
     // at x = s*HALL_X and left them z-fighting. The room only dresses the opening.
     entrance(R);
 
-    plane(MAT.rug, xMid + s * 1.5, -HALL_Y + 0.02, z, 9, 7, 'up');
+    rugOnFloor(xMid + s * 1.5, z, 9, 7);
 
     var i, fz;
     switch (R.theme) {
@@ -1155,7 +1176,7 @@
 
     plane(MAT.hallFloor, 0, -HALL_Y, zMid, 2 * HALL_X, zLen, 'up');
     plane(MAT.ceil, 0, HALL_Y, zMid, 2 * HALL_X, zLen, 'down');
-    plane(MAT.rug, 0, -HALL_Y + 0.02, zMid, 3.4, zLen - 4, 'up');   // runner
+    rugOnFloor(0, zMid, 3.4, zLen - 4);   // runner
     plane(MAT.wall, 0, 0, HALL_Z1, 2 * HALL_X, 2 * HALL_Y, '+z');   // far end
 
     // The hallway walls exist only where a room does NOT open. Rather than
