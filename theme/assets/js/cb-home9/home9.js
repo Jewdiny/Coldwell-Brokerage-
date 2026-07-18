@@ -881,6 +881,49 @@
     }
   }
 
+  /**
+   * An OPEN bookcase, not a solid slab with lines on it.
+   *
+   * The old one was a solid oak box with four thin trim slats laid on its front
+   * face -- and the slats' back plane sat exactly on the box's front plane, so the
+   * two coplanar surfaces z-fought and shimmered as the camera moved in and out of
+   * the room. That is the "glitching shelf". A bookcase is a hollow carcass: a
+   * back, two sides, a top and bottom, real shelves recessed INSIDE (touching
+   * nothing coplanar), and books on them. Nothing here shares a plane with
+   * anything else, so nothing fights.
+   */
+  function bookcase(s, cx, cz) {
+    var byc = -1.4, BD = 0.9, BH = 7.2, BW = 3.4;
+    var bTop = byc + BH / 2, bBot = byc - BH / 2;
+    box(MAT.oak, cx + s * (BD / 2 - 0.05), byc, cz, 0.1, BH, BW);        // back panel
+    box(MAT.oak, cx, byc, cz - BW / 2 + 0.06, BD, BH, 0.12);            // side
+    box(MAT.oak, cx, byc, cz + BW / 2 - 0.06, BD, BH, 0.12);            // side
+    box(MAT.oak, cx, bTop - 0.07, cz, BD, 0.14, BW);                   // top
+    box(MAT.oak, cx, bBot + 0.07, cz, BD, 0.14, BW);                   // bottom (plinth)
+
+    // Four compartments; a shelf caps the lower three. Each surface holds books.
+    var surfaces = [bBot + 0.14], k, sy;
+    for (k = 1; k <= 3; k++) {
+      sy = bBot + k * (BH / 4);
+      box(MAT.oak, cx, sy, cz, BD - 0.16, 0.1, BW - 0.24);             // recessed shelf
+      surfaces.push(sy + 0.05);
+    }
+
+    // Books: a row standing on each surface. Coloured in the brand palette so the
+    // case reads as full without becoming a rainbow.
+    var bmats = [MAT.navy, MAT.walnut, MAT.slate, MAT.wains, MAT.cream, MAT.oak];
+    var m = 0, si, zz, h, w;
+    for (si = 0; si < surfaces.length; si++) {
+      zz = cz - BW / 2 + 0.35;
+      while (zz < cz + BW / 2 - 0.3) {
+        w = rand(0.12, 0.24);
+        h = rand(0.95, 1.5);
+        box(bmats[(m++) % bmats.length], cx - s * 0.04, surfaces[si] + h / 2, zz + w / 2, BD - 0.28, h, w);
+        zz += w + rand(0.0, 0.05);
+      }
+    }
+  }
+
   function buildRoom(R, basePath) {
     var s = R.side, z = R.z;
     var xIn = s * HALL_X, xFar = s * (HALL_X + ROOM_D);
@@ -935,8 +978,7 @@
         box(MAT.walnut, s * 19, -3.7, z, 2.6, 0.26, 5);            // desk
         for (i = 0; i < 4; i++) { box(MAT.walnut, s * (18 + (i % 2) * 2), -4.4, z + (i < 2 ? -2.2 : 2.2), 0.2, 1.4, 0.2); }
         box(MAT.slate, s * 19, -3.2, z, 1.4, 0.9, 2.2);            // chair back
-        box(MAT.oak, s * 21.4, -1.4, z - 4.6, 0.7, 7.2, 3.4);      // bookcase
-        for (i = 0; i < 4; i++) { box(MAT.trim, s * 21.1, -4.2 + i * 1.8, z - 4.6, 0.1, 0.1, 3.2); }
+        bookcase(s, s * 21.4, z - 4.6);
         lamp(s * 19.6, -2.7, z + 2, -3.57);   // desk top
         break;
       case 'entry':
@@ -980,7 +1022,10 @@
         box(MAT.oak, s * 16.6, -3.9, z, 2.6, 2.2, 5);              // island
         box(MAT.slate, s * 16.6, -2.75, z, 2.9, 0.2, 5.3);
 
-        for (i = -1; i <= 1; i += 2) { lamp(s * 16.6, -0.2, z + i * 1.4, null, true); }
+        // Raised from y=-0.2 to y=1.7: the pendants hung on a ~5-unit stem with
+        // the shades down at mid-height, which read as too low over the island.
+        // Higher up, the drop is short and they sit where kitchen pendants belong.
+        for (i = -1; i <= 1; i += 2) { lamp(s * 16.6, 1.7, z + i * 1.4, null, true); }
         break;
       case 'hearth':                                               // fireplace
         shadowPad(s * 21, z, 3, 7.6); shadowPad(s * 16.6, z - 2.2, 4, 4); shadowPad(s * 16.6, z + 2.2, 4, 4);
