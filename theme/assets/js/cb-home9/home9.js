@@ -973,9 +973,9 @@
     for (var i = -1; i <= 1; i += 2) {
       var zj = z + i * (W / 2 - 0.08);
       var xl = xw + s * (half + 1.5);
-      box(MAT.wains, xl, -HALL_Y + 4.2, zj - i * 0.09, 2.9, 8.2, 0.16);   // leaf -- light blue-grey (Mist), white casing left to frame it
-      box(MAT.wains, xl, -HALL_Y + 6.0, zj - i * 0.17, 2.1, 2.9, 0.04);   // upper panel -- same Mist as the leaf, so each door is one uniform colour
-      box(MAT.wains, xl, -HALL_Y + 2.2, zj - i * 0.17, 2.1, 2.9, 0.04);   // lower panel -- ditto
+      box(MAT.trim, xl, -HALL_Y + 4.2, zj - i * 0.09, 2.9, 8.2, 0.16);
+      box(MAT.wains, xl, -HALL_Y + 6.0, zj - i * 0.17, 2.1, 2.9, 0.04);   // upper panel
+      box(MAT.wains, xl, -HALL_Y + 2.2, zj - i * 0.17, 2.1, 2.9, 0.04);   // lower panel
       cyl(MAT.brass, xw + s * (half + 2.7), -HALL_Y + 4.2, zj - i * 0.2, 0.09, 0.28);  // handle
     }
   }
