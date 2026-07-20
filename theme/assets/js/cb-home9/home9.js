@@ -572,9 +572,9 @@
     // eye actually lands on -- floor, walls, upholstery -- which is where "boxes
     // with flat colours" most gave itself away.
     var oakRoom = photoTex('oak.jpg', 3, 4.5);
-    var oakHall = photoTex('oak.jpg', 2, 22);
-    var plasterW = photoTex('plaster.jpg', 3, 2);
-    var plasterA = photoTex('plaster.jpg', 3, 2);
+    var oakHall = photoTex('oak.jpg', 2, 10);   // 10 (was 22): ~7-unit planks, far fewer board-end seams down the hall -- one continuous run, not a ladder
+    var plasterW = photoTex('plaster.jpg', 1, 1);   // 1x1: one gentle wash per wall, not a repeating 3x2 blob grid -- the navy reads as one smooth field
+    var plasterA = photoTex('plaster.jpg', 1, 1);
     var velvetT = photoTex('velvet.jpg', 2.4, 2.4);
 
     if (oakRoom) { MAT.floor = surf({ map: oakRoom, roughness: 0.4 }); }
@@ -1033,7 +1033,7 @@
     plane(MAT.ceil, xMid, HALL_Y, z, ROOM_D, 2 * ROOM_H, 'down');
     // All three room walls navy now (MAT.accent and the lifted MAT.wall are the
     // same navy) -- there is no longer a single accent wall; the whole room is navy.
-    plane(MAT.accent, xFar, 0, z, 2 * ROOM_H, 2 * HALL_Y, s > 0 ? '-x' : '+x');
+    plane(MAT.accent, xFar, 0, z, 2 * ROOM_H + 0.2, 2 * HALL_Y, s > 0 ? '-x' : '+x');   // +0.2: far wall backs both rear corners so no fog seam shows through the butt joint
     plane(MAT.accent, xMid, 0, z0, ROOM_D, 2 * HALL_Y, '+z');
     plane(MAT.wall, xMid, 0, z1, ROOM_D, 2 * HALL_Y, '-z');
 
@@ -1154,7 +1154,7 @@
         shadowPad(s * 21, z, 3, 7.6); shadowPad(s * 16.6, z - 2.2, 4, 4); shadowPad(s * 16.6, z + 2.2, 4, 4);
         box(MAT.trim, s * 21, -1.6, z, 1.2, 6.8, 6);
         box(MAT.slate, s * 20.6, -3.4, z, 0.6, 3.2, 3.4);
-        box(MAT.shade, s * 20.4, -3.9, z, 0.2, 1.4, 2.6);          // the fire itself
+        box(MAT.shade, s * 20.38, -3.9, z, 0.2, 1.4, 2.6);         // the fire itself -- 0.02 proud of the slate so it no longer z-fights the surround
         box(MAT.walnut, s * 21, 1.9, z, 1.6, 0.34, 6.6);           // mantel
         box(MAT.navy, s * 16.6, -3.9, z - 2.2, 2.6, 1.5, 2.6);     // armchairs
         box(MAT.navy, s * 16.6, -3.9, z + 2.2, 2.6, 1.5, 2.6);
@@ -1180,7 +1180,7 @@
     // the end of the hall instead of dying into the corners -- and it caps the wall
     // the logo hangs on. Same profile as trimRun's crown, run along x and stood
     // proud of the wall into the hall.
-    box(MAT.trim, 0, HALL_Y - 0.16, HALL_Z1 + 0.16, 2 * HALL_X, 0.32, 0.2);
+    box(MAT.trim, 0, HALL_Y - 0.16, HALL_Z1 + 0.096, 2 * HALL_X, 0.32, 0.2);   // 0.096 = every other crown's proud offset, so the return wraps the corner flush instead of floating
     // The Coldwell Banker lockup, centred on the back wall as the corridor's focal
     // terminus: the official white stacked monogram (BRAND.md forbids recolouring
     // it), hung as a plaque via the same depth-tested, proximity-lit path as the
