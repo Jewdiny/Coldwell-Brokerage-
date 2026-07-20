@@ -1176,6 +1176,18 @@
     plane(MAT.ceil, 0, HALL_Y, zMid, 2 * HALL_X, zLen, 'down');
     rugOnFloor(0, zMid, 3.4, zLen - 4);   // runner
     plane(MAT.wall, 0, 0, HALL_Z1, 2 * HALL_X, 2 * HALL_Y, '+z');   // far end
+    // The crown returns across the back wall, tying the two side runs together at
+    // the end of the hall instead of dying into the corners -- and it caps the wall
+    // the logo hangs on. Same profile as trimRun's crown, run along x and stood
+    // proud of the wall into the hall.
+    box(MAT.trim, 0, HALL_Y - 0.16, HALL_Z1 + 0.16, 2 * HALL_X, 0.32, 0.2);
+    // The Coldwell Banker lockup, centred on the back wall as the corridor's focal
+    // terminus: the official white stacked monogram (BRAND.md forbids recolouring
+    // it), hung as a plaque via the same depth-tested, proximity-lit path as the
+    // hearth mark. On the live same-origin page it renders; under file:// the SVG
+    // taints the canvas and bakeMonogram swallows it (see the harness header) --
+    // exactly as the existing mark already behaves.
+    bakeMonogram(_monoStackUrl, 0, 0.7, HALL_Z1 + 0.22, 3.8, 0);
 
     // The hallway walls exist only where a room does NOT open. Rather than
     // punching holes, each side is drawn as the gaps between its doorways --
@@ -1199,6 +1211,11 @@
         }
         // Over-door panel, so the opening reads as a doorway and not a missing wall.
         box(MAT.wall, s * HALL_X, 4.3, z, WALL_T, 1.4, 6);
+        // Crown continues unbroken across the opening. The wall segments on either
+        // side each carry their own crown (via trimRun), but nothing bridged the
+        // 6-wide doorway gap until here -- same profile, height and depth as the
+        // segment crown, so the run reads as continuous the length of the hall.
+        box(MAT.trim, s * HALL_X - s * (WALL_T / 2) + 0.06 * (s > 0 ? -1 : 1) * 1.6, HALL_Y - 0.16, z, 0.2, 0.32, 6);
         prev = z - 3;
       }
       if (prev - HALL_Z1 > 0.1) {
