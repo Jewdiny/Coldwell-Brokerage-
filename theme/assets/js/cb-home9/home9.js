@@ -597,13 +597,13 @@
     // wall now navy, a wainscot in raw CB Blue read as a near-black band under the
     // lighter field, exactly the "reads as black" problem the lift was meant to
     // cure. Matched, the whole wall is one navy, articulated only by white trim.
-    MAT.wainsNavy = surf({ map: plasterA, color: M_WALLNAVY, roughness: 0.78 });
+    MAT.wainsNavy = surf({ map: plasterA, color: M_WALLNAVY, roughness: 0.94 });   // matched to MAT.wall: one uniform navy top to bottom, no shinier dado band
     // The one wall you stand and face, in the signature colour. BRAND.md's rule is
     // "CB Blue + lots of white" -- so CB Blue is the accent the white is there to
     // set off, not the wallpaper. Every room has exactly one. Painted M_WALLNAVY,
     // not raw CB Blue: at this fill level the true #012169 reads as black, so the
     // wall is lifted just far enough to be seen as the navy it is meant to be.
-    MAT.accent = surf({ map: plasterA, color: M_WALLNAVY, roughness: 0.9 });
+    MAT.accent = surf({ map: plasterA, color: M_WALLNAVY, roughness: 0.94 });   // matched to MAT.wall's roughness so no single wall reads as a different shade
     if (!plasterW) { MAT.wall.map = MAT.wains.map = texPlaster(); }   // procedural fallback keeps the tooth
     var walnutT = photoTex('walnut.jpg', 1.6, 1.6);
     MAT.walnut = walnutT ? surf({ map: walnutT, roughness: 0.4 }) : surf({ color: M_WALNUT, roughness: 0.38 });
@@ -974,8 +974,8 @@
       var zj = z + i * (W / 2 - 0.08);
       var xl = xw + s * (half + 1.5);
       box(MAT.trim, xl, -HALL_Y + 4.2, zj - i * 0.09, 2.9, 8.2, 0.16);
-      box(MAT.wains, xl, -HALL_Y + 6.0, zj - i * 0.17, 2.1, 2.9, 0.04);   // upper panel
-      box(MAT.wains, xl, -HALL_Y + 2.2, zj - i * 0.17, 2.1, 2.9, 0.04);   // lower panel
+      box(MAT.trim, xl, -HALL_Y + 6.0, zj - i * 0.17, 2.1, 2.9, 0.04);   // upper panel -- same white as the leaf, so the door reads as one colour
+      box(MAT.trim, xl, -HALL_Y + 2.2, zj - i * 0.17, 2.1, 2.9, 0.04);   // lower panel -- ditto
       cyl(MAT.brass, xw + s * (half + 2.7), -HALL_Y + 4.2, zj - i * 0.2, 0.09, 0.28);  // handle
     }
   }
