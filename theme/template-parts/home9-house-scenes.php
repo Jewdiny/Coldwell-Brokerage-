@@ -106,7 +106,7 @@ $cb9_fl = function () use (&$cb9_i) {
  */
 $cb9_plates = [
     0 => '01-arrival.jpg',   1 => '02-welcome.jpg', 2 => '03-listings.jpg', 3 => '04-legacy.jpg',
-    4 => '05-door.jpg',      5 => '06-communities.jpg', 6 => '07-value.jpg', 7 => '08-connect.jpg',
+    4 => '05-door.jpg',      5 => '06-communities-lake.webp', 6 => '07-value.jpg', 7 => '08-connect.jpg',
 ];
 $cb9_plate = function ($i) use ($cb9_plates) {
     if (!isset($cb9_plates[$i])) { return; }

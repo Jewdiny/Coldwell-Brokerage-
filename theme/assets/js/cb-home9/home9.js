@@ -146,7 +146,7 @@
     { z: -16, side: -1, p: 0.95, theme: 'gallery', art: '03-listings.jpg' },
     { z: -24, side: 1,  p: 0.85, theme: 'study',   art: '04-legacy.jpg' },
     { z: -32, side: -1, p: 0.85, theme: 'entry',   art: '05-door.jpg' },
-    { z: -40, side: 1,  p: 0.85, theme: 'dining',  art: '06-communities.jpg' },
+    { z: -40, side: 1,  p: 0.85, theme: 'dining',  art: '06-communities-lake.webp' },
     { z: -48, side: -1, p: 0.55, theme: 'kitchen', art: '07-value.jpg' },
     { z: -56, side: 1,  p: 0.70, theme: 'hearth',  art: '08-connect.jpg', artY: 3.5, artW: 4.6, artH: 2.4 }
   ];
