@@ -61,6 +61,8 @@ $VARIANTS = [
         'ink'     => '#fff',
         'accent'  => 'var(--cb-bright-blue)',
         'basePath' => null,
+        // Desktop-only gate: Home 8's floaty layout needs a wide screen + fine pointer.
+        'gate'     => "window.matchMedia('(min-width: 1025px)').matches\n        && window.matchMedia('(prefers-reduced-motion: no-preference)').matches\n        && !window.matchMedia('(pointer: coarse)').matches",
     ],
     9 => [
         'ns'      => 'cb9',
@@ -78,6 +80,10 @@ $VARIANTS = [
         'accent'  => 'var(--cb-gold)',
         // Home 9 hangs Home 2's plates as framed art on the room walls.
         'basePath' => '../theme/assets/images/webgl/',
+        // Home 9 runs the 3D on phones/tablets too -- only reduced-motion still falls
+        // back to the flat layout. sizePages() is already responsive (84% of the
+        // viewport, capped at 1100) and the grids collapse to one column under 600px.
+        'gate'     => "window.matchMedia('(prefers-reduced-motion: no-preference)').matches",
     ],
 ];
 
@@ -457,9 +463,7 @@ $tail = <<<'HTML'
   var ok = cap;
   try {
     if (!ok) {
-      ok = window.matchMedia('(min-width: 1025px)').matches
-        && window.matchMedia('(prefers-reduced-motion: no-preference)').matches
-        && !window.matchMedia('(pointer: coarse)').matches;
+      ok = {{GATE}};
     }
   } catch (e) { ok = false; }
 
@@ -654,6 +658,7 @@ foreach ($which as $n) {
         '{{INK}}'      => $V['ink'],
         '{{ACCENT}}'   => $V['accent'],
         '{{BASEPATH}}' => $basePath,
+        '{{GATE}}'     => $V['gate'],
     ];
     $page = strtr($head, $subs) . "\n" . $partial . strtr($tail, $subs);
 

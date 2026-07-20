@@ -631,9 +631,7 @@
   var ok = cap;
   try {
     if (!ok) {
-      ok = window.matchMedia('(min-width: 1025px)').matches
-        && window.matchMedia('(prefers-reduced-motion: no-preference)').matches
-        && !window.matchMedia('(pointer: coarse)').matches;
+      ok = window.matchMedia('(prefers-reduced-motion: no-preference)').matches;
     }
   } catch (e) { ok = false; }
 
