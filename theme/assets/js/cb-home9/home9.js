@@ -566,6 +566,45 @@
     return t;
   }
 
+  /**
+   * A small prefiltered environment for image-based reflections.
+   *
+   * A MeshStandardMaterial with any specular but no envMap has nothing to reflect,
+   * so metals render black and every dielectric looks flat. This bakes a warm
+   * interior gradient -- cool daylight up top, a warm lamplit band at mid height,
+   * dark oak below, with a few soft light pools -- into a PMREM so the brass, glass,
+   * stone and floor catch realistic highlights. It is a ROOM, not a sky, so the
+   * reflections read as "indoors". Applied per material at tuned intensities;
+   * barely touched on the matte plaster so the tuned navy is unchanged.
+   */
+  function makeEnvMap() {
+    try {
+      if (!renderer || !THREE.PMREMGenerator) { return null; }
+      var c = document.createElement('canvas'); c.width = 256; c.height = 128;
+      var g = c.getContext('2d');
+      var grad = g.createLinearGradient(0, 0, 0, 128);
+      grad.addColorStop(0.00, '#eaf0f8');   // ceiling: cool daylight
+      grad.addColorStop(0.42, '#ccd2db');
+      grad.addColorStop(0.60, '#9a7f5e');   // warm lamplit wall band
+      grad.addColorStop(0.82, '#55401f');
+      grad.addColorStop(1.00, '#281a10');   // oak floor
+      g.fillStyle = grad; g.fillRect(0, 0, 256, 128);
+      var blobs = [[58, 76, '#ffe6bf'], [196, 72, '#ffe0b0'], [128, 34, '#d6e6fb']];
+      for (var i = 0; i < blobs.length; i++) {
+        var rg = g.createRadialGradient(blobs[i][0], blobs[i][1], 2, blobs[i][0], blobs[i][1], 42);
+        rg.addColorStop(0, blobs[i][2]); rg.addColorStop(1, 'rgba(0,0,0,0)');
+        g.fillStyle = rg; g.fillRect(0, 0, 256, 128);
+      }
+      var tex = new THREE.Texture(c); tex.needsUpdate = true;
+      tex.mapping = THREE.EquirectangularReflectionMapping;
+      if (THREE.SRGBColorSpace) { tex.colorSpace = THREE.SRGBColorSpace; }
+      var pm = new THREE.PMREMGenerator(renderer);
+      var env = pm.fromEquirectangular(tex).texture;
+      pm.dispose(); tex.dispose();
+      return env;
+    } catch (e) { if (window.console) { console.warn('[cb9] env map failed', e); } return null; }
+  }
+
   function buildMaterials() {
     // Photographic samples where they exist, procedural fall-backs where they do
     // not. The generated oak, plaster and velvet replace the three surfaces the
@@ -657,6 +696,34 @@
     MAT.shadow = new THREE.MeshBasicMaterial({
       map: texShadow(), transparent: true, opacity: 0.9, depthWrite: false
     });
+
+    // Image-based reflections. Until now every MeshStandardMaterial with any
+    // specular had nothing to reflect, so the brass rendered as a flat gold
+    // cut-out, the glass and stone read as painted, and the floor had no life.
+    // A single prefiltered interior environment (makeEnvMap) fixes all of them at
+    // once, at intensities tuned PER surface: strong on the metal and glass that
+    // are meant to catch light, a soft sheen on the wood floor, and only a whisper
+    // on the matte plaster so the carefully-tuned navy does not shift. envMap is a
+    // reflection input, not a light -- it does not raise exposure, so M_WALLNAVY
+    // and the lamp rig are untouched. MeshBasicMaterial (shade/glow/sky/shadow)
+    // has no envMap slot and is deliberately skipped.
+    var ENV = makeEnvMap();
+    if (ENV) {
+      MAT.brass.envMap = ENV; MAT.brass.metalness = 0.6; MAT.brass.roughness = 0.34; MAT.brass.envMapIntensity = 1.15;
+      MAT.slate.envMap = ENV; MAT.slate.metalness = 0.2; MAT.slate.envMapIntensity = 0.7;
+      MAT.glass.envMap = ENV; MAT.glass.envMapIntensity = 1.25;
+      MAT.floor.envMap = ENV; MAT.floor.envMapIntensity = 0.16;
+      MAT.hallFloor.envMap = ENV; MAT.hallFloor.envMapIntensity = 0.16;
+      MAT.walnut.envMap = ENV; MAT.walnut.envMapIntensity = 0.12;
+      MAT.oak.envMap = ENV; MAT.oak.envMapIntensity = 0.12;
+      MAT.oakWood.envMap = ENV; MAT.oakWood.envMapIntensity = 0.12;
+      MAT.wall.envMap = ENV; MAT.wall.envMapIntensity = 0.06;
+      MAT.accent.envMap = ENV; MAT.accent.envMapIntensity = 0.06;
+      MAT.wainsNavy.envMap = ENV; MAT.wainsNavy.envMapIntensity = 0.06;
+      MAT.wains.envMap = ENV; MAT.wains.envMapIntensity = 0.06;
+      MAT.ceil.envMap = ENV; MAT.ceil.envMapIntensity = 0.08;
+      MAT.trim.envMap = ENV; MAT.trim.envMapIntensity = 0.1;
+    }
 
     GEO.box = new THREE.BoxGeometry(1, 1, 1);
     GEO.plane = new THREE.PlaneGeometry(1, 1);
