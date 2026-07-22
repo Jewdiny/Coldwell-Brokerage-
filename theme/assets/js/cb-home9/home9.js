@@ -381,6 +381,7 @@
   // so the cost is in draw calls, not in shader churn.
   var MAT = {}, GEO = {}, houseGroup = null;
   var _lampLight = null, _handLight = null, _lampPts = [];
+  var _sun = null;   // the shadow-casting directional; its frustum follows the camera
   // Textures that are still loading. Capture mode waits on this: it renders a
   // fixed handful of frames and stops, so a ~500kB scene plate that decodes on
   // frame 8 is simply never drawn and the shot comes back with empty frames on the
@@ -842,6 +843,11 @@
   function box(mat, cx, cy, cz, w, h, d) {
     var m = new THREE.Mesh(GEO.box, mat);
     m.position.set(cx, cy, cz); m.scale.set(w, h, d);
+    // Solid furniture, casings and trim both drop and catch shadows. Transparent
+    // glass is skipped as a caster: Three's shadows are opaque, so a glass pane or
+    // vase would stamp a solid black rectangle instead of letting light through.
+    m.castShadow = !(mat && mat.transparent);
+    m.receiveShadow = true;
     houseGroup.add(m); return m;
   }
   /** plane facing an axis. dir: 'up'|'down'|'+x'|'-x'|'+z'|'-z' */
@@ -854,11 +860,17 @@
     else if (dir === '-x') { m.rotation.y = -Math.PI / 2; }
     else if (dir === '+z') { /* faces +z */ }
     else if (dir === '-z') { m.rotation.y = Math.PI; }
+    // Walls, floors and ceilings CATCH shadows but do not cast: a thin single-sided
+    // plane as a caster self-shadows into acne and gains nothing. (receiveShadow is
+    // a no-op on the unlit basic-material decals, so it is harmless to set here.)
+    m.receiveShadow = true;
     houseGroup.add(m); return m;
   }
   function cyl(mat, cx, cy, cz, r, h) {
     var m = new THREE.Mesh(GEO.cyl, mat);
     m.position.set(cx, cy, cz); m.scale.set(r, h, r);
+    m.castShadow = !(mat && mat.transparent);
+    m.receiveShadow = true;
     houseGroup.add(m); return m;
   }
 
@@ -1374,8 +1386,36 @@
     // it stays a near-overhead wash and lets the per-room window points do the
     // actual "light coming IN from the window".
     var sun = new THREE.DirectionalLight(0xf5f2ea, 0.50);
-    sun.position.set(8, 34, 10);   // direction = origin - position: down, slightly -x/-z
+    // Lower and more to the side than a true overhead noon (was y=34): a raking
+    // afternoon angle so furniture, casings and the island throw shadows that reach
+    // ACROSS the floor and read, instead of a short smudge tucked under each piece.
+    // Still high enough (y=22) to stay a wash rather than favouring one wall.
+    sun.position.set(10, 22, 12);   // direction = target - position: down and toward -x/-z
     scene.add(sun);
+    // Make the sun the one shadow caster. The ortho frustum is only as wide as it
+    // must be to span the hall plus the rooms opening off both sides (x ~= +/-30),
+    // and shallow along the walk (z window ~= +/-22), so at 2048 the texels land
+    // where the eye is. normalBias pushes the comparison off the surface so the
+    // thin skirting/crown boxes sitting flush against the plaster do not stipple it
+    // with self-shadow acne. The frustum is re-centred on the camera every frame in
+    // updateLights, so it never has to cover the whole 70-unit corridor at once.
+    if (renderer.shadowMap && renderer.shadowMap.enabled) {
+      sun.castShadow = true;
+      // 2048 on desktop; 1024 on touch, where re-rendering the shadow map every
+      // frame is the costliest single thing on the page and a phone GPU feels it.
+      // Halving the map is the cheapest lever and the softness hides the drop.
+      var coarse = false;
+      try { coarse = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches); } catch (e) {}
+      var msz = coarse ? 1024 : 2048;
+      sun.shadow.mapSize.set(msz, msz);
+      var sc = sun.shadow.camera;
+      sc.near = 1; sc.far = 90;
+      sc.left = -30; sc.right = 30; sc.top = 30; sc.bottom = -30;
+      sun.shadow.bias = -0.0004;
+      sun.shadow.normalBias = 0.045;
+      scene.add(sun.target);   // a directional light aims at its target; it must be in the scene
+      _sun = sun;
+    }
     _lampLight = new THREE.PointLight(LAMP_HEX, 3.2, 26, 2);
     scene.add(_lampLight);
     // A second light rides just behind the camera. Without it you cast no presence
@@ -1410,6 +1450,16 @@
       camera.position.y + 1.2,
       camera.position.z - fwdZ(_yawT) * 1.5
     );
+    // Ride the sun's shadow frustum with the camera. The target sits a little ahead
+    // of the camera on the floor; the light keeps its fixed high, slightly-forward
+    // offset so the sun DIRECTION never changes (only the box it covers moves), and
+    // the map's texels stay concentrated on the room in front of the walk.
+    if (_sun) {
+      var tz = camera.position.z - 6;
+      _sun.target.position.set(0, -1, tz);
+      _sun.position.set(10, 22, tz + 12);   // same raking offset as the initial placement
+      _sun.target.updateMatrixWorld();
+    }
   }
 
   function updateSignage() {
@@ -2242,6 +2292,16 @@
       // brightness knob now that no curve is compressing the range.
       if (THREE.LinearToneMapping) { renderer.toneMapping = THREE.LinearToneMapping; }
       renderer.toneMappingExposure = 1.0;
+      // Soft cast shadows. Only the sun (a single directional) casts -- one extra
+      // depth pass per frame, not the six-face cube each point light would cost --
+      // and its frustum rides the camera down the hall (updateLights) so the map
+      // stays high-resolution on whatever room the walk is actually in rather than
+      // being smeared thin across all 70 units at once. PCFSoft for a filtered edge
+      // instead of a stair-stepped one.
+      if (THREE.PCFSoftShadowMap) {
+        renderer.shadowMap.enabled = true;
+        renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      }
       vw = document.documentElement.clientWidth || 1;
       vh = document.documentElement.clientHeight || 1;
       // 1.25 -> 2. Home 8's cap is fine for glowing wireframe, where softness reads
