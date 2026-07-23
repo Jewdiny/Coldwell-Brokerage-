@@ -1,0 +1,49 @@
+---
+# cPanel Git Version Control deployment.
+#
+# Runs when you press "Deploy HEAD Commit" in cPanel > Git Version Control.
+# Without this file that button does nothing useful, because the repo layout is
+# NOT the WordPress layout:
+#
+#     repo                        WordPress
+#     ----------------------      ------------------------------------------
+#     theme/                 ->   wp-content/themes/$THEME_DIR/
+#     deploy/*.php           ->   wp-content/mu-plugins/    (8 loader plugins)
+#     harness/  tools/       ->   not deployed. Dev-only: the standalone test
+#                                 pages and the asset build scripts. They are
+#                                 in the repo on purpose and must stay off the
+#                                 server.
+#
+# ---------------------------------------------------------------------------
+# CHECK THESE TWO LINES BEFORE THE FIRST DEPLOY
+# ---------------------------------------------------------------------------
+#   WP_ROOT     where wp-content lives. $HOME/public_html is the usual cPanel
+#               layout, but an addon domain or a subdirectory install differs.
+#   THEME_DIR   the folder name of the ACTIVE theme, which is not necessarily
+#               the "Theme Name" in style.css. Check it in cPanel File Manager
+#               under wp-content/themes/ and match it exactly. Getting it wrong
+#               is not destructive -- it creates a second, inactive theme
+#               folder you can delete -- but nothing on the site will change.
+#
+# Copies are additive (cp, not rsync --delete): a wrong path leaves stray
+# files rather than removing live ones. Deleting a file from the repo therefore
+# will NOT remove it from the server; do that by hand.
+---
+deployment:
+  tasks:
+    - export WP_ROOT=$HOME/public_html
+    - export THEME_DIR=cb-legacy-luxury
+
+    - export THEME_DEST=$WP_ROOT/wp-content/themes/$THEME_DIR
+    - export MU_DEST=$WP_ROOT/wp-content/mu-plugins
+
+    - /bin/mkdir -p $THEME_DEST
+    - /bin/mkdir -p $MU_DEST
+
+    # The theme. Trailing /. copies the CONTENTS of theme/, not the directory
+    # itself -- without the dot this nests it as themes/$THEME_DIR/theme/.
+    - /bin/cp -R theme/. $THEME_DEST/
+
+    # The preview loaders. Each is a single-file mu-plugin that acts only on its
+    # own page template and leaves the rest of the site alone.
+    - /bin/cp -R deploy/*.php $MU_DEST/
