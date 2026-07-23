@@ -3,10 +3,14 @@
 
    Home 9, filmed instead of modelled.
 
-   Home 9 (cb-home9/home9.js) is UNCHANGED and still ships -- this is a sibling,
-   not a replacement. The WALK is the same walk: the same eight sections, the
-   same hallway between rooms, the same content pages. What changes is what the
-   camera is looking at.
+   This REPLACED Home 9. cb-home9/home9.js has been deleted; the Home 9 page
+   template is now an alias that renders this. Two pieces of Home 9 deliberately
+   survive because Home 10 is built on them -- cb-home9.css, which styles
+   everything inside a panel, and home9-house-scenes.php, which is the content
+   this lifts. Deleting either takes Home 10 down with it.
+
+   The WALK is the same walk: the same eight sections, the same hallway between
+   rooms, the same content pages. What changes is what the camera is looking at.
 
    WHAT IS ACTUALLY DIFFERENT
    --------------------------

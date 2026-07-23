@@ -3,9 +3,11 @@
  * Plugin Name: CB — Home 10 Filmed Walkthrough Preview (loader)
  * Description: Self-contained loader for the un-linked "Home 10 — The House,
  *   filmed" concept — Home 9's content and walk, but the house is photoreal
- *   stills joined by filmed camera moves instead of real-time WebGL. Acts ONLY
- *   on the "Home 10 — The House, filmed" template. Theme files and all other
- *   previews left UNCHANGED.
+ *   stills joined by filmed camera moves instead of real-time WebGL. Acts on the
+ *   "Home 10 — The House, filmed" template AND on the retired Home 9 template,
+ *   which now renders Home 10 so pre-existing pages keep their URLs. Replaces
+ *   cb-home9-preview.php, which was deleted with the Home 9 engine. Theme files
+ *   and all other previews left UNCHANGED.
  *
  * @package CB_Legacy_Luxury
  */
@@ -16,9 +18,24 @@ if (!defined('CB_HOME10_TEMPLATE')) {
     define('CB_HOME10_TEMPLATE', 'templates/template-home10-filmed.php');
 }
 
+// The retired Home 9 template, which now renders Home 10. Pages published
+// before the swap still carry it in _wp_page_template, so it has to load the
+// same assets or those URLs get the markup with no stylesheet and no engine.
+if (!defined('CB_HOME10_ALIAS_TEMPLATE')) {
+    define('CB_HOME10_ALIAS_TEMPLATE', 'templates/template-home9-house.php');
+}
+
+if (!function_exists('cb_home10_is_target')) {
+    /** True on the Home 10 template or the retired Home 9 alias. */
+    function cb_home10_is_target() {
+        return is_page_template(CB_HOME10_TEMPLATE)
+            || is_page_template(CB_HOME10_ALIAS_TEMPLATE);
+    }
+}
+
 if (!function_exists('cb_home10_enqueue')) {
     function cb_home10_enqueue() {
-        if (!is_page_template(CB_HOME10_TEMPLATE)) { return; }
+        if (!cb_home10_is_target()) { return; }
         $uri = get_template_directory_uri();
         $ver = (defined('CB_THEME_VERSION') ? CB_THEME_VERSION : '1.1.0') . '-h10';
 
@@ -67,7 +84,7 @@ if (!function_exists('cb_home10_gate')) {
      * false rather than half-starting if the stage element is missing.
      */
     function cb_home10_gate() {
-        if (!is_page_template(CB_HOME10_TEMPLATE)) { return; }
+        if (!cb_home10_is_target()) { return; }
         $uri  = get_template_directory_uri();
         $ver  = (defined('CB_THEME_VERSION') ? CB_THEME_VERSION : '1.1.0') . '-h10';
         $eng  = esc_js($uri . '/assets/js/cb-home10/home10.js?ver=' . $ver);
@@ -110,7 +127,7 @@ if (!function_exists('cb_home10_gate')) {
 
 if (!function_exists('cb_home10_body_class')) {
     function cb_home10_body_class($classes) {
-        if (is_page_template(CB_HOME10_TEMPLATE)) {
+        if (cb_home10_is_target()) {
             $classes[] = 'cb-page--home';
             $classes[] = 'cb-page--home10-preview';
         }
@@ -123,11 +140,17 @@ if (!function_exists('cb_home10_sitemap_exclude')) {
     function cb_home10_sitemap_exclude($args, $post_type) {
         if ($post_type !== 'page') { return $args; }
         $mq = isset($args['meta_query']) ? $args['meta_query'] : [];
-        $mq[] = [
-            'relation' => 'OR',
-            ['key' => '_wp_page_template', 'value' => CB_HOME10_TEMPLATE, 'compare' => '!='],
-            ['key' => '_wp_page_template', 'compare' => 'NOT EXISTS'],
-        ];
+        // BOTH templates. The retired Home 9 alias was previously kept out of
+        // the sitemap by deploy/cb-home9-preview.php, which no longer exists --
+        // miss it here and a noindex preview starts getting submitted to search
+        // engines. Entries are ANDed at the top level, so one clause each.
+        foreach ([CB_HOME10_TEMPLATE, CB_HOME10_ALIAS_TEMPLATE] as $tpl) {
+            $mq[] = [
+                'relation' => 'OR',
+                ['key' => '_wp_page_template', 'value' => $tpl, 'compare' => '!='],
+                ['key' => '_wp_page_template', 'compare' => 'NOT EXISTS'],
+            ];
+        }
         $args['meta_query'] = $mq;
         return $args;
     }
@@ -136,7 +159,7 @@ if (!function_exists('cb_home10_sitemap_exclude')) {
 
 if (!function_exists('cb_home10_suppress_extras')) {
     function cb_home10_suppress_extras() {
-        if (!is_page_template(CB_HOME10_TEMPLATE)) { return; }
+        if (!cb_home10_is_target()) { return; }
         remove_action('wp_head', 'cb_analytics_head', 1);
         remove_action('wp_head', 'cb_brokerage_schema', 5);
     }

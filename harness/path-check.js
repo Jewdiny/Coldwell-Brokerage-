@@ -2,12 +2,17 @@
  * Samples the REAL poseAt() out of the engine and checks the walk is actually
  * smooth. Screenshots prove the poses; only this proves the motion between them.
  *
- *   node harness/path-check.js        # Home 8 (blueprint) -- the default
- *   node harness/path-check.js 9      # Home 9 (the house)
+ *   node harness/path-check.js        # Home 8 (blueprint)
  *
- * Home 8 and Home 9 are the same walk through two different worlds, so BOTH must
- * pass and both must give the SAME numbers. If they ever diverge, someone fixed a
- * pose bug in one engine and not the other.
+ * HOME 8 ONLY, now. This used to take a `9` argument and assert that Home 8 and
+ * Home 9 produced identical numbers -- they were the same walk through two
+ * different worlds, so a divergence meant someone had fixed a pose bug in one
+ * engine and not the other. Home 9 was retired in favour of Home 10 and its
+ * engine deleted, so there is no second engine left to cross-check against.
+ *
+ * Home 10 is NOT checkable here and never will be: it has no poseAt() and no
+ * geometry at all. Its camera moves are pre-rendered video, so the equivalent
+ * verification is looking at the frames -- see tools/home10-prompts.md.
  *
  * The functions are private to the IIFE, so rather than re-typing them here (which
  * would test my transcription, not the shipping file) this brace-matches them out
@@ -15,11 +20,8 @@
  */
 const fs = require('fs');
 const path = require('path');
-const VARIANT = (process.argv[2] || '8').trim() === '9' ? 9 : 8;
-const ENGINE = VARIANT === 9
-  ? path.join(__dirname, '..', 'theme', 'assets', 'js', 'cb-home9', 'home9.js')
-  : path.join(__dirname, '..', 'theme', 'assets', 'js', 'cb-home8', 'home8.js');
-console.log('engine: home' + VARIANT + '\n');
+const ENGINE = path.join(__dirname, '..', 'theme', 'assets', 'js', 'cb-home8', 'home8.js');
+console.log('engine: home8\n');
 const SRC = fs.readFileSync(ENGINE, 'utf8');
 
 function grabFn(name) {

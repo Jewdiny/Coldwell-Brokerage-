@@ -66,30 +66,40 @@ $VARIANTS = [
         // Desktop-only gate: Home 8's floaty layout needs a wide screen + fine pointer.
         'gate'     => "window.matchMedia('(min-width: 1025px)').matches\n        && window.matchMedia('(prefers-reduced-motion: no-preference)').matches\n        && !window.matchMedia('(pointer: coarse)').matches",
     ],
+    // ---------------------------------------------------------------------
+    // 9 -- RETIRED AS AN EXPERIENCE, KEPT AS A CONTENT SOURCE.
+    //
+    // Home 10 replaced Home 9, and home9.js was deleted with it. This entry
+    // survives because it is the only thing that renders
+    // home9-house-scenes.php to HTML, and build-home10-harness.mjs lifts the
+    // eight panels out of the file it writes. Delete this and the Home 10
+    // harness has nothing to build from.
+    //
+    // 'engine' => null is what makes it emit no <script> at all. Without that
+    // the page would request three.min.js and a home9.js that no longer
+    // exists, 404 twice, and log "engine did not load" -- noise implying a
+    // broken build rather than a deliberate one.
+    //
+    // The partial itself is UNCHANGED and still ships: it is the single source
+    // of the copy, the shortcodes and the live MLS/testimonial calls for both
+    // the Home 10 page and this file.
+    // ---------------------------------------------------------------------
     9 => [
         'ns'      => 'cb9',
         'partial' => 'theme/template-parts/home9-house-scenes.php',
         'css'     => '../theme/assets/css/cb-home9.css',
-        'engine'  => '../theme/assets/js/cb-home9/home9.js',
+        'engine'  => null,
         'global'  => 'CBHome9',
         'out'     => 'cb-home9-harness.html',
-        'title'   => 'CB Home 9 -- The House harness',
-        'badge'   => 'Home 9 harness',
+        'title'   => 'CB Home 9 partial -- content source for the Home 10 harness',
+        'badge'   => 'Home 9 partial &mdash; content source, not a preview',
         'body'    => 'cb-page--home cb-page--home9-preview',
-        // Must match home9.js's fog (0x20140c) -- see cb-home9.css.
         'field'   => 'radial-gradient(130% 115% at 50% -8%, #3a2517 0%, #2b1a10 34%, #20140c 62%, #150c07 100%) fixed',
         'ink'     => 'var(--cb-cream)',
         'accent'  => 'var(--cb-gold)',
-        // Home 9 hangs Home 2's plates as framed art on the room walls.
-        'basePath' => '../theme/assets/images/webgl/',
-        // Home 9 is the only variant with a real mesh in it (the hearth armchairs).
-        // Loaded after three, since it attaches THREE.GLTFLoader. Optional by
-        // design: home9.js keeps its box proxies if this 404s.
-        'extraJs'  => ['../theme/assets/js/vendor/GLTFLoader.js'],
-        // Home 9 runs the 3D on phones/tablets too -- only reduced-motion still falls
-        // back to the flat layout. sizePages() is already responsive (84% of the
-        // viewport, capped at 1100) and the grids collapse to one column under 600px.
-        'gate'     => "window.matchMedia('(prefers-reduced-motion: no-preference)').matches",
+        'basePath' => null,
+        'extraJs'  => [],
+        'gate'     => 'false',
     ],
 ];
 
@@ -458,6 +468,20 @@ $tail = <<<'HTML'
 
 <div class="h-badge">{{BADGE}}</div>
 
+{{RUNTIME}}
+</body>
+</html>
+HTML;
+
+/**
+ * The runtime block, emitted only for variants that HAVE an engine.
+ *
+ * A variant with 'engine' => null is a CONTENT SOURCE, not a previewable page:
+ * it renders the partial to HTML so another generator can lift the markup out,
+ * and loading three + an engine that no longer exists would only produce 404s
+ * and a console error. See the Home 9 entry in $VARIANTS.
+ */
+$RUNTIME_TPL = <<<'HTML'
 <!-- Load order is a hard contract (CONTRACT.md): three -> cursor -> motion -> engine.
      Motion is optional; the engine falls back to CSS keyframes + rAF counters. -->
 <script src="../theme/assets/js/vendor/three.min.js"></script>{{EXTRAJS}}
@@ -493,8 +517,12 @@ $tail = <<<'HTML'
   });
 })();
 </script>
-</body>
-</html>
+HTML;
+
+$NO_RUNTIME = <<<'HTML'
+<!-- No engine. This variant exists to render the partial to HTML as a CONTENT
+     SOURCE for another generator (see harness/build-home10-harness.mjs), not to
+     be viewed. The flat markup below is the whole point of the file. -->
 HTML;
 
 /**
@@ -660,12 +688,15 @@ foreach ($which as $n) {
     foreach (($V['extraJs'] ?? []) as $src) {
         $extraJs .= "\n" . '<script src="' . $src . '"></script>';
     }
+    // A variant with no engine emits no runtime at all -- see $NO_RUNTIME.
+    $runtime = $V['engine'] ? $RUNTIME_TPL : $NO_RUNTIME;
+
     $subs = [
         '{{TITLE}}'    => $V['title'],
         '{{PARTIAL}}'  => $V['partial'],
         '{{N}}'        => (string) $n,
         '{{CSS}}'      => $V['css'],
-        '{{ENGINE}}'   => $V['engine'],
+        '{{ENGINE}}'   => (string) $V['engine'],
         '{{GLOBAL}}'   => $V['global'],
         '{{BODY}}'     => $V['body'],
         '{{BADGE}}'    => $V['badge'],
@@ -677,7 +708,11 @@ foreach ($which as $n) {
         '{{EXTRAJS}}'  => $extraJs,
         '{{GATE}}'     => $V['gate'],
     ];
-    $page = strtr($head, $subs) . "\n" . $partial . strtr($tail, $subs);
+    // Two passes on purpose. The runtime block carries its OWN placeholders
+    // ({{ENGINE}}, {{GATE}}, {{GLOBAL}}...), and strtr does not re-scan what it
+    // has just substituted -- inject the block first, then resolve everything.
+    $tailFilled = str_replace('{{RUNTIME}}', $runtime, $tail);
+    $page = strtr($head, $subs) . "\n" . $partial . strtr($tailFilled, $subs);
 
     $dest = __DIR__ . '/' . $V['out'];
     file_put_contents($dest, $page);

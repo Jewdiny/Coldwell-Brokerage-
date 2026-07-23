@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CB Home 9 -- The House harness</title>
+<title>CB Home 9 partial -- content source for the Home 10 harness</title>
 
 <!--
   GENERATED FILE -- do not hand-edit.
     Source : theme/template-parts/home9-house-scenes.php
     Rebuild: php harness/build-harness.php 9
 
-  Standalone harness for the CB Home 9 -- The House harness engine. Open directly: no
+  Standalone harness for the CB Home 9 partial -- content source for the Home 10 harness engine. Open directly: no
   build, no server, no WordPress. The markup below IS the shipping partial, with
   WordPress stubbed and the two live shortcodes ([cb_listings],
   [cb_testimonials]) swapped for static stand-ins.
@@ -613,44 +613,10 @@
   Coldwell Banker Legacy &middot; harness build &middot; not a live page
 </footer>
 
-<div class="h-badge">Home 9 harness</div>
+<div class="h-badge">Home 9 partial &mdash; content source, not a preview</div>
 
-<!-- Load order is a hard contract (CONTRACT.md): three -> cursor -> motion -> engine.
-     Motion is optional; the engine falls back to CSS keyframes + rAF counters. -->
-<script src="../theme/assets/js/vendor/three.min.js"></script>
-<script src="../theme/assets/js/vendor/GLTFLoader.js"></script>
-<script src="../theme/assets/js/cb-webgl/cursor.js"></script>
-<script src="../theme/assets/js/vendor/motion.js"></script>
-<script src="../theme/assets/js/cb-home9/home9.js"></script>
-<script>
-(function () {
-  // Mirrors the variant's deploy/ loader gate, so the harness tests the same
-  // three conditions the real page ships with. Capture mode bypasses it: a
-  // headless window passes anyway, but an explicit bypass means a failed
-  // screenshot is never silently a gate problem.
-  var cap = /[?&]cb_capture=(1|true)/.test(location.search);
-  var ok = cap;
-  try {
-    if (!ok) {
-      ok = window.matchMedia('(prefers-reduced-motion: no-preference)').matches;
-    }
-  } catch (e) { ok = false; }
-
-  if (!ok) {
-    if (window.console) { console.info('[cb9 harness] gated off -- showing the flat fallback. Correct below 1025px, on touch, or with reduced-motion.'); }
-    return;
-  }
-  if (!window.CBHome9) {
-    if (window.console) { console.error('[cb9 harness] engine did not load.'); }
-    return;
-  }
-  window.CBHome9.init({
-    canvas: '#cb9-canvas',
-    basePath: '../theme/assets/images/webgl/',
-    monogram: '../theme/assets/images/logos/monogram.svg',
-    monogramStacked: '../theme/assets/images/logos/monogram-vertical-stacked.svg'
-  });
-})();
-</script>
+<!-- No engine. This variant exists to render the partial to HTML as a CONTENT
+     SOURCE for another generator (see harness/build-home10-harness.mjs), not to
+     be viewed. The flat markup below is the whole point of the file. -->
 </body>
 </html>
