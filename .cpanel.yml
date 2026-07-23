@@ -7,43 +7,55 @@
 #
 #     repo                        WordPress
 #     ----------------------      ------------------------------------------
-#     theme/                 ->   wp-content/themes/$THEME_DIR/
-#     deploy/*.php           ->   wp-content/mu-plugins/    (8 loader plugins)
+#     theme/                 ->   wp-content/themes/<the CB Legacy theme>/
+#     deploy/*.php           ->   wp-content/mu-plugins/    (loader plugins)
 #     harness/  tools/       ->   not deployed. Dev-only: the standalone test
 #                                 pages and the asset build scripts. They are
 #                                 in the repo on purpose and must stay off the
 #                                 server.
 #
-# ---------------------------------------------------------------------------
-# CHECK THESE TWO LINES BEFORE THE FIRST DEPLOY
-# ---------------------------------------------------------------------------
-#   WP_ROOT     where wp-content lives. $HOME/public_html is the usual cPanel
-#               layout, but an addon domain or a subdirectory install differs.
-#   THEME_DIR   the folder name of the ACTIVE theme, which is not necessarily
-#               the "Theme Name" in style.css. Check it in cPanel File Manager
-#               under wp-content/themes/ and match it exactly. Getting it wrong
-#               is not destructive -- it creates a second, inactive theme
-#               folder you can delete -- but nothing on the site will change.
+# HOST FACTS (from the account's cPanel home screen):
+#   user           homessanangelo
+#   home dir       /home/homessanangelo
+#   primary domain homes-sanangelo.com
+# so $HOME/public_html resolves to /home/homessanangelo/public_html.
 #
-# Copies are additive (cp, not rsync --delete): a wrong path leaves stray
-# files rather than removing live ones. Deleting a file from the repo therefore
-# will NOT remove it from the server; do that by hand.
+# THE THEME FOLDER IS FOUND, NOT NAMED.
+# The previous version hardcoded THEME_DIR=cb-legacy-luxury, which was a guess
+# from style.css and would silently deploy into a dead folder if wrong. Instead
+# we grep wp-content/themes for the one style.css whose header is this theme and
+# deploy next to it -- so the destination is always the folder WordPress is
+# actually loading, whatever it is named. If no match is found (only possible on
+# a brand-new install where the theme is not there yet) it falls back to a named
+# folder so the first deploy still lands somewhere sensible.
+#
+# Copies are additive (cp, not rsync --delete): a wrong path leaves stray files
+# rather than removing live ones. Deleting a file from the repo therefore will
+# NOT remove it from the server; do that by hand. (Relevant now: the retired
+# Home 9 files -- see the deploy notes.)
 ---
 deployment:
   tasks:
     - export WP_ROOT=$HOME/public_html
-    - export THEME_DIR=cb-legacy-luxury
-
-    - export THEME_DEST=$WP_ROOT/wp-content/themes/$THEME_DIR
+    - export THEMES=$WP_ROOT/wp-content/themes
     - export MU_DEST=$WP_ROOT/wp-content/mu-plugins
 
-    - /bin/mkdir -p $THEME_DEST
-    - /bin/mkdir -p $MU_DEST
+    # Locate the theme by its style.css header, not by folder name. head -1 in
+    # case a backup copy also matches; dirname turns the style.css path into its
+    # folder. If grep finds nothing, fall back to a named folder for a first
+    # deploy.
+    - export MATCH=$(grep -rl "Theme Name: CB Legacy Luxury" $THEMES/*/style.css 2>/dev/null | head -1)
+    - export THEME_DEST=$(if [ -n "$MATCH" ]; then dirname "$MATCH"; else echo "$THEMES/cb-legacy-luxury"; fi)
+
+    - echo "Deploying theme to $THEME_DEST"
+    - /bin/mkdir -p "$THEME_DEST"
+    - /bin/mkdir -p "$MU_DEST"
 
     # The theme. Trailing /. copies the CONTENTS of theme/, not the directory
-    # itself -- without the dot this nests it as themes/$THEME_DIR/theme/.
-    - /bin/cp -R theme/. $THEME_DEST/
+    # itself -- without the dot this nests it as <theme>/theme/.
+    - /bin/cp -R theme/. "$THEME_DEST/"
 
     # The preview loaders. Each is a single-file mu-plugin that acts only on its
-    # own page template and leaves the rest of the site alone.
-    - /bin/cp -R deploy/*.php $MU_DEST/
+    # own page template (or, for Home 10, the front page) and leaves the rest of
+    # the site alone.
+    - /bin/cp -R deploy/*.php "$MU_DEST/"
