@@ -16,6 +16,21 @@
 }
 
 /* ---- flat fallback (the default) ---------------------------------------- */
+
+/* The field the FLAT page sits on, mirroring cb-home9.css's
+   body.cb-page--home9-preview rule.
+   Not optional and easy to miss: .cb10-on sets a background, but the flat
+   fallback is what phones, tablets, reduced-motion and no-JS all get, and
+   without this it inherits the theme default. The cards are dark glass with
+   cream text, so on a light body the copy between them -- the scroll cue, the
+   credits -- goes unreadable. The harness masks this by setting its own body
+   background inline; the WordPress page has no such thing. */
+body.cb-page--home10-preview {
+  background: radial-gradient(130% 115% at 50% -8%,
+                #1B3C55 0%, #12283f 34%, #0A1730 62%, #060d1c 100%) fixed;
+  color: var(--cb10-ink);
+}
+
 .cb10-stage { display: none; }
 #cb10-spacer { display: none; }
 

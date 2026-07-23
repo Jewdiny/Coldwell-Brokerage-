@@ -71,13 +71,24 @@ function cb_enqueue_assets() {
     // Theme animation controller
     wp_enqueue_script('cb-gsap-init', CB_THEME_URI . '/assets/js/gsap-init.js', ['gsap-core', 'gsap-scroll-trigger'], CB_THEME_VERSION, true);
 
-    // Page-specific styles & animations
-    if (is_front_page()) {
-        // Cinematic scroll homepage: Lenis smooth scroll + scene controller + styles.
-        wp_enqueue_script('cb-lenis', CB_THEME_URI . '/assets/js/vendor/lenis.min.js', [], '1.1.18', true);
-        wp_enqueue_style('cb-scroll-home', CB_THEME_URI . '/assets/css/scroll-home.css', ['cb-legacy-style'], CB_THEME_VERSION);
-        wp_enqueue_script('cb-home-animations', CB_THEME_URI . '/assets/js/page-animations/home.js', ['cb-gsap-init', 'cb-lenis'], CB_THEME_VERSION, true);
-    }
+    // The front page no longer loads the cinematic scroll stack.
+    //
+    // front-page.php renders Home 10 now, so scroll-home.css and home.js have no
+    // .cb-scene elements to act on -- but LENIS IS THE REAL REASON THIS HAD TO GO.
+    // Lenis replaces native scrolling with its own interpolated position, and
+    // home10.js decides which room you are in by reading window.pageYOffset every
+    // frame. Left enqueued, the two fight: the walk triggers late, section
+    // boundaries drift, and the panel fades chase a scroll position that is still
+    // being smoothed toward its target.
+    //
+    // The cinematic stack is NOT dead code. cb_enqueue_home2_webgl() below loads
+    // the identical bundle for the "Home 2 — Cinematic WebGL Preview" template,
+    // which still renders template-parts/home-scenes.php. Nothing was lost; it
+    // just stopped being the homepage. Restoring this block plus front-page.php
+    // from git is all a revert takes.
+    //
+    // Home 10's own assets come from deploy/cb-home10-preview.php, which enqueues
+    // the two stylesheets and client-gates the engine.
 
     // Inner page styles (loaded on all pages for shared components)
     wp_enqueue_style('cb-pages-style', CB_THEME_URI . '/assets/css/pages/pages.css', ['cb-legacy-style'], CB_THEME_VERSION);

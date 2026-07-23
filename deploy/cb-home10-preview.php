@@ -26,9 +26,18 @@ if (!defined('CB_HOME10_ALIAS_TEMPLATE')) {
 }
 
 if (!function_exists('cb_home10_is_target')) {
-    /** True on the Home 10 template or the retired Home 9 alias. */
+    /**
+     * Everywhere Home 10 renders: the site's FRONT PAGE (front-page.php now
+     * renders the Home 10 partial), the Home 10 page template, and the retired
+     * Home 9 alias.
+     *
+     * is_front_page() is what makes the official homepage load the stylesheets
+     * and the engine at all. Without it the homepage would render Home 10's
+     * markup with neither, which is a stack of unstyled cards.
+     */
     function cb_home10_is_target() {
-        return is_page_template(CB_HOME10_TEMPLATE)
+        return is_front_page()
+            || is_page_template(CB_HOME10_TEMPLATE)
             || is_page_template(CB_HOME10_ALIAS_TEMPLATE);
     }
 }
@@ -159,6 +168,16 @@ if (!function_exists('cb_home10_sitemap_exclude')) {
 
 if (!function_exists('cb_home10_suppress_extras')) {
     function cb_home10_suppress_extras() {
+        // PREVIEWS ONLY -- never the homepage.
+        //
+        // This exists so an un-linked preview does not pollute analytics or
+        // publish duplicate LocalBusiness schema. Both of those reasons invert
+        // on the real front page: it is the single most important page to
+        // measure, and the brokerage schema is precisely what should be
+        // emitted there. Guarding on cb_home10_is_target() -- which now
+        // includes is_front_page() -- would silently strip both from the
+        // homepage the moment Home 10 was promoted.
+        if (is_front_page()) { return; }
         if (!cb_home10_is_target()) { return; }
         remove_action('wp_head', 'cb_analytics_head', 1);
         remove_action('wp_head', 'cb_brokerage_schema', 5);
