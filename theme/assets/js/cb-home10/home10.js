@@ -120,6 +120,7 @@
   var _reduced = false;
   var _lastT = 0;
   var _capture = false, _captureG = 0;
+  var _lastW = -1, _laidOut = false;
   var _panel = 0;   // eased 0..1 panel visibility for the active section
 
   function clamp(v, a, b) { return v < a ? a : (v > b ? b : v); }
@@ -155,7 +156,18 @@
       v.setAttribute('playsinline', '');
       v.setAttribute('webkit-playsinline', '');
       v.setAttribute('aria-hidden', 'true');
-      v.preload = 'auto';
+      // 'metadata', NOT 'auto'. Eight clips at preload="auto" is roughly 16MB
+      // fetched before the reader has scrolled once -- tolerable on a desk,
+      // indefensible on a phone on cellular, and the single biggest reason this
+      // page used to be gated to desktop. primeAround() promotes just the
+      // current clip and the next one to 'auto' as you walk.
+      //
+      // 'metadata' and not 'none' on purpose: arrived() needs __dur, which only
+      // arrives with loadedmetadata. With 'none' the duration is unknown until
+      // play() has fetched enough, so the panel would stay hidden for a beat on
+      // entering every room. Metadata is a few KB per file (moov is at the
+      // front -- see -movflags +faststart in tools/build-home10.mjs).
+      v.preload = 'metadata';
       v.loop = false;
       // Never let the browser play these on its own. Every frame shown is one
       // we asked for -- autoplay would race the scrubber and fight it.
@@ -177,14 +189,51 @@
     }
   }
 
+  /**
+   * Buffer the clip you are in and the one you are walking into next; let the
+   * rest sit at 'metadata'.
+   *
+   * Two ahead rather than one because the walk starts the instant the section
+   * boundary is crossed -- priming only on arrival would mean every room began
+   * with a stall. Nothing is ever demoted back: a clip you have already watched
+   * is already in the HTTP cache, and setting preload back to 'metadata' does
+   * not reclaim anything, it just risks a re-fetch when you scroll back up.
+   */
+  function primeAround(i) {
+    for (var k = i; k <= i + 1 && k < _n; k++) {
+      var v = vids[k];
+      if (v && v.preload !== 'auto') { v.preload = 'auto'; }
+    }
+  }
+
   /** Section scroll length. Kept in JS rather than CSS so the spacer and the
    *  clock can never disagree -- Home 9's one hard rule about spacers. */
   function layout() {
-    _secH = Math.max(420, Math.round(window.innerHeight * 1.85));
+    var w = window.innerWidth, h = window.innerHeight;
+
+    // MOBILE URL BAR. Scrolling on iOS/Android collapses and expands the address
+    // bar, which fires resize with a height change of 60-120px and no width
+    // change. Recomputing _secH from that mid-scroll rewrites the spacer height
+    // and therefore which section a given scroll position maps to -- the page
+    // lurches under the reader's thumb, mid-walk, every time the bar moves.
+    //
+    // So: only a WIDTH change (or an explicit orientationchange, which calls
+    // relayout() directly) is allowed to resize the walk. A height-only change
+    // is assumed to be browser chrome and ignored. The cost is that _secH stays
+    // keyed to the height at load, which is exactly the stable behaviour wanted.
+    if (_laidOut && w === _lastW) { return; }
+    _lastW = w;
+    _laidOut = true;
+
+    _secH = Math.max(420, Math.round(h * 1.85));
     _total = _secH * _n;
     var sp = document.getElementById('cb10-spacer');
     if (sp) { sp.style.height = _total + 'px'; }
   }
+
+  /** Force a re-measure regardless of width -- for orientationchange, where the
+   *  height genuinely did change and the guard above must not swallow it. */
+  function relayout() { _laidOut = false; layout(); }
 
   // ---- the clock ----------------------------------------------------------
   function readScroll() {
@@ -213,6 +262,7 @@
       }
     }
     v.__walking = false;
+    v.__walkStart = 0;
   }
 
   /**
@@ -251,6 +301,7 @@
 
     try { v.currentTime = 0; } catch (e) {}
     v.__walking = true;
+    v.__walkStart = Date.now();
     var p;
     try { p = v.play(); } catch (e) { p = null; }
     // Autoplay policy allows a muted, playsinline video -- but "allows" is not
@@ -265,6 +316,22 @@
     var v = vids[_active];
     if (!v) { return true; }
     if (!v.__walking) { return true; }
+
+    // STALL GUARD. Everything below assumes the clip actually progresses. On a
+    // slow or flaky connection it may not: play() resolves, currentTime creeps
+    // or stops, and the reader is left looking at a frozen frame with no text
+    // and no way to know anything is wrong. Desktop on office wifi never showed
+    // this; a phone on cellular is exactly where it happens.
+    //
+    // So give the walk its own duration plus a generous grace period in WALL
+    // CLOCK time, and if it has not finished by then, call it arrived. The walk
+    // is decoration; the content is not, and the content must not be gated
+    // behind a download that may never complete.
+    if (v.__walkStart) {
+      var budget = ((v.__dur || 6) * 1000) + 5000;
+      if (Date.now() - v.__walkStart > budget) { return true; }
+    }
+
     if (!v.__dur) { return false; }
     return v.currentTime >= v.__dur - 0.12;
   }
@@ -349,6 +416,7 @@
       // Any jump forward -- even skipping several rooms at once -- is a walk
       // into wherever you landed. Backward is an arrival, never a walk.
       enterSection(i, i > _active);
+      primeAround(i);
       _panel = 0;
     }
     updatePages(i, dt);
@@ -397,7 +465,7 @@
     document.documentElement.classList.add('cb10-on');
 
     window.addEventListener('resize', layout, { passive: true });
-    window.addEventListener('orientationchange', layout, { passive: true });
+    window.addEventListener('orientationchange', relayout, { passive: true });
 
     var dots = document.querySelectorAll('[data-cb10-to]');
     for (var k = 0; k < dots.length; k++) {

@@ -76,17 +76,26 @@ if (!function_exists('cb_home10_gate')) {
      * Client-side asset gate.
      *
      * Home 10 needs no vendor libraries at all -- no Three, no GLTFLoader, no
-     * Motion -- so this loads exactly one file. The gates are Home 9's, plus one
-     * Home 9 does not need:
+     * Motion -- so this loads exactly one file.
      *
-     *   min-width 1025px      desktop only, as Home 8 and 9 already are
+     * RUNS ON PHONES AND TABLETS. The min-width:1025px and pointer:coarse gates
+     * are gone. They were never about capability -- there is no WebGL here, just
+     * h264, which every phone decodes in hardware. They were about BANDWIDTH:
+     * home10.js used to set preload="auto" on all eight clips, so opening the
+     * page committed to ~16MB before the reader scrolled once. It now preloads
+     * metadata only and buffers the current clip plus the next as you walk, so
+     * a phone fetches what it is about to watch and nothing more. That removed
+     * the actual objection, so the gate came off.
+     *
+     * What is still checked:
+     *
      *   no-preference motion  a filmed walk is motion; honour the preference
-     *   not coarse pointer    the walk is scroll-driven
-     *   not Save-Data         home10.js sets preload="auto" on all eight clips,
-     *                         so entering this page commits to roughly 16MB.
-     *                         Serving that to someone who has explicitly asked
-     *                         their browser to conserve data is indefensible,
-     *                         and the flat fallback costs them nothing.
+     *   not Save-Data         an explicit "conserve data" request. The flat
+     *                         fallback is the whole page minus the video.
+     *   not 2g               effectiveType 2g/slow-2g will not stream 1280x720
+     *                         faster than it can be watched, so the walk would
+     *                         be a slideshow of stalls. Better to skip it and
+     *                         serve the readable page immediately.
      *
      * Any gate failing is non-fatal: the stylesheets are already loaded and the
      * flat stacked page is what remains. home10.js's own init() also returns
@@ -102,11 +111,10 @@ if (!function_exists('cb_home10_gate')) {
         <script id="cb-home10-gate">
         (function () {
           try {
-            var ok = window.matchMedia('(min-width: 1025px)').matches
-                  && window.matchMedia('(prefers-reduced-motion: no-preference)').matches
-                  && !window.matchMedia('(pointer: coarse)').matches;
+            var ok = window.matchMedia('(prefers-reduced-motion: no-preference)').matches;
             var c = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
             if (c && c.saveData) { ok = false; }
+            if (c && /(^|\b)(slow-)?2g$/.test(c.effectiveType || '')) { ok = false; }
             if (!ok) { return; }
             var s = document.createElement('script');
             s.src = '<?php echo $eng; ?>';
