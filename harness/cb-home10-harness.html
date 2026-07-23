@@ -1,190 +1,81 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>CB Home 9 -- The House harness</title>
+<title>CB Home 10 -- The House, filmed</title>
 
-<!--
-  GENERATED FILE -- do not hand-edit.
-    Source : theme/template-parts/home9-house-scenes.php
-    Rebuild: php harness/build-harness.php 9
-
-  Standalone harness for the CB Home 9 -- The House harness engine. Open directly: no
-  build, no server, no WordPress. The markup below IS the shipping partial, with
-  WordPress stubbed and the two live shortcodes ([cb_listings],
-  [cb_testimonials]) swapped for static stand-ins.
-
-  Capture mode (deterministic headless screenshots):
-    cb-home8-harness.html?cb_capture=1&cb_progress=0.50
-  freezes time at 2.0s, zeroes the mouse, snaps the camera (no lerp), synthesises
-  scroll from the target progress, renders 3 frames, then sets window.__cbReady
-  and document.title = CB_READY.
-
-    msedge --headless=new --use-gl=angle --use-angle=swiftshader
-           --enable-unsafe-swiftshader --ignore-gpu-blocklist
-           --allow-file-access-from-files --disable-web-security --no-sandbox
-           --screenshot=out.png --window-size=1440,900 "<file url>"
-
-  --allow-file-access-from-files is not optional: bakeMonogram() draws an SVG into
-  a canvas and uploads it as a texture, which taints the canvas under file:// and
-  throws. home8.js try/catches it, so the corridor still runs -- you just lose the
-  monogram signage.
--->
-
+<!-- cb-home9.css supplies the component styling INSIDE each panel. Its floating
+     layout is all nested under html.cb9-on, which this page never sets, so what
+     we inherit is only the flat component look. -->
 <link rel="stylesheet" href="../theme/assets/css/cb-home9.css">
-
+<link rel="stylesheet" href="../theme/assets/css/cb-home10.css">
 <style>
-  /* Minimal stand-in for cb-legacy-style: only the tokens cb-home8.css consumes.
-     Values from theme/BRAND.md. Google Fonts are not fetched (offline harness),
-     so the fallback chain renders -- metrics differ slightly from production. */
-  :root {
-    --cb-blue: #012169;
-    --cb-smoky-gray: #58718D;
-    --cb-midnight: #0A1730;
-    --cb-slate: #1B3C55;
-    --cb-mist: #BECAD7;
-    --cb-tide: #B8CFEA;
-    --cb-glacier: #DAE1E8;
-    --cb-icy-blue: #F0F5FB;
-    --cb-bright-blue: #1F69FF;
-    --cb-celestial: #418FDE;
-    --cb-white: #fff;
-    /* Home 9 set decoration -- deliberately NOT brand tokens. Gold and cream are
-       CONTRACT.md's two WebGL-only values; the woods are new to Home 9. */
-    --cb-gold: #C9A84C;
-    --cb-cream: #F0EBE0;
-    --cb-walnut: #2B1A10;
-    --font-heading: 'Familjen Grotesk', 'Segoe UI', system-ui, sans-serif;
-    --font-subheader: 'Josefin Sans', 'Segoe UI', system-ui, sans-serif;
-    --font-body: Roboto, 'Segoe UI', system-ui, sans-serif;
-    --font-accent: 'EB Garamond', Georgia, serif;
-  }
-  * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
-  body { font-family: var(--font-body); background: radial-gradient(130% 115% at 50% -8%, #3a2517 0%, #2b1a10 34%, #20140c 62%, #150c07 100%) fixed; color: var(--cb-cream); }
+  body { background: #0a1730; color: #f4f1ea;
+         font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+  .h-badge { position: fixed; left: 12px; bottom: 12px; z-index: 9;
+             font: 600 11px/1 system-ui, sans-serif; letter-spacing: .08em;
+             text-transform: uppercase; color: #f0ebe0;
+             background: rgba(10,23,48,.8); border: 1px solid rgba(240,235,224,.25);
+             padding: 7px 10px; border-radius: 5px; }
+  .h-mark { position: fixed; left: 18px; top: 16px; z-index: 9;
+            font: 700 15px/1 system-ui, sans-serif; letter-spacing: .12em;
+            text-transform: uppercase; color: #fff; opacity: .92; }
 
-  .cb-btn {
-    display: inline-block; padding: .75rem 1.4rem; border-radius: 10px;
-    font-family: var(--font-subheader); font-size: .8rem; font-weight: 600;
-    letter-spacing: .08em; text-transform: uppercase; text-decoration: none;
-    border: 1px solid transparent; cursor: pointer;
-  }
-  .cb-btn--primary { background: var(--cb-gold); color: #fff; }
-  .cb-btn--primary:hover { background: #1257e0; }
-  .cb-btn--outline { background: transparent; color: #fff; border-color: rgba(255,255,255,.45); }
-  .cb-btn--outline:hover { border-color: #fff; }
-  .cb-btn--lg { padding: .9rem 1.8rem; font-size: .86rem; }
-
-  /* Header/footer stubs so the z-index and overlay rules have something real. */
-  .cb-header {
-    position: fixed; top: 0; left: 0; right: 0; height: 68px; z-index: 20;
-    display: flex; align-items: center; padding: 0 1.5rem;
-    border-bottom: 1px solid transparent;
-  }
-  .cb-header__logo-img { height: 30px; filter: brightness(0) invert(1); }
-  .cb-footer { padding: 2.5rem 1.5rem; text-align: center; color: rgba(255,255,255,.6); font-size: .8rem; }
-
-  /* Stand-in for [cb_listings]. */
+/* ---- lifted from the Home 9 harness: styling for the shortcode stand-ins --
+   These classes come out of build-harness.php's do_shortcode() stub and are
+   styled nowhere else. Regenerated with the panels, so they cannot drift. */
+/* Stand-in for [cb_listings]. */
   .h-listing { border-radius: 10px; overflow: hidden; background: rgba(12,30,72,.55); border: 1px solid rgba(184,207,234,.16); }
-  .h-listing__img {
+.h-listing__img {
     aspect-ratio: 16/11; position: relative; overflow: hidden;
     background: linear-gradient(150deg, #1b4794, #08163a);   /* shows through until the photo decodes */
   }
-  .h-listing__img img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .h-listing__img::after {
+.h-listing__img img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.h-listing__img::after {
     content: attr(data-tag); position: absolute; z-index: 1; left: .5rem; top: .5rem;
     background: var(--cb-gold); color: #fff; font-size: .58rem; font-weight: 700;
     letter-spacing: .08em; text-transform: uppercase; padding: .18rem .45rem; border-radius: 4px;
   }
-  .h-listing__body { padding: .7rem; }
-  .h-listing__price { font-family: var(--font-heading); font-weight: 700; font-size: 1rem; color: #fff; }
-  .h-listing__addr { font-size: .76rem; color: rgba(255,255,255,.7); margin-top: .15rem; }
-  .h-listing__meta { font-size: .68rem; color: var(--cb-gold); margin-top: .4rem; letter-spacing: .04em; }
-
-  /* Stand-in for [cb_testimonials type="rotator"]. */
+.h-listing__body { padding: .7rem; }
+.h-listing__price { font-family: var(--font-heading); font-weight: 700; font-size: 1rem; color: #fff; }
+.h-listing__addr { font-size: .76rem; color: rgba(255,255,255,.7); margin-top: .15rem; }
+.h-listing__meta { font-size: .68rem; color: var(--cb-gold); margin-top: .4rem; letter-spacing: .04em; }
+/* Stand-in for [cb_testimonials type="rotator"]. */
   .h-quote { color: #fff; margin: 0; }
-  .h-quote__stars { color: #C9A84C; letter-spacing: .15em; }
-  .h-quote__text { font-family: var(--font-accent); font-style: italic; font-size: 1rem; line-height: 1.5; margin: .5rem 0 .4rem; }
-  .h-quote__who { font-size: .74rem; color: var(--cb-gold); letter-spacing: .06em; text-transform: uppercase; }
-
-  /* Harness-only badge so a screenshot is never mistaken for the real page. */
-  .h-badge {
-    position: fixed; left: 10px; bottom: 10px; z-index: 60;
-    font: 600 10px/1 var(--font-subheader); letter-spacing: .12em; text-transform: uppercase;
-    color: rgba(255,255,255,.55); background: rgba(4,12,38,.7);
-    border: 1px solid rgba(184,207,234,.25); border-radius: 5px; padding: .35rem .5rem;
-    pointer-events: none;
-  }
+.h-quote__stars { color: #C9A84C; letter-spacing: .15em; }
+.h-quote__text { font-family: var(--font-accent); font-style: italic; font-size: 1rem; line-height: 1.5; margin: .5rem 0 .4rem; }
+.h-quote__who { font-size: .74rem; color: var(--cb-gold); letter-spacing: .06em; text-transform: uppercase; }
 </style>
 </head>
-<body class="cb-page--home cb-page--home9-preview">
+<body>
 
-<header class="cb-header">
-  <img class="cb-header__logo-img" src="../theme/assets/images/logos/monogram-horizontal.svg" alt="Coldwell Banker Legacy">
-</header>
-﻿
-<div class="cb9-stage" id="cb9-stage">
+<div class="h-mark">Coldwell Banker</div>
+<div class="h-badge">Home 10 harness &mdash; filmed</div>
 
-    <canvas id="cb9-canvas" aria-hidden="true"></canvas>
-    <div class="cb9-vignette" aria-hidden="true"></div>
+<!-- The world. home10.js fills this with one <video> per section. -->
+<div class="cb10-stage" id="cb10-stage" aria-hidden="true"></div>
 
-    <nav class="cb9-nav" aria-label="Page sections">
-                    <button class="cb9-nav__dot is-active"
-                    data-cb9-to="0" type="button">
-                <span class="cb9-nav__label">Arrival</span>
-            </button>
-                    <button class="cb9-nav__dot"
-                    data-cb9-to="1" type="button">
-                <span class="cb9-nav__label">Welcome</span>
-            </button>
-                    <button class="cb9-nav__dot"
-                    data-cb9-to="2" type="button">
-                <span class="cb9-nav__label">Listings</span>
-            </button>
-                    <button class="cb9-nav__dot"
-                    data-cb9-to="3" type="button">
-                <span class="cb9-nav__label">Legacy</span>
-            </button>
-                    <button class="cb9-nav__dot"
-                    data-cb9-to="4" type="button">
-                <span class="cb9-nav__label">Buy</span>
-            </button>
-                    <button class="cb9-nav__dot"
-                    data-cb9-to="5" type="button">
-                <span class="cb9-nav__label">Communities</span>
-            </button>
-                    <button class="cb9-nav__dot"
-                    data-cb9-to="6" type="button">
-                <span class="cb9-nav__label">Sell</span>
-            </button>
-                    <button class="cb9-nav__dot"
-                    data-cb9-to="7" type="button">
-                <span class="cb9-nav__label">Connect</span>
-            </button>
-            </nav>
+<!-- The only thing making the document tall; height is set from JS. -->
+<div id="cb10-spacer"></div>
 
-    <!-- SPACERS. Empty by design. Their heights are authored constants
-         (cb-home8.css) with no relationship to content length -- that is what
-         buys zero layout reads per frame. Inner scrollers absorb length. -->
-    <div class="cb9-scenes">
-        <section class="cb9-section cb9-section--hero" data-cb9-section="0" aria-hidden="true"></section>
-        <section class="cb9-section" data-cb9-section="1" aria-hidden="true"></section>
-        <section class="cb9-section" data-cb9-section="2" aria-hidden="true"></section>
-        <section class="cb9-section" data-cb9-section="3" aria-hidden="true"></section>
-        <section class="cb9-section" data-cb9-section="4" aria-hidden="true"></section>
-        <section class="cb9-section" data-cb9-section="5" aria-hidden="true"></section>
-        <section class="cb9-section" data-cb9-section="6" aria-hidden="true"></section>
-        <section class="cb9-section" data-cb9-section="7" aria-hidden="true"></section>
-    </div>
+<nav class="cb10-nav" aria-label="Rooms">
+      <button class="cb10-nav__dot is-active" data-cb10-to="0" type="button" aria-label="Arrival"></button>
+      <button class="cb10-nav__dot" data-cb10-to="1" type="button" aria-label="Welcome"></button>
+      <button class="cb10-nav__dot" data-cb10-to="2" type="button" aria-label="Listings"></button>
+      <button class="cb10-nav__dot" data-cb10-to="3" type="button" aria-label="Legacy"></button>
+      <button class="cb10-nav__dot" data-cb10-to="4" type="button" aria-label="Front door"></button>
+      <button class="cb10-nav__dot" data-cb10-to="5" type="button" aria-label="Communities"></button>
+      <button class="cb10-nav__dot" data-cb10-to="6" type="button" aria-label="Value"></button>
+      <button class="cb10-nav__dot" data-cb10-to="7" type="button" aria-label="Connect"></button>
+</nav>
 
-    <div class="cb9-pages">
-
-        <!-- 0 -- ARRIVAL ------------------------------------------------ -->
-        <section class="cb9-page" data-cb9-page="0" id="cb9-arrival" aria-label="Welcome">
+<div class="cb10-pages">
+<section class="cb10-page" data-cb10-page="0" data-cb9-page="0" id="cb9-arrival" aria-label="Welcome">
             <div class="cb9-page__float">
                 <div class="cb9-page__skin">
-                    <img class="cb9-page__plate" src="../theme/assets/images/webgl/01-arrival.jpg" alt="" aria-hidden="true" decoding="async" fetchpriority="high">                    <div class="cb9-page__scroll" tabindex="0">
+                                        <div class="cb9-page__scroll" tabindex="0">
                         <div class="cb9-page__inner">
                             <div class="cb9-lod">
                                 <div class="cb9-card cb9-card--chip" data-cb9-card style="--fl-dur:8.5s;--fl-delay:0s;--fl-y:10px;--fl-rot:0.6deg">
@@ -216,11 +107,10 @@
             </div>
         </section>
 
-        <!-- 1 -- WELCOME / QUICK ACTIONS -------------------------------- -->
-        <section class="cb9-page" data-cb9-page="1" id="cb9-welcome" aria-label="How can we help">
+<section class="cb10-page" data-cb10-page="1" data-cb9-page="1" id="cb9-welcome" aria-label="How can we help">
             <div class="cb9-page__float">
                 <div class="cb9-page__skin">
-                    <img class="cb9-page__plate" src="../theme/assets/images/webgl/02-welcome.jpg" alt="" aria-hidden="true" decoding="async">                    <div class="cb9-page__scroll" tabindex="0">
+                                        <div class="cb9-page__scroll" tabindex="0">
                         <div class="cb9-page__inner">
                             <div class="cb9-lod">
                                 <div class="cb9-card cb9-card--head" data-cb9-card style="--fl-dur:7.8s;--fl-delay:-5.6s;--fl-y:12px;--fl-rot:0.9deg">
@@ -269,11 +159,10 @@
             </div>
         </section>
 
-        <!-- 2 -- FEATURED LISTINGS (live MLS) --------------------------- -->
-        <section class="cb9-page" data-cb9-page="2" id="cb9-listings" aria-label="Featured listings">
+<section class="cb10-page" data-cb10-page="2" data-cb9-page="2" id="cb9-listings" aria-label="Featured listings">
             <div class="cb9-page__float">
                 <div class="cb9-page__skin">
-                    <img class="cb9-page__plate" src="../theme/assets/images/webgl/03-listings.jpg" alt="" aria-hidden="true" decoding="async">                    <div class="cb9-page__scroll" tabindex="0">
+                                        <div class="cb9-page__scroll" tabindex="0">
                         <div class="cb9-page__inner">
                             <div class="cb9-lod">
                                 <div class="cb9-card cb9-card--head" data-cb9-card style="--fl-dur:10s;--fl-delay:-2.3s;--fl-y:14px;--fl-rot:-0.8deg">
@@ -301,11 +190,10 @@
             </div>
         </section>
 
-        <!-- 3 -- LEGACY / STATS ----------------------------------------- -->
-        <section class="cb9-page" data-cb9-page="3" id="cb9-legacy" aria-label="Our track record">
+<section class="cb10-page" data-cb10-page="3" data-cb9-page="3" id="cb9-legacy" aria-label="Our track record">
             <div class="cb9-page__float">
                 <div class="cb9-page__skin">
-                    <img class="cb9-page__plate" src="../theme/assets/images/webgl/04-legacy.jpg" alt="" aria-hidden="true" decoding="async">                    <div class="cb9-page__scroll" tabindex="0">
+                                        <div class="cb9-page__scroll" tabindex="0">
                         <div class="cb9-page__inner">
                             <div class="cb9-lod">
                                 <div class="cb9-card cb9-card--head" data-cb9-card style="--fl-dur:7.8s;--fl-delay:-5.6s;--fl-y:12px;--fl-rot:0.9deg">
@@ -349,11 +237,10 @@
             </div>
         </section>
 
-        <!-- 4 -- BUYERS ------------------------------------------------- -->
-        <section class="cb9-page" data-cb9-page="4" id="cb9-buy" aria-label="Browse homes">
+<section class="cb10-page" data-cb10-page="4" data-cb9-page="4" id="cb9-buy" aria-label="Browse homes">
             <div class="cb9-page__float">
                 <div class="cb9-page__skin">
-                    <img class="cb9-page__plate" src="../theme/assets/images/webgl/05-door.jpg" alt="" aria-hidden="true" decoding="async">                    <div class="cb9-page__scroll" tabindex="0">
+                                        <div class="cb9-page__scroll" tabindex="0">
                         <div class="cb9-page__inner">
                             <div class="cb9-lod">
                                 <div class="cb9-card cb9-card--head" data-cb9-card style="--fl-dur:10s;--fl-delay:-2.3s;--fl-y:14px;--fl-rot:-0.8deg">
@@ -377,11 +264,10 @@
             </div>
         </section>
 
-        <!-- 5 -- COMMUNITIES -------------------------------------------- -->
-        <section class="cb9-page" data-cb9-page="5" id="cb9-communities" aria-label="Featured communities">
+<section class="cb10-page" data-cb10-page="5" data-cb9-page="5" id="cb9-communities" aria-label="Featured communities">
             <div class="cb9-page__float">
                 <div class="cb9-page__skin">
-                    <img class="cb9-page__plate" src="../theme/assets/images/webgl/06-communities-lake.webp" alt="" aria-hidden="true" decoding="async">                    <div class="cb9-page__scroll" tabindex="0">
+                                        <div class="cb9-page__scroll" tabindex="0">
                         <div class="cb9-page__inner">
                             <div class="cb9-lod">
                                 <div class="cb9-card cb9-card--head" data-cb9-card style="--fl-dur:11.5s;--fl-delay:-1.2s;--fl-y:16px;--fl-rot:-0.5deg">
@@ -466,11 +352,10 @@
             </div>
         </section>
 
-        <!-- 6 -- SELLERS + PROPERTY WATCH ------------------------------- -->
-        <section class="cb9-page" data-cb9-page="6" id="cb9-sell" aria-label="Sell your home">
+<section class="cb10-page" data-cb10-page="6" data-cb9-page="6" id="cb9-sell" aria-label="Sell your home">
             <div class="cb9-page__float">
                 <div class="cb9-page__skin">
-                    <img class="cb9-page__plate" src="../theme/assets/images/webgl/07-value.jpg" alt="" aria-hidden="true" decoding="async">                    <div class="cb9-page__scroll" tabindex="0">
+                                        <div class="cb9-page__scroll" tabindex="0">
                         <div class="cb9-page__inner">
                             <div class="cb9-lod">
                                 <div class="cb9-card cb9-card--head" data-cb9-card style="--fl-dur:11.5s;--fl-delay:-1.2s;--fl-y:16px;--fl-rot:-0.5deg">
@@ -507,11 +392,10 @@
             </div>
         </section>
 
-        <!-- 7 -- TESTIMONIALS + BLOG + BRAND CLOSE ---------------------- -->
-        <section class="cb9-page" data-cb9-page="7" id="cb9-connect" aria-label="Reviews and stories">
+<section class="cb10-page" data-cb10-page="7" data-cb9-page="7" id="cb9-connect" aria-label="Reviews and stories">
             <div class="cb9-page__float">
                 <div class="cb9-page__skin">
-                    <img class="cb9-page__plate" src="../theme/assets/images/webgl/08-connect.jpg" alt="" aria-hidden="true" decoding="async">                    <div class="cb9-page__scroll" tabindex="0">
+                                        <div class="cb9-page__scroll" tabindex="0">
                         <div class="cb9-page__inner">
                             <div class="cb9-lod">
                                 <div class="cb9-card cb9-card--head" data-cb9-card style="--fl-dur:9.8s;--fl-delay:-6.2s;--fl-y:15px;--fl-rot:0.4deg">
@@ -588,69 +472,25 @@
                 </div>
             </div>
         </section>
+</div>
 
-    </div><!-- /.cb9-pages -->
-
-        <aside class="cb9-credits" aria-label="Photography credits">
-        <p>
-            San&nbsp;Angelo landmark photography &mdash;
-            <a href="https://commons.wikimedia.org/wiki/File:San_Angelo_September_2019_64_(skyline).jpg" rel="nofollow noopener" target="_blank">Downtown&nbsp;Skyline</a>,
-            <a href="https://commons.wikimedia.org/wiki/File:San_Angelo_September_2019_31_(Hilton_Hotel).jpg" rel="nofollow noopener" target="_blank">Cactus&nbsp;Hotel</a>,
-            <a href="https://commons.wikimedia.org/wiki/File:San_Angelo_September_2019_36_(E_Concho_Avenue).jpg" rel="nofollow noopener" target="_blank">E.&nbsp;Concho&nbsp;Avenue</a>,
-            <a href="https://commons.wikimedia.org/wiki/File:San_Angelo_September_2019_66_(Concho_River).jpg" rel="nofollow noopener" target="_blank">Concho&nbsp;River</a> &amp;
-            <a href="https://commons.wikimedia.org/wiki/File:San_Angelo_September_2019_27_(Cathedral_Church_of_the_Sacred_Heart)_-_cropped.jpg" rel="nofollow noopener" target="_blank">Sacred&nbsp;Heart&nbsp;Cathedral</a>
-            by Michael&nbsp;Barera, licensed under
-            <a href="https://creativecommons.org/licenses/by-sa/4.0/" rel="license nofollow noopener" target="_blank">CC&nbsp;BY-SA&nbsp;4.0</a>.
-            <a href="https://commons.wikimedia.org/wiki/File:Mason-Hughes_House_San_Angelo_Texas_2019.jpg" rel="nofollow noopener" target="_blank">Mason-Hughes&nbsp;House</a>
-            by Larry&nbsp;D.&nbsp;Moore, licensed under
-            <a href="https://creativecommons.org/licenses/by/4.0/" rel="license nofollow noopener" target="_blank">CC&nbsp;BY&nbsp;4.0</a>.
-        </p>
-    </aside>
-</div><!-- /.cb9-stage -->
-
-
-<footer class="cb-footer">
-  Coldwell Banker Legacy &middot; harness build &middot; not a live page
-</footer>
-
-<div class="h-badge">Home 9 harness</div>
-
-<!-- Load order is a hard contract (CONTRACT.md): three -> cursor -> motion -> engine.
-     Motion is optional; the engine falls back to CSS keyframes + rAF counters. -->
-<script src="../theme/assets/js/vendor/three.min.js"></script>
-<script src="../theme/assets/js/vendor/GLTFLoader.js"></script>
-<script src="../theme/assets/js/cb-webgl/cursor.js"></script>
-<script src="../theme/assets/js/vendor/motion.js"></script>
-<script src="../theme/assets/js/cb-home9/home9.js"></script>
+<script src="../theme/assets/js/cb-home10/home10.js"></script>
 <script>
 (function () {
-  // Mirrors the variant's deploy/ loader gate, so the harness tests the same
-  // three conditions the real page ships with. Capture mode bypasses it: a
-  // headless window passes anyway, but an explicit bypass means a failed
-  // screenshot is never silently a gate problem.
   var cap = /[?&]cb_capture=(1|true)/.test(location.search);
   var ok = cap;
-  try {
-    if (!ok) {
-      ok = window.matchMedia('(prefers-reduced-motion: no-preference)').matches;
-    }
-  } catch (e) { ok = false; }
-
+  try { if (!ok) { ok = window.matchMedia('(prefers-reduced-motion: no-preference)').matches; } }
+  catch (e) { ok = false; }
   if (!ok) {
-    if (window.console) { console.info('[cb9 harness] gated off -- showing the flat fallback. Correct below 1025px, on touch, or with reduced-motion.'); }
+    if (window.console) { console.info('[cb10 harness] gated off -- flat fallback (reduced motion).'); }
     return;
   }
-  if (!window.CBHome9) {
-    if (window.console) { console.error('[cb9 harness] engine did not load.'); }
-    return;
-  }
-  window.CBHome9.init({
-    canvas: '#cb9-canvas',
-    basePath: '../theme/assets/images/webgl/',
-    monogram: '../theme/assets/images/logos/monogram.svg',
-    monogramStacked: '../theme/assets/images/logos/monogram-vertical-stacked.svg'
+  if (!window.CBHome10) { if (window.console) { console.error('[cb10 harness] engine did not load.'); } return; }
+  window.CBHome10.init({
+    stage: '#cb10-stage',
+    basePath: '../theme/assets/'
   });
-})();
+}());
 </script>
 </body>
 </html>

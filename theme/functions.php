@@ -1053,7 +1053,12 @@ function cb_get_stats() {
     $stats = [
         'homes_sold'  => get_option('cb_homes_sold', '1200'),
         'agents'      => wp_count_posts('cb_agent')->publish ?: '30',
-        'years'       => get_option('cb_years_serving', '25'),
+        // NOTE: get_option, but the Customizer writes cb_years_serving as a
+        // THEME MOD -- so editing it in the Customizer never reaches this
+        // endpoint and it falls through to the default. Same for cb_homes_sold
+        // above. Left as-is rather than silently changing what the REST stats
+        // endpoint returns; flagged separately.
+        'years'       => get_option('cb_years_serving', '35'),
         'communities' => wp_count_posts('cb_community')->publish ?: '20',
     ];
 
@@ -1146,8 +1151,12 @@ function cb_customize_register($wp_customize) {
         'type'    => 'text',
     ]);
 
+    // 35, not 25. Coldwell Banker Legacy's own San Angelo office page says "For
+    // over 35 years we have had the privilege of providing value-based real
+    // estate services". 25 also contradicted the "Since 2000" eyebrow it shipped
+    // beside (2026 - 2000 = 26). Confirmed correct by the client.
     $wp_customize->add_setting('cb_years_serving', [
-        'default'           => '25',
+        'default'           => '35',
         'sanitize_callback' => 'sanitize_text_field',
     ]);
 

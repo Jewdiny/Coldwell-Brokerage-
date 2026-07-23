@@ -222,7 +222,11 @@ $cb_scene_nav = [
         <section class="cb-scene cb-scene--legacy cb-scene--dark" data-scene="3" id="scene-legacy" aria-label="Our track record">
             <div class="cb-scene__inner cb-container">
                 <div class="cb-scene__head">
-                    <span class="cb-eyebrow cb-eyebrow--light cb-scene__reveal">Since 2000</span>
+                    <?php // Their own office page wording. "Since 2000" was wrong -- the
+                          // brokerage predates it by a wide margin (third-party listings
+                          // give 1980). Kept as a phrase rather than a year because the
+                          // sources disagree on the year but agree on "over 35". ?>
+                    <span class="cb-eyebrow cb-eyebrow--light cb-scene__reveal">Serving the Concho Valley for over 35 years</span>
                     <h2 class="cb-scene__title cb-scene__title--light cb-scene__reveal">A legacy of results in the Concho&nbsp;Valley.</h2>
                 </div>
 
@@ -236,7 +240,7 @@ $cb_scene_nav = [
                         <div class="cb-stat__label">Expert Agents</div>
                     </div>
                     <div class="cb-stat cb-scene__reveal">
-                        <div class="cb-stat__number" data-count="<?php echo esc_attr(get_theme_mod('cb_years_serving', '25')); ?>">0</div>
+                        <div class="cb-stat__number" data-count="<?php echo esc_attr(get_theme_mod('cb_years_serving', '35')); ?>">0</div>
                         <div class="cb-stat__label">Years Serving San Angelo</div>
                     </div>
                     <div class="cb-stat cb-scene__reveal">

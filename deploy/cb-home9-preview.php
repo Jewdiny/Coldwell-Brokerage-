@@ -27,7 +27,7 @@ if (!function_exists('cb_home9_enqueue')) {
         // html.cb9-on, which only home9.js adds.
         wp_enqueue_style('cb-home9', $uri . '/assets/css/cb-home9.css', ['cb-legacy-style'], $ver);
 
-        // NOTE: three.min.js, motion.js, cursor.js and home9.js are deliberately
+        // NOTE: three.min.js, GLTFLoader.js, motion.js, cursor.js and home9.js are deliberately
         // NOT enqueued here. PHP cannot see the viewport, so wp_enqueue_script
         // would make every phone download ~290kB gzipped of Three + Motion for a
         // house that is gated off below 1025px anyway. cb_home9_gate() injects
@@ -39,7 +39,7 @@ if (!function_exists('cb_home9_enqueue')) {
 if (!function_exists('cb_home9_gate')) {
     /**
      * Client-side asset gate. Loads the engine only on desktop + fine pointer +
-     * motion-OK, in strict order (Three -> cursor -> Motion -> engine), then
+     * motion-OK, in strict order (Three -> GLTFLoader -> cursor -> Motion -> engine), then
      * inits. Any asset failing is non-fatal: home9.js treats Motion as optional
      * and, with no Three, init() returns false and the flat layout stands.
      */
@@ -48,6 +48,11 @@ if (!function_exists('cb_home9_gate')) {
         $uri   = get_template_directory_uri();
         $ver   = (defined('CB_THEME_VERSION') ? CB_THEME_VERSION : '1.1.0') . '-h1';
         $three = esc_js($uri . '/assets/js/vendor/three.min.js?ver=0.160.0');
+        // Attaches THREE.GLTFLoader, so it must follow three. Optional: it feeds
+        // the hearth armchairs only, and home9.js keeps its box proxies without it
+        // -- which is also why the gate's existing onerror-and-continue is correct
+        // here rather than fatal.
+        $gltf  = esc_js($uri . '/assets/js/vendor/GLTFLoader.js?ver=0.160.0');
         $curs  = esc_js($uri . '/assets/js/cb-webgl/cursor.js?ver=' . $ver);
         $motio = esc_js($uri . '/assets/js/vendor/motion.js?ver=12.42.2');
         $eng   = esc_js($uri . '/assets/js/cb-home9/home9.js?ver=' . $ver);
@@ -64,7 +69,7 @@ if (!function_exists('cb_home9_gate')) {
                   && window.matchMedia('(prefers-reduced-motion: no-preference)').matches
                   && !window.matchMedia('(pointer: coarse)').matches;
             if (!ok) { return; }
-            var urls = ['<?php echo $three; ?>', '<?php echo $curs; ?>', '<?php echo $motio; ?>', '<?php echo $eng; ?>'];
+            var urls = ['<?php echo $three; ?>', '<?php echo $gltf; ?>', '<?php echo $curs; ?>', '<?php echo $motio; ?>', '<?php echo $eng; ?>'];
             (function next(i) {
               if (i >= urls.length) {
                 if (window.CBHome9) {

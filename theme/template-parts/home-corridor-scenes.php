@@ -165,7 +165,7 @@ $cb_corridor_nav = [
             <div class="cb-corridor-section__inner">
                 <div class="cb-corridor-card cb-corridor-card--head" data-corridor <?php echo $cb_float(); ?>>
                     <div class="cb-corridor-card__inner">
-                        <span class="cb-corridor-eyebrow">Since 2000</span>
+                        <span class="cb-corridor-eyebrow">Serving the Concho Valley for over 35 years</span>
                         <h2 class="cb-corridor-h2">A legacy of results in the Concho&nbsp;Valley.</h2>
                     </div>
                 </div>
@@ -184,7 +184,7 @@ $cb_corridor_nav = [
                     </div>
                     <div class="cb-corridor-card cb-corridor-card--stat" data-corridor <?php echo $cb_float(); ?>>
                         <div class="cb-corridor-card__inner">
-                            <div class="cb-corridor-stat__num" data-count="<?php echo esc_attr(get_theme_mod('cb_years_serving', '25')); ?>">0</div>
+                            <div class="cb-corridor-stat__num" data-count="<?php echo esc_attr(get_theme_mod('cb_years_serving', '35')); ?>">0</div>
                             <div class="cb-corridor-stat__label">Years Serving San Angelo</div>
                         </div>
                     </div>

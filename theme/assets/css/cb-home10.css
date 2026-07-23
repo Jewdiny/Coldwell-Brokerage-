@@ -1,0 +1,178 @@
+/* =========================================================================
+   cb-home10.css -- "THE HOUSE", filmed (Home 10 preview)
+
+   POLARITY, as in Home 9: the FLAT layout is the default and every fixed-stage
+   rule is nested under html.cb10-on, which home10.js only adds once the stage
+   is built. So no-JS, reduced-motion and an outright failure all land on a
+   perfectly ordinary stacked page instead of on eight panels piled on top of
+   each other at opacity 0.
+   ========================================================================= */
+
+:root {
+  --cb10-navy: #1f3055;
+  --cb10-ink: #f4f1ea;
+  --cb10-gold: #c9a84c;
+  --cb10-cream: #f0ebe0;
+}
+
+/* ---- flat fallback (the default) ---------------------------------------- */
+.cb10-stage { display: none; }
+#cb10-spacer { display: none; }
+
+.cb10-page {
+  max-width: 62rem;
+  margin: 0 auto;
+  padding: 5rem 1.5rem;
+}
+
+.cb10-page__shot {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 10px;
+  margin-bottom: 2rem;
+}
+
+/* ---- the walk ------------------------------------------------------------ */
+.cb10-on body { background: #0a1730; }
+
+/* The spacer is the ONLY thing making the document tall. Its height is set in
+   JS from the same constant the clock divides by, so the two can never drift --
+   a spacer sized in CSS and a clock sized in JS is how a walk ends up finishing
+   before, or after, the page does. */
+.cb10-on #cb10-spacer {
+  display: block;
+  width: 100%;
+  pointer-events: none;
+}
+
+.cb10-on .cb10-stage {
+  display: block;
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background: #0a1730;
+  overflow: hidden;
+}
+
+.cb10-frame {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  /* cover, so the 16:9 plates fill any viewport without letterboxing. The rooms
+     are framed with enough air that cropping the sides costs nothing. */
+  object-fit: cover;
+  opacity: 0;
+  /* Only ONE property is animated here and only between sections. The frame
+     underneath is identical (end_image pinning), so this fade exists purely to
+     cover the instant where one <video> element hands over to the next. */
+  transition: opacity .28s linear;
+  will-change: opacity;
+}
+.cb10-frame.is-on { opacity: 1; }
+
+/* A vignette + floor scrim, so white page text always has something to sit on
+   regardless of which room is behind it. Sits above the video, below the pages. */
+.cb10-on .cb10-stage::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 90% at 50% 38%, rgba(4,10,24,0) 42%, rgba(4,10,24,.55) 100%),
+    linear-gradient(to bottom, rgba(4,10,24,.30) 0%, rgba(4,10,24,0) 26%, rgba(4,10,24,0) 55%, rgba(4,10,24,.62) 100%);
+}
+
+/* ---- the pages ----------------------------------------------------------- */
+.cb10-on .cb10-pages {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.cb10-on .cb10-page {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: min(92vw, 60rem);
+  max-height: 82vh;
+  margin: 0;
+  padding: 0;
+  opacity: 0;
+  /* home10.js is the only writer of opacity. No transition here on purpose --
+     the fade is driven per-frame from the same clock as the picture, so a CSS
+     transition on top would fight it and lag the text behind the walk. */
+  will-change: opacity;
+}
+
+/* Home 9 hangs a photo behind every panel (.cb9-page__plate, one of the Home 2
+   plates). Home 10 already HAS a picture -- the room the reader is standing in
+   -- so the panel must not carry a second one. Without this the plate showed
+   straight through the translucent skin: a stone cottage hanging in the middle
+   of the entry hall, a lake in the middle of the corridor.
+   .cb10-page__shot is Home 10's own name for the same slot, kept for when a
+   panel is authored here rather than lifted. */
+.cb10-on .cb10-page__shot,
+.cb10-on .cb10-page .cb9-page__plate { display: none; }
+
+/* The panel markup is lifted verbatim from Home 9, so the inner wrapper is
+   still .cb9-page__skin. Both selectors are listed rather than renaming the
+   markup: cb-home9.css styles everything INSIDE that wrapper, and renaming
+   would mean re-authoring all of it here for no gain. */
+.cb10-on .cb10-page__skin,
+.cb10-on .cb10-page .cb9-page__skin {
+  overflow: auto;
+  max-height: 82vh;
+  padding: clamp(1.4rem, 3vw, 2.6rem);
+  border-radius: 14px;
+  background: rgba(10, 20, 42, .72);
+  -webkit-backdrop-filter: blur(14px) saturate(115%);
+  backdrop-filter: blur(14px) saturate(115%);
+  border: 1px solid rgba(240, 235, 224, .14);
+  box-shadow: 0 30px 80px -30px rgba(0, 0, 0, .8);
+  color: var(--cb10-ink);
+}
+
+/* ---- nav ----------------------------------------------------------------- */
+.cb10-nav {
+  position: fixed;
+  right: clamp(.75rem, 2vw, 1.6rem);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 5;
+  display: none;
+  flex-direction: column;
+  gap: .55rem;
+}
+.cb10-on .cb10-nav { display: flex; }
+
+.cb10-nav__dot {
+  width: 10px; height: 10px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid rgba(240, 235, 224, .5);
+  background: transparent;
+  cursor: pointer;
+  transition: background .2s, transform .2s, border-color .2s;
+}
+.cb10-nav__dot:hover { transform: scale(1.25); }
+.cb10-nav__dot.is-active {
+  background: var(--cb10-gold);
+  border-color: var(--cb10-gold);
+  transform: scale(1.3);
+}
+
+/* ---- reduced motion ------------------------------------------------------ */
+/* Not an override of the walk -- the walk is never switched on. cb10-static is
+   set instead of cb10-on, so this is just the flat page with the stills shown
+   at a comfortable size. */
+.cb10-static .cb10-stage,
+.cb10-static #cb10-spacer,
+.cb10-static .cb10-nav { display: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .cb10-frame { transition: none; }
+}

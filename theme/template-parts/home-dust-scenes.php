@@ -200,7 +200,7 @@ $cb_dust_nav = [
             <div class="cb-dust-section__inner">
                 <div class="cb-dust-card cb-dust-card--head" data-dust <?php echo $cb_float(); ?>>
                     <div class="cb-dust-card__inner">
-                        <span class="cb-dust-eyebrow">Since 2000</span>
+                        <span class="cb-dust-eyebrow">Serving the Concho Valley for over 35 years</span>
                         <h2 class="cb-dust-h2">A legacy of results in the Concho&nbsp;Valley.</h2>
                     </div>
                 </div>
@@ -220,7 +220,7 @@ $cb_dust_nav = [
                     </div>
                     <div class="cb-dust-card cb-dust-card--stat" data-dust <?php echo $cb_float(); ?>>
                         <div class="cb-dust-card__inner">
-                            <div class="cb-dust-stat__num" data-count="<?php echo esc_attr(get_theme_mod('cb_years_serving', '25')); ?>">0</div>
+                            <div class="cb-dust-stat__num" data-count="<?php echo esc_attr(get_theme_mod('cb_years_serving', '35')); ?>">0</div>
                             <div class="cb-dust-stat__label">Years Serving San Angelo</div>
                         </div>
                     </div>

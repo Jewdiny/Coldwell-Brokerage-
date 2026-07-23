@@ -78,6 +78,8 @@
    layout switch, not an override.
 
    Exposes window.CBHome9.init(opts). Requires window.THREE. window.Motion optional.
+   window.THREE.GLTFLoader is optional too: with it, the hearth's armchairs are a
+   generated mesh; without it they stay the box proxies they have always been.
    ========================================================================= */
 (function (window, document) {
   'use strict';
@@ -168,6 +170,32 @@
   // while the camera is still swinging rather than as the page settles.
   var U_BODY = -0.40;
 
+  // ---- the one piece of real furniture -------------------------------------
+  // Everything else in this house is a box or a plane, which is the right call for
+  // casings, counters and mantels -- rectangular things ARE rectangles. It is the
+  // wrong call for a club armchair, and the pair flanking the hearth were the two
+  // objects most obviously reading as "navy box on the floor".
+  //
+  // So those two, and ONLY those two, are a generated mesh. It is a pure
+  // enhancement in the same sense photoTex() is: no loader, no file, or a bad
+  // decode all leave the box proxies standing (see armchair()). Nothing about the
+  // walk depends on it.
+  var ARM_FILE = 'armchair.glb';
+  // Fitted by HEIGHT, not by footprint, because height is what the eye checks a
+  // chair against -- the mantel, the wainscot rail and the doorway are all near
+  // it. 2.4 puts the back just under the 2.8-high wainscot, which is where a club
+  // chair sits in a real room. The proxy it replaces is a 2.6 x 2.6 footprint, so
+  // a chair whose width lands far from 2.6 after scaling means the source mesh is
+  // proportioned wrong -- armchair() warns rather than silently placing it.
+  var ARM_H = 2.4;
+  // Generated meshes have no agreed "front". glTF is Y-up, but which way the chair
+  // faces is whatever the source image happened to show, so this is the one value
+  // to turn if the pair end up facing the wall. 0 assumes the model faces -Z,
+  // which is the three.js convention and what Meshy/Tripo emit for a front view.
+  var ARM_YAW0 = 0;
+  // A real pair by a fire is toed IN toward each other, not filed in parallel.
+  var ARM_TOE = 0.18;
+
   // Motes in lamplight, not stars in a nebula. Warm whites and brass rather than
   // Home 8's tide/bright-blue field -- dust catching the light in a lived-in room.
   var PAL = [
@@ -198,13 +226,34 @@
   var M_SLATE = 0x1b3c55;    // BRAND.md Slate       -- "mid-tone navy"
   var M_MIDNIGHT = 0x0a1730; // BRAND.md Midnight    -- "navy depth"
   // The wall navy. The TARGET -- the colour the walls should read as on screen --
-  // is #063970. This material value is deliberately brighter, because the plaster
-  // map and the room light multiply the colour DOWN before it reaches the eye:
-  // painting the literal #063970 sampled near-black. Tuned against capture pixel-
-  // samples under the current (linear) tone mapping until a representative lit wall
-  // reads ~rgb(8,57,112) -- i.e. #063970. Retune if the tone mapping, the plaster
-  // map, or the room lighting changes.
-  var M_WALLNAVY = 0x0e7dea;
+  // is now #1F3055, sampled off the reference hallway photograph. This material
+  // value is deliberately much brighter, because the plaster map and the room
+  // light multiply the colour DOWN before it reaches the eye: painting the literal
+  // target sampled near-black.
+  //
+  // RETUNED against the reference. The previous value (0x0e7dea) hit its own
+  // stated target of ~#063970 exactly -- a capture sampled rgb(4,53,107) -- so the
+  // old calibration was not broken. It was aimed at the wrong colour. #063970 is
+  // far more SATURATED than the reference navy: almost no red, and blue pushed to
+  // 107. The reference carries much more red (31) and less blue (85), which is
+  // what makes it read as a deep, slightly grey navy rather than a cobalt.
+  //
+  // Derived rather than guessed: from the capture, the render multiplies this
+  // material down by k ~= 0.175 in LINEAR space (measured on the G and B channels,
+  // where the sample is well above the quantisation floor). Solve for the material
+  // by taking the target into linear, dividing by k, and re-encoding to sRGB.
+  // Retune the same way if the tone mapping, the plaster map or the lighting
+  // changes -- capture, sample a lit wall, solve for k, re-encode.
+  //
+  // Deliberately LIFTED off the reference's literal rgb(31,48,85) to about
+  // rgb(52,68,104). Matching the photograph exactly is not the same as being
+  // comfortable to look at: the photo is a small still, and this is a large
+  // bright panel someone scrolls through for a while. Against white joinery the
+  // literal value put roughly 200 levels of luminance between the two biggest
+  // areas on screen, which is what made the corridor glare. Closing that range
+  // from both ends -- navy up, whites down -- keeps the scheme and drops the
+  // contrast. Same hue and saturation; only the level moved.
+  var M_WALLNAVY = 0x7a9ce6;
   var M_TRIM = 0xffffff;     // BRAND.md White       -- "whitespace-first foundation"
   var M_BRASS = 0xc9a84c;    // CONTRACT.md gold: CB Blue's complement
   var M_CREAM = 0xf0ebe0;    // CONTRACT.md cream
@@ -264,6 +313,7 @@
   var corridorAssembly = 0;
   var _artBase = '';   // where the framed scene plates are loaded from
   var _texBase = '';   // where the generated material samples live
+  var _modelBase = ''; // where the generated GLB furniture lives
   var _texLoader = null;
   var _fpsAcc = 0, _fpsN = 0, _degraded = false;
   var _v = null, _dir = null, _out = null, _pv = null, _mwi = null, _fwd = null;
@@ -382,6 +432,10 @@
   var MAT = {}, GEO = {}, houseGroup = null;
   var _lampLight = null, _handLight = null, _lampPts = [];
   var _sun = null;   // the shadow-casting directional; its frustum follows the camera
+  // Where the real armchairs go, and the box proxies currently standing in for
+  // them. Filled during the room build; drained by loadArmchair() if the mesh
+  // arrives. See armchair().
+  var _armSlots = [];
   // Textures that are still loading. Capture mode waits on this: it renders a
   // fixed handful of frames and stops, so a ~500kB scene plate that decodes on
   // frame 8 is simply never drawn and the shot comes back with empty frames on the
@@ -438,21 +492,101 @@
     return t;
   }
 
+  /**
+   * A cream-ground oriental runner with a blue medallion field.
+   *
+   * INVERTED from the first pass, which was a solid CB Blue ground with a cream
+   * border. That put the darkest object in the house on the floor you look
+   * straight down at, and read as a painted navy stripe down the hall. The
+   * reference is the other way round: a LIGHT rug carrying blue pattern, which is
+   * what lets the oak floor and the navy walls both breathe around it.
+   *
+   * Drawn as ONE TILE that repeats along the runner's length (see MAT.runner), so
+   * the motif has to work edge-to-edge in v. The lengthwise borders run up both
+   * sides of the tile and therefore join seamlessly into continuous guard stripes;
+   * the cross-bands and medallion repeat down the hall, which is exactly how a
+   * real runner is woven. 256px, not 128: at 128 the medallion tracery mushed
+   * together once it was stretched over several units of floor.
+   */
   function texRug() {
-    var c = document.createElement('canvas'); c.width = 128; c.height = 128;
-    var g = c.getContext('2d'), i;
-    // CB Blue ground, cream border, gold keyline -- the brand's own three values,
-    // in the one object you look straight down at in every room.
-    g.fillStyle = '#012169'; g.fillRect(0, 0, 128, 128);
-    g.strokeStyle = 'rgba(240,235,224,0.42)'; g.lineWidth = 3;
-    g.strokeRect(9, 9, 110, 110); g.strokeRect(19, 19, 90, 90);
-    g.strokeStyle = 'rgba(201,168,76,0.65)'; g.lineWidth = 2;
-    g.strokeRect(14, 14, 100, 100);
-    for (i = 0; i < 900; i++) {                      // pile
-      g.fillStyle = 'rgba(0,0,0,' + rand(0.02, 0.09).toFixed(3) + ')';
-      g.fillRect(rand(0, 128), rand(0, 128), 2, 2);
+    var S = 256;
+    var c = document.createElement('canvas'); c.width = S; c.height = S;
+    var g = c.getContext('2d'), i, j;
+
+    // The pattern navy is deliberately softer than the WALL navy. A rug drawn in
+    // the true dark navy put maximum contrast on the one surface directly under
+    // the reading pages, and the medallions buzzed as they receded down the hall.
+    // Muted, the runner still reads as blue-on-cream but stops competing.
+    // RUST joins the blue. The reference rug is not blue-on-cream, it is a faded
+    // Persian carrying blue AND terracotta on an oatmeal ground, and the warm
+    // thread is what keeps a room full of blue velvet from going cold. Same
+    // terracotta as the vessels on the bookcase shelves.
+    var CREAM = '#e6dcc4', NAVY = '#33507f', MID = '#6a86b5', GOLD = '#b8974a';
+    var RUST = '#b0704a';
+
+    g.fillStyle = CREAM; g.fillRect(0, 0, S, S);
+
+    // Lengthwise guard stripes. These sit at the tile's left/right edges, which
+    // map to the runner's long edges, so they read as one unbroken border.
+    g.fillStyle = NAVY;
+    g.fillRect(0, 0, 16, S); g.fillRect(S - 16, 0, 16, S);
+    g.fillStyle = MID;
+    g.fillRect(20, 0, 5, S); g.fillRect(S - 25, 0, 5, S);
+    g.fillStyle = GOLD;
+    g.fillRect(29, 0, 2, S); g.fillRect(S - 31, 0, 2, S);
+
+    // NO heavy cross-bands. The first cut banded both tile ends, and down the hall
+    // that read as a row of separate square mats laid end to end rather than one
+    // continuous runner -- the band announced every tile seam instead of hiding it.
+    // A woven runner has an unbroken field; only the long edges are bordered.
+
+    // A repeating lozenge medallion, kept SMALL. Oversized medallions were the
+    // other half of the "separate mats" read: one huge motif per tile is a rug,
+    // several small ones in a column is a runner.
+    var cx = S / 2;
+    function lozenge(ccy, rx, ry, style, w) {
+      g.strokeStyle = style; g.lineWidth = w;
+      g.beginPath();
+      g.moveTo(cx, ccy - ry); g.lineTo(cx + rx, ccy);
+      g.lineTo(cx, ccy + ry); g.lineTo(cx - rx, ccy);
+      g.closePath(); g.stroke();
     }
-    return sRGB(new THREE.CanvasTexture(c));
+    function medallion(ccy) {
+      lozenge(ccy, 40, 54, NAVY, 5);
+      lozenge(ccy, 34, 46, RUST, 2.5);   // the warm thread between the two blues
+      lozenge(ccy, 28, 38, MID, 3);
+      g.fillStyle = RUST;
+      g.beginPath(); g.arc(cx, ccy, 7, 0, TAU); g.fill();
+      g.fillStyle = GOLD;
+      g.beginPath(); g.arc(cx, ccy, 3, 0, TAU); g.fill();
+    }
+    // One centred, and half-medallions at both tile ends so the column of motifs
+    // continues unbroken across the seam.
+    medallion(S / 2); medallion(0); medallion(S);
+
+    // Filler sprigs between the medallions, so the cream field is not bare.
+    for (i = -1; i <= 1; i += 2) {
+      for (j = 0; j < 2; j++) {
+        g.strokeStyle = ((i + j) % 2 === 0) ? MID : RUST; g.lineWidth = 2;
+        var sx = cx + i * 46, sy = S * 0.25 + j * S * 0.5;
+        g.beginPath();
+        g.moveTo(sx, sy - 9); g.lineTo(sx, sy + 9);
+        g.moveTo(sx - 7, sy - 4); g.lineTo(sx + 7, sy - 4);
+        g.moveTo(sx - 5, sy + 4); g.lineTo(sx + 5, sy + 4);
+        g.stroke();
+      }
+    }
+
+    // Pile. Much lighter than the old pass -- on a cream ground the old 0.02-0.09
+    // black speckle read as dirt rather than wool.
+    for (i = 0; i < 2600; i++) {
+      g.fillStyle = 'rgba(90,70,40,' + rand(0.015, 0.05).toFixed(3) + ')';
+      g.fillRect(rand(0, S), rand(0, S), 2, 2);
+    }
+
+    var t = new THREE.CanvasTexture(c);
+    t.wrapS = t.wrapT = THREE.RepeatWrapping;
+    return sRGB(t);
   }
 
   /** The soft pool of light a wall fitting throws on its own wall. */
@@ -612,7 +746,12 @@
     // eye actually lands on -- floor, walls, upholstery -- which is where "boxes
     // with flat colours" most gave itself away.
     var oakRoom = photoTex('oak.jpg', 3, 4.5);
-    var oakHall = photoTex('oak.jpg', 2, 10);   // 10 (was 22): ~7-unit planks, far fewer board-end seams down the hall -- one continuous run, not a ladder
+    // 3 across (was 2): at 2 the boards came out ~2 units wide against a 12-wide
+    // hall, so the camera walked over four enormous planks. The reference has
+    // narrower boards -- more seams across the width is most of what makes a floor
+    // read as boards rather than as a printed sheet. 10 along the length is kept:
+    // ~7-unit planks, so there is no ladder of board-ends down the corridor.
+    var oakHall = photoTex('oak.jpg', 3, 10);
     var plasterW = photoTex('plaster.jpg', 1, 1);   // 1x1: one gentle wash per wall, not a repeating 3x2 blob grid -- the navy reads as one smooth field
     var plasterA = photoTex('plaster.jpg', 1, 1);
     var velvetT = photoTex('velvet.jpg', 2.4, 2.4);
@@ -620,7 +759,15 @@
     if (oakRoom) { MAT.floor = surf({ map: oakRoom, roughness: 0.4 }); }
     else { var wood = texWood(); wood.repeat.set(6, 10); MAT.floor = surf({ map: wood, roughness: 0.42 }); }
 
-    if (oakHall) { MAT.hallFloor = surf({ map: oakHall, roughness: 0.4 }); }
+    // Same emissiveMap lift as the rugs, much gentler: the oak captured at
+    // rgb(143,109,78) against the reference's rgb(166,124,79). Small enough not to
+    // flatten the grain, and fed by the map so the dark grain lines stay dark.
+    if (oakHall) {
+      MAT.hallFloor = surf({
+        map: oakHall, roughness: 0.4,
+        emissiveMap: oakHall, emissive: 0xffffff, emissiveIntensity: 0.1
+      });
+    }
     else { var hw = texWood(); hw.repeat.set(3, 30); MAT.hallFloor = surf({ map: hw, roughness: 0.42 }); }
 
     // The plaster sample is neutral, so `color` does the branding. The walls are
@@ -629,22 +776,75 @@
     // wrapping the room and the hall, set off by white trim. (Was Icy Blue; the
     // brief now wants every wall navy.) One photographic texture, still no seams.
     MAT.wall = surf({ map: plasterW, color: M_WALLNAVY, roughness: 0.94 });
-    MAT.ceil = surf({ color: M_TRIM, roughness: 0.95 });
-    MAT.trim = surf({ color: M_TRIM, roughness: 0.55 });   // painted joinery has a slight sheen
-    MAT.wains = surf({ map: plasterW, color: M_MIST, roughness: 0.7 });
-    // Navy below the chair rail -- the wainscot/dado, in both the rooms and the
-    // hallway. It is painted the SAME M_WALLNAVY as the walls above it: with every
-    // wall now navy, a wainscot in raw CB Blue read as a near-black band under the
-    // lighter field, exactly the "reads as black" problem the lift was meant to
-    // cure. Matched, the whole wall is one navy, articulated only by white trim.
-    MAT.wainsNavy = surf({ map: plasterA, color: M_WALLNAVY, roughness: 0.94 });   // matched to MAT.wall: one uniform navy top to bottom, no shinier dado band
+    // The ceiling is already pure white and still captured as rgb(116,114,116) --
+    // mid grey. Nothing is wrong with the colour; it is that a DOWNWARD-facing
+    // surface catches almost no light here. The sun rakes across it at a glancing
+    // angle, and the HemisphereLight lights a down-facing normal with its GROUND
+    // term, which is deliberately dark oak brown. So the one big surface the eye
+    // uses to judge how bright a room is came out grey.
+    //
+    // The honest fix would be bounce light off the floor, which we have no GI for.
+    // A modest emissive is the standard stand-in and is exactly right here: a flat
+    // white ceiling in the reference IS evenly lit and almost shadowless, so
+    // losing its (negligible) shading costs nothing. Tuned in linear space --
+    // rgb(116) is 0.174 linear, the reference's rgb(245) is 0.912, so ~0.74 of
+    // linear headroom to add. Slightly warm, to sit with the brass and lamplight
+    // rather than going blue against the navy.
+    // 0.72 -> 0.52. At 0.72 this hit the reference's rgb(245) exactly and was the
+    // single most tiring surface on screen: the ceiling is the largest unbroken
+    // area in frame, and emissive takes NO shading, so it was 240-odd levels of
+    // flat white with not one gradient across it to rest on. Backing it off lets
+    // the little shading it does get come back through, and lands it in the same
+    // register as the joinery so the eye is not stepping between two whites.
+    MAT.ceil = surf({
+      color: M_TRIM, roughness: 0.95,
+      emissive: 0xfdf6ea, emissiveIntensity: 0.52
+    });
+    // Painted joinery has a slight sheen -- and needs the same bounce-light
+    // stand-in the ceiling does. Pure white trim captured at rgb(147,148,153):
+    // mid grey, because a vertical white surface in this rig catches ambient and
+    // little else, and there is no GI to carry light back onto it off the floor.
+    // In the reference every piece of white joinery is the BRIGHTEST thing in the
+    // frame; here it was darker than the oak.
+    //
+    // 0.56 -> 0.40, and the tint warmed. 0.56 was solved for the reference's
+    // literal rgb(238) and hit it, but a dead-flat 238 across every casing, rail
+    // and panel in a navy corridor is glare, not joinery: emissive takes no
+    // shading, so all of it was one value. 0.40 lands near rgb(217), which still
+    // reads as white paint next to the navy while leaving the mouldings some
+    // relief -- and warm white is easier to sit with than the cool one, which
+    // went slightly clinical against the blue.
+    MAT.trim = surf({
+      color: M_TRIM, roughness: 0.55,
+      emissive: 0xfff8ec, emissiveIntensity: 0.40
+    });
+    // The dado -- in the rooms AND the hallway -- is now WHITE PAINTED JOINERY.
+    //
+    // It used to be navy, deliberately matched to the wall above it, on the
+    // reasoning that a wainscot in raw CB Blue read as a near-black band under a
+    // lighter field. That was a sound fix aimed at the wrong target: the reference
+    // hallway has neither a darker dado nor a matched one, it has a WHITE PANELLED
+    // one -- and white below navy is also what BRAND.md's "CB Blue + lots of
+    // white" actually describes. Matching the two made the lower wall vanish into
+    // the upper wall, which is most of why the corridor read as a painted tube
+    // rather than as a hall.
+    //
+    // Deliberately identical to MAT.trim rather than a shade of its own: in a real
+    // house the field, the rails, the baseboard and the panel mouldings are all
+    // the same paint, and giving the field its own value is part of what made the
+    // old dado read as a separate applied band instead of as joinery. No plaster
+    // map either -- gloss paint on timber has no plaster tooth.
+    MAT.wains = surf({
+      color: M_TRIM, roughness: 0.55,
+      emissive: 0xfff8ec, emissiveIntensity: 0.40
+    });
     // The one wall you stand and face, in the signature colour. BRAND.md's rule is
     // "CB Blue + lots of white" -- so CB Blue is the accent the white is there to
     // set off, not the wallpaper. Every room has exactly one. Painted M_WALLNAVY,
     // not raw CB Blue: at this fill level the true #012169 reads as black, so the
     // wall is lifted just far enough to be seen as the navy it is meant to be.
     MAT.accent = surf({ map: plasterA, color: M_WALLNAVY, roughness: 0.94 });   // matched to MAT.wall's roughness so no single wall reads as a different shade
-    if (!plasterW) { MAT.wall.map = MAT.wains.map = texPlaster(); }   // procedural fallback keeps the tooth
+    if (!plasterW) { MAT.wall.map = texPlaster(); }   // procedural fallback keeps the tooth (the dado is paint now, so it wants none)
     var walnutT = photoTex('walnut.jpg', 1.6, 1.6);
     MAT.walnut = walnutT ? surf({ map: walnutT, roughness: 0.4 }) : surf({ color: M_WALNUT, roughness: 0.38 });
     MAT.oak = surf({ color: M_OAK, roughness: 0.5 });
@@ -659,12 +859,58 @@
     // #012169 so the upholstery, the accent walls and the rug all read as the one
     // brand blue rather than three different navies. (Multiply can only darken, so
     // the tint pulls a bright navy toward the dark CB Blue, not the reverse.)
-    if (velvetT) { MAT.navy = surf({ map: velvetT, color: 0x3a5aa6, roughness: 0.6 }); }
-    else { MAT.navy = surf({ color: M_NAVY, roughness: 0.85 }); }
+    // ROYAL blue velvet, per the reference (~#2C5FA8) -- and the sample is now the
+    // ROUGHNESS map, not the colour map.
+    //
+    // It used to be `map: velvetT` with a tint, and no tint could ever have
+    // worked: velvet.jpg has a mean of rgb(26,39,73), and `map` MULTIPLIES the
+    // base colour, so the brightest possible result was still that near-black
+    // navy. The upholstery captured at rgb(16,24,56) -- effectively black in the
+    // room -- and every attempt to fix it by lifting the tint was pushing on a
+    // rope. The sample is a dark navy velvet; the reference is a saturated royal
+    // blue one. No amount of multiplying gets from the first to the second.
+    //
+    // So the colour comes from `color`, and the photograph is kept for the thing
+    // it is actually good for: feeding its luminance into `roughnessMap` so the
+    // pile still varies across the surface and catches light unevenly. That
+    // uneven sheen IS what reads as velvet -- more than the hue does.
+    if (velvetT) {
+      MAT.navy = surf({ color: 0x4a86d8, roughness: 0.62, roughnessMap: velvetT });
+    } else {
+      MAT.navy = surf({ color: 0x2c5fa8, roughness: 0.72 });
+    }
+    // Terracotta, for the vessels on the bookcase shelves. The reference leans on
+    // exactly this one warm accent against all the blue and walnut, and it is what
+    // stops the palette going cold.
+    MAT.terra = surf({ color: 0xb0704a, roughness: 0.72 });
     MAT.slate = surf({ color: M_SLATE, roughness: 0.28, metalness: 0.08 });  // stone
     MAT.linen = surf({ color: M_LINEN, roughness: 0.85 });
     MAT.cream = surf({ color: M_CREAM, roughness: 0.8 });
-    MAT.rug = surf({ map: texRug(), roughness: 0.98 });    // wool reflects nothing
+    // Wool reflects nothing. Two instances of the same weave at different scales:
+    // a room rug is roughly 9x7, the hall runner is 3.4x66. Sharing ONE material
+    // is what made the runner a smeared navy stripe -- a single tile stretched
+    // down 66 units of floor, so the "pattern" was just its border, pulled into
+    // two long gold lines. The tile has to repeat along the length instead.
+    // Both lifted with an emissiveMap rather than a flat emissive. A plain
+    // emissive would add the SAME amount everywhere and wash the navy pattern out
+    // toward the cream ground; feeding the weave back in as the emissive map lifts
+    // every thread in proportion to its own colour, so the cream comes up to the
+    // reference's rgb(226,216,192) while the pattern keeps its contrast. Captured
+    // cream was rgb(158) = 0.342 linear against a target of 0.762, and the ground
+    // cannot be painted any brighter than it already is in the canvas -- the
+    // shortfall is light, not pigment.
+    var rugTex = texRug(); rugTex.repeat.set(2, 2);
+    MAT.rug = surf({
+      map: rugTex, roughness: 0.98,
+      emissiveMap: rugTex, emissive: 0xffffff, emissiveIntensity: 0.42
+    });
+    // 20 repeats over the runner's 66 units is ~3.3 units per tile against 3.4 of
+    // width -- square, so the medallions are not stretched down the hall.
+    var runTex = texRug(); runTex.repeat.set(1, 20);
+    MAT.runner = surf({
+      map: runTex, roughness: 0.98,
+      emissiveMap: runTex, emissive: 0xffffff, emissiveIntensity: 0.42
+    });
     // ONLY the shade is unlit. That distinction is the whole reason the sconces
     // looked like they were floating, and no amount of moving them fixed it:
     // MAT.brass was MeshBasicMaterial, so every piece of metal in the house --
@@ -685,9 +931,13 @@
     MAT.shade = new THREE.MeshBasicMaterial({ color: LAMP_HEX });
     // The pool a fitting throws on the wall it is mounted to. Nothing says
     // "attached" like the wall lighting up around it.
+    // 0.5 -> 0.3. Additive over a now much lighter navy, each sconce was stamping
+    // a distinct bright ellipse on the wall -- a hard-edged hot spot reads as
+    // glare rather than as a fitting being on. Softer, it still says "lit" without
+    // drawing the eye to a bloom every few units down the hall.
     MAT.glow = new THREE.MeshBasicMaterial({
       map: texGlow(), transparent: true, blending: THREE.AdditiveBlending,
-      depthWrite: false, opacity: 0.5
+      depthWrite: false, opacity: 0.3
     });
     MAT.glass = surf({ color: M_GLASS, roughness: 0.1, transparent: true, opacity: 0.35 });
     // Daylight seen THROUGH a window. Unlit (it is the source, not a lit surface)
@@ -697,6 +947,45 @@
     MAT.shadow = new THREE.MeshBasicMaterial({
       map: texShadow(), transparent: true, opacity: 0.9, depthWrite: false
     });
+
+    /**
+     * The painted shadow line under a moulding.
+     *
+     * The white joinery had no depth at all, for two compounding reasons, and
+     * neither could be fixed by tuning:
+     *
+     *   1. EMISSIVE TAKES NO SHADING. The trim carries an emissive lift (see
+     *      MAT.trim) because a vertical white surface in this rig receives almost
+     *      no light. But emissive is added irrespective of the surface normal, so
+     *      the top of a moulding, its face, and the field behind it all get the
+     *      same contribution. Relief that IS modelled simply does not show.
+     *   2. THE SHADOW MAP CANNOT SEE IT. The sun's ortho frustum is 60 units
+     *      across a 2048 map -- 0.029 units per texel. A moulding standing 0.06
+     *      proud throws a shadow ~0.043 wide, i.e. 1.5 texels, which PCFSoft
+     *      filtering smears to nothing. Worse, shadow.normalBias is 0.045 --
+     *      wider than the shadow itself -- so the comparison is pushed clean off
+     *      the surface. Raising the map resolution enough to resolve trim would
+     *      cost far more than the effect is worth.
+     *
+     * So the shadow is drawn, not computed -- the same choice shadowPad() and
+     * rugOnFloor() already make for furniture.
+     *
+     * OPAQUE, and therefore two materials rather than one. The first pass used a
+     * single transparent black that darkened whatever was behind it, which was
+     * tidier but wrong here: panelling every wall in the house puts ~180 panels in
+     * the scene, and at three reveals each that is ~600 extra meshes. Transparent
+     * meshes are depth-sorted every frame, so those 600 would have been re-sorted
+     * 60 times a second for a static object that never moves. Opaque costs a draw
+     * call and nothing else.
+     *
+     * Unlit (MeshBasicMaterial), so each is exactly the value it says it is --
+     * these are hairlines, and a lit material would have made them vary along the
+     * wall for no benefit. Fog still applies, so they recede with the corridor.
+     * Two values because an opaque line must be told what it is drawn over: one
+     * for the white joinery, one for the navy under the crown.
+     */
+    MAT.reveal = new THREE.MeshBasicMaterial({ color: 0xacafb4 });      // on white
+    MAT.revealNavy = new THREE.MeshBasicMaterial({ color: 0x26324e });  // on the wall
 
     // Image-based reflections. Until now every MeshStandardMaterial with any
     // specular had nothing to reflect, so the brass rendered as a flat gold
@@ -710,6 +999,12 @@
     // has no envMap slot and is deliberately skipped.
     var ENV = makeEnvMap();
     if (ENV) {
+      // Kept so the generated armchair can be lit by the same interior the rest of
+      // the house reflects. A GLB arrives with its own materials and no envMap at
+      // all, which is exactly the flat-and-specular-less look this pass fixed
+      // everywhere else -- dropping it into an enviromentless material would make
+      // the one photoreal object the least convincing thing in the room.
+      MAT._env = ENV;
       MAT.brass.envMap = ENV; MAT.brass.metalness = 0.6; MAT.brass.roughness = 0.34; MAT.brass.envMapIntensity = 1.15;
       MAT.slate.envMap = ENV; MAT.slate.metalness = 0.2; MAT.slate.envMapIntensity = 0.7;
       MAT.glass.envMap = ENV; MAT.glass.envMapIntensity = 1.25;
@@ -720,8 +1015,8 @@
       MAT.oakWood.envMap = ENV; MAT.oakWood.envMapIntensity = 0.12;
       MAT.wall.envMap = ENV; MAT.wall.envMapIntensity = 0.06;
       MAT.accent.envMap = ENV; MAT.accent.envMapIntensity = 0.06;
-      MAT.wainsNavy.envMap = ENV; MAT.wainsNavy.envMapIntensity = 0.06;
-      MAT.wains.envMap = ENV; MAT.wains.envMapIntensity = 0.06;
+      // Painted joinery now, not plaster -- same slight sheen as MAT.trim.
+      MAT.wains.envMap = ENV; MAT.wains.envMapIntensity = 0.1;
       MAT.ceil.envMap = ENV; MAT.ceil.envMapIntensity = 0.08;
       MAT.trim.envMap = ENV; MAT.trim.envMapIntensity = 0.1;
     }
@@ -729,6 +1024,12 @@
     GEO.box = new THREE.BoxGeometry(1, 1, 1);
     GEO.plane = new THREE.PlaneGeometry(1, 1);
     GEO.cyl = new THREE.CylinderGeometry(1, 1, 1, 12);
+    // A furniture leg: round, and TAPERED toward the floor. cyl() cannot do this
+    // -- it scales one radius uniformly -- and the taper is not a detail here. It
+    // is the single cue that says "this upholstered thing is standing on legs"
+    // rather than sitting on the floor, and every chair in the reference has it.
+    // Unit height, so callers scale y to the leg length they want.
+    GEO.leg = new THREE.CylinderGeometry(0.09, 0.055, 1, 8);
   }
 
   /**
@@ -794,6 +1095,45 @@
   }
 
   /**
+   * A hall pendant: ceiling rose, chain, domed brass shade, glass diffuser.
+   *
+   * Deliberately NOT the existing lamp(..., pendant) path. That one hangs a
+   * cylindrical fabric drum on a thin stem and is right over a dining table or a
+   * kitchen island; this is a corridor fitting -- a solid brass dome with the lit
+   * glass tucked under its rim, which is what the reference photograph has and
+   * what reads at the end of a long hall.
+   *
+   * The dome is built from a cylinder scaled into a shallow bowl rather than a
+   * true lathe: at the distance the camera ever sees it, the silhouette is all
+   * that survives, and a 16-sided bowl is indistinguishable from a swept profile.
+   */
+  function hallPendant(cx, cz) {
+    var yTop = HALL_Y;
+    cyl(MAT.trim, cx, yTop - 0.05, cz, 0.28, 0.1);          // ceiling rose
+    cyl(MAT.brass, cx, yTop - 0.16, cz, 0.1, 0.14);         // canopy
+    // Chain. One thin cylinder reads as a rod, which is fine at this scale and far
+    // cheaper than modelling links nobody will ever resolve.
+    cyl(MAT.brass, cx, (yTop - 0.16 + 3.35) / 2, cz, 0.035, (yTop - 0.16) - 3.35);
+
+    // The dome: a wide shallow brass bowl, open underneath.
+    var dome = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.30, 0.86, 0.62, 18, 1, true), MAT.brass
+    );
+    dome.position.set(cx, 3.02, cz);
+    dome.castShadow = true;
+    houseGroup.add(dome);
+    cyl(MAT.brass, cx, 3.34, cz, 0.32, 0.08);               // cap closing the top
+
+    // The lit glass, tucked just inside the dome's rim so the brass catches it.
+    var glass = new THREE.Mesh(GEO.cyl, MAT.shade);
+    glass.position.set(cx, 2.62, cz);
+    glass.scale.set(0.66, 0.26, 0.66);
+    houseGroup.add(glass);
+
+    _lampPts.push(new THREE.Vector3(cx, 2.3, cz));
+  }
+
+  /**
    * A floor lamp: it brings its own stand, so it needs no table and cannot end up
    * hovering over one that is not there.
    */
@@ -829,14 +1169,14 @@
    * oak is left generously visible around every rug for the same reason: you only
    * read "rug ON a floor" if you can see the floor it is on.
    */
-  function rugOnFloor(cx, cz, w, d) {
+  function rugOnFloor(cx, cz, w, d, mat) {
     var sh = new THREE.Mesh(GEO.plane, MAT.shadow);
     sh.position.set(cx, -HALL_Y + 0.02, cz);
     sh.rotation.x = -Math.PI / 2;
     sh.scale.set(w + 1.1, d + 1.1, 1);
     sh.renderOrder = 1;
     houseGroup.add(sh);
-    box(MAT.rug, cx, -HALL_Y + 0.055, cz, w, 0.07, d);   // slab; the edge shows proud of the boards
+    box(mat || MAT.rug, cx, -HALL_Y + 0.055, cz, w, 0.07, d);   // slab; the edge shows proud of the boards
   }
 
   /** box(material, centre, size) -- everything in the house is a box or a plane. */
@@ -907,22 +1247,307 @@
     _lampPts.push(new THREE.Vector3(cx, cy + 0.2, cz));
   }
 
+  /** One tapered walnut leg, standing on the floor. */
+  function legAt(cx, cy, cz, h) {
+    var m = new THREE.Mesh(GEO.leg, MAT.walnut);
+    m.position.set(cx, cy, cz);
+    m.scale.set(1, h, 1);
+    m.castShadow = true; m.receiveShadow = true;
+    houseGroup.add(m);
+    return m;
+  }
+
+  /**
+   * An upholstered piece in blue velvet, built to the reference's actual shape.
+   *
+   * Everything here used to be a single box -- literally box(MAT.navy, ..., 3.4,
+   * 1.5, 6.2) for the sofa and a 2.6 cube for each armchair. A box is the right
+   * call for a counter or a mantel, because those really are rectangular solids.
+   * It is the wrong call for a chair, and these were the pieces most obviously
+   * reading as "navy crate" in every room shot.
+   *
+   * What actually makes upholstery read, in order of how much it matters:
+   *   1. LEGS. A visible gap under the frame, on tapered walnut legs. Nothing else
+   *      comes close -- a box sitting flat on the floor is a plinth, whatever
+   *      shape you give the top of it.
+   *   2. A seat CUSHION distinct from the frame it sits in, inset and proud.
+   *   3. ARMS narrower than the body, with the cushion sitting down between them.
+   *   4. A back CUSHION standing in front of the back, not flush with it.
+   * Each is one more box, and together they cost eight meshes per chair.
+   *
+   * Axis convention: the piece FACES along x (every upholstered piece in this
+   * house is against a side wall or turned to a fireplace, so all of them do).
+   * `faceX` is +1 or -1 for that direction, `dx` is front-to-back, `wz` is
+   * side-to-side. Returns every mesh it made, so a caller can take them away
+   * again -- which is exactly what the GLB swap in loadArmchair() does.
+   */
+  function velvetChair(cx, cz, wz, dx, faceX) {
+    var out = [];
+    var f = -HALL_Y, legH = 0.52, y0 = f + legH;
+    var lx = dx / 2 - 0.24, lz = wz / 2 - 0.24, i, j;
+
+    for (i = -1; i <= 1; i += 2) {
+      for (j = -1; j <= 1; j += 2) {
+        out.push(legAt(cx + i * lx, f + legH / 2, cz + j * lz, legH));
+      }
+    }
+    out.push(box(MAT.navy, cx, y0 + 0.18, cz, dx, 0.36, wz));                    // frame
+    // Seat cushion: inset all round and nudged forward, so its front edge stands
+    // proud of the frame the way a real loose cushion does.
+    out.push(box(MAT.navy, cx + faceX * 0.07, y0 + 0.51, cz, dx - 0.46, 0.30, wz - 0.5));
+
+    var bx = cx - faceX * (dx / 2 - 0.16);
+    out.push(box(MAT.navy, bx, y0 + 1.00, cz, 0.32, 1.64, wz));                  // back
+    out.push(box(MAT.navy, bx + faceX * 0.29, y0 + 0.92, cz, 0.26, 1.22, wz - 0.52));  // back cushion
+
+    for (j = -1; j <= 1; j += 2) {                                               // arms
+      out.push(box(MAT.navy, cx, y0 + 0.62, cz + j * (wz / 2 - 0.15), dx - 0.12, 0.86, 0.30));
+    }
+    return out;
+  }
+
+  /**
+   * An armchair position: builds the chair NOW, and registers the spot so a
+   * real mesh can take it over later if one turns up.
+   *
+   * The proxy is not a placeholder in the "temporary scaffolding" sense -- it is
+   * the fallback, and it ships. buildRoom runs synchronously before the first
+   * frame; the GLB is a network fetch that resolves whenever it resolves, and may
+   * never resolve at all. Drawing nothing until it lands would leave a visibly
+   * empty hearth on the first paint of every load, and an empty one forever on a
+   * failed fetch. So the box stands, and is removed only once there is something
+   * better to put in its place.
+   *
+   * `face` is +1/-1 for the toe-in direction -- see ARM_TOE. Both chairs turn to
+   * the fire either way; this just decides which of the pair leans which way.
+   */
+  function armchair(s, cx, cz, face) {
+    // Turned to the fire, which stands at greater |x| than the chairs do.
+    _armSlots.push({
+      x: cx, z: cz,
+      // yawFor(s) points -Z toward the far wall, which is where the fireplace is,
+      // so the pair face the fire rather than the doorway they were built beside.
+      yaw: yawFor(s) + ARM_YAW0 + face * ARM_TOE,
+      proxy: velvetChair(cx, cz, 2.5, 2.5, s)
+    });
+  }
+
+  /**
+   * Swap the box proxies for the generated armchair, if we can get one.
+   *
+   * Every exit here is a silent no-op that leaves the proxies standing: no model
+   * directory configured, no GLTFLoader on the page (it is loaded separately and
+   * is not a hard dependency of this file), a 404, or a mesh that parses but is
+   * unusably proportioned. That is the same contract photoTex() has with the
+   * procedural textures, and it is why neither the harness nor the flat fallback
+   * needs to know this function exists.
+   *
+   * Hooks _pendingTex so capture mode waits for the chairs to arrive rather than
+   * photographing the boxes -- same reason the framed art hooks it.
+   */
+  function loadArmchair() {
+    if (!_armSlots.length || !_modelBase) { return; }
+    var Loader = THREE.GLTFLoader;
+    if (typeof Loader !== 'function') {
+      if (window.console) { console.info('[cb9] no GLTFLoader; keeping the box armchairs.'); }
+      return;
+    }
+
+    _pendingTex++;
+    var settled = false;
+    var done = function () { if (!settled) { settled = true; _pendingTex--; } };
+
+    new Loader().load(_modelBase + ARM_FILE, function (gltf) {
+      try {
+        var src = gltf && gltf.scene;
+        if (!src) { throw new Error('GLB contained no scene'); }
+
+        // Fit by height. A generated mesh arrives at whatever scale the generator
+        // felt like -- metres, centimetres, or an arbitrary unit box -- so the
+        // authored numbers in this file mean nothing to it until it is measured.
+        var bb = new THREE.Box3().setFromObject(src);
+        var sz = bb.getSize(new THREE.Vector3());
+        if (!(sz.y > 0) || !isFinite(sz.y)) { throw new Error('degenerate bounding box'); }
+        var k = ARM_H / sz.y;
+
+        // A chair should be roughly as wide as it is tall. Far outside that and
+        // the source is not a chair, or is lying on its side -- place it anyway
+        // (it is still better information than a box) but say so, because the
+        // symptom otherwise is a mysteriously enormous or invisible object.
+        var wide = Math.max(sz.x, sz.z) * k;
+        if (window.console && (wide < 1.2 || wide > 4.2)) {
+          console.warn('[cb9] armchair is ' + wide.toFixed(2) + ' units wide at the fitted height; expected ~2.6. Check ARM_H / the source mesh.');
+        }
+
+        var i;
+        for (i = 0; i < _armSlots.length; i++) {
+          var slot = _armSlots[i];
+          var obj = src.clone(true);
+          obj.scale.setScalar(k);
+
+          // Re-measure AFTER scaling, then shift the mesh inside its holder so the
+          // chair is centred on its own footprint with its feet at y=0. Without
+          // this the model's authored origin -- often its centre, sometimes a
+          // corner -- decides where it stands, and it sinks into the oak or hovers.
+          var sbb = new THREE.Box3().setFromObject(obj);
+          var ctr = sbb.getCenter(new THREE.Vector3());
+          obj.position.x -= ctr.x;
+          obj.position.z -= ctr.z;
+          obj.position.y -= sbb.min.y;
+
+          obj.traverse(function (o) {
+            if (!o.isMesh) { return; }
+            o.castShadow = true;
+            o.receiveShadow = true;
+            // Share the house's interior environment. Guarded per material because
+            // a GLB may hand back an array of them for a multi-material mesh.
+            var mats = Array.isArray(o.material) ? o.material : [o.material];
+            for (var mi = 0; mi < mats.length; mi++) {
+              var mm = mats[mi];
+              if (mm && MAT._env && 'envMap' in mm) {
+                mm.envMap = MAT._env;
+                mm.envMapIntensity = 0.5;
+                mm.needsUpdate = true;
+              }
+            }
+          });
+
+          // The holder is what gets positioned and turned, so the yaw is about the
+          // chair's own vertical axis rather than about wherever its origin was.
+          var holder = new THREE.Group();
+          holder.add(obj);
+          holder.position.set(slot.x, -HALL_Y, slot.z);
+          holder.rotation.y = slot.yaw;
+          houseGroup.add(holder);
+
+          // Only now is it safe to drop the box -- there has been a chair in this
+          // spot at every instant.
+          for (var pi = 0; pi < slot.proxy.length; pi++) {
+            houseGroup.remove(slot.proxy[pi]);
+          }
+        }
+        _armSlots.length = 0;
+      } catch (e) {
+        if (window.console) { console.warn('[cb9] armchair mesh unusable; keeping the boxes.', e); }
+      }
+      done();
+    }, undefined, function () {
+      if (window.console) { console.info('[cb9] no armchair mesh at ' + _modelBase + ARM_FILE + '; keeping the boxes.'); }
+      done();
+    });
+  }
+
+  /**
+   * Raised-and-fielded panels along a wainscot run.
+   *
+   * This is the reference photograph's defining feature and the render had no
+   * trace of it: the dado was a flat field painted the same navy as the wall
+   * above, so the bottom half of the hallway was one uninterrupted slab of colour
+   * broken only by a chair rail. What makes a real dado read is not the paint, it
+   * is the SHADOW LINE around each sunk panel -- four thin sticks of moulding per
+   * panel, catching light on their top edge and dropping a hairline of shade below.
+   *
+   * Depth is the fiddly part and is measured off what trimRun already draws, so
+   * nothing is coplanar (which would z-fight):
+   *     field    centre off*1.0, thickness 0.12  -> face at off*1.0 + 0.06*sign
+   *     PANELS   centre off*2.4, thickness 0.08  -> stands ~0.06 proud of the field
+   *     rail/base/crown centre off*1.6, thickness 0.2 -> proud of the panels again
+   * so the run reads base -> panel -> field going back, exactly like real joinery.
+   *
+   * Panels are laid out to FIT the run rather than at a fixed pitch: a run between
+   * two doorways is whatever width it is, and a fixed pitch leaves a sliver panel
+   * at one end. The count is chosen to put the pitch nearest PANEL_W and the
+   * remainder is shared out, so every panel in a given run is identical.
+   */
+  /** A painted shadow line. Thin, unlit, and never a shadow caster itself.
+   *  `mat` picks the value for what it is drawn over -- MAT.reveal on white
+   *  joinery, MAT.revealNavy on the wall. */
+  function reveal(cx, cy, cz, w, h, d, mat) {
+    var m = new THREE.Mesh(GEO.box, mat || MAT.reveal);
+    m.position.set(cx, cy, cz);
+    m.scale.set(w, h, d);
+    m.castShadow = false;
+    houseGroup.add(m);
+    return m;
+  }
+
+  var PANEL_W = 2.6;      // preferred panel pitch; actual pitch fits the run
+  var PANEL_GAP = 0.42;   // stile between panels
+  function panelRun(axis, fixed, from, to, sign) {
+    var lo = Math.min(from, to), hi = Math.max(from, to), len = hi - lo;
+    if (len < 1.2) { return; }                       // too short to panel
+    var n = Math.max(1, Math.round(len / PANEL_W));
+    var pitch = len / n;
+    var pw = pitch - PANEL_GAP;
+    if (pw < 0.6) { return; }                        // would be all stile, no panel
+
+    // Vertical extent: clear of the baseboard top (-HALL_Y+0.36) and the chair
+    // rail underside (-HALL_Y+2.80), with a margin so the mouldings do not touch.
+    var yBot = -HALL_Y + 0.62, yTop = -HALL_Y + 2.60;
+    var ph = yTop - yBot, pcy = (yBot + yTop) / 2;
+    var d = 0.10;                                    // moulding stick thickness
+    var off = 0.06 * sign * 2.4;                     // proud of the field
+    var i, mid, a, b;
+
+    // The reveal sits a hair proud of the sunk field and just INSIDE the opening,
+    // so it reads as the raised moulding shading the panel behind it. 2.15 puts it
+    // between the field face (off * 1.0 + half its thickness) and the mouldings
+    // themselves (off * 2.4) -- touching neither, so nothing z-fights.
+    var rOff = 0.06 * sign * 2.15;
+
+    for (i = 0; i < n; i++) {
+      mid = lo + pitch * (i + 0.5);
+      a = mid - pw / 2; b = mid + pw / 2;
+      if (axis === 'x') {        // wall in the Y-Z plane at x = fixed; run along z
+        box(MAT.trim, fixed + off, yTop, mid, 0.08, d, pw);   // top rail
+        box(MAT.trim, fixed + off, yBot, mid, 0.08, d, pw);   // bottom rail
+        box(MAT.trim, fixed + off, pcy, a, 0.08, ph, d);      // stile
+        box(MAT.trim, fixed + off, pcy, b, 0.08, ph, d);      // stile
+        // Shade under the top rail, and down the inner edge of each stile. Not
+        // under the BOTTOM rail: light in this house comes from above, so the
+        // bottom of a sunk panel catches light rather than losing it, and shading
+        // all four sides is what makes fake relief look like a printed outline.
+        reveal(fixed + rOff, yTop - 0.09, mid, 0.02, 0.09, pw - 0.10);
+        reveal(fixed + rOff, pcy - 0.05, a + 0.085, 0.02, ph - 0.19, 0.07);
+        reveal(fixed + rOff, pcy - 0.05, b - 0.085, 0.02, ph - 0.19, 0.07);
+      } else {                   // wall in the X-Y plane at z = fixed; run along x
+        box(MAT.trim, mid, yTop, fixed + off, pw, d, 0.08);
+        box(MAT.trim, mid, yBot, fixed + off, pw, d, 0.08);
+        box(MAT.trim, a, pcy, fixed + off, d, ph, 0.08);
+        box(MAT.trim, b, pcy, fixed + off, d, ph, 0.08);
+        reveal(mid, yTop - 0.09, fixed + rOff, pw - 0.10, 0.09, 0.02);
+        reveal(a + 0.085, pcy - 0.05, fixed + rOff, 0.07, ph - 0.19, 0.02);
+        reveal(b - 0.085, pcy - 0.05, fixed + rOff, 0.07, ph - 0.19, 0.02);
+      }
+    }
+  }
+
   /** Wainscot + baseboard + crown along a wall run. This trim is most of why the
    *  rooms read as "house" rather than "box with a wood floor". */
   function trimRun(axis, fixed, from, to, sign, mat) {
     mat = mat || MAT.wains;
     var mid = (from + to) / 2, len = Math.abs(to - from);
     var off = 0.06 * sign;
+    // Both mouldings project further than the panel work does, so these are the
+    // two strongest shadow lines on the wall and the ones that give the dado its
+    // thickness. The chair-rail line falls on the white field; the crown line
+    // falls on the navy above it -- one unlit dark material covers both.
+    var rRail = 0.06 * sign * 2.15;   // just proud of the wainscot field
+    var rCrown = 0.06 * sign * 0.6;   // just proud of the bare wall
     if (axis === 'x') {   // wall lies in the Y-Z plane at x = fixed
       box(mat, fixed + off, -HALL_Y + 1.4, mid, 0.12, 2.8, len);
       box(MAT.trim, fixed + off * 1.6, -HALL_Y + 0.18, mid, 0.2, 0.36, len);
       box(MAT.trim, fixed + off * 1.6, -HALL_Y + 2.86, mid, 0.2, 0.12, len);
       box(MAT.trim, fixed + off * 1.6, HALL_Y - 0.16, mid, 0.2, 0.32, len);
+      reveal(fixed + rRail, -HALL_Y + 2.73, mid, 0.02, 0.12, len);
+      reveal(fixed + rCrown, HALL_Y - 0.40, mid, 0.02, 0.14, len, MAT.revealNavy);
     } else {              // wall lies in the X-Y plane at z = fixed
       box(mat, mid, -HALL_Y + 1.4, fixed + off, len, 2.8, 0.12);
       box(MAT.trim, mid, -HALL_Y + 0.18, fixed + off * 1.6, len, 0.36, 0.2);
       box(MAT.trim, mid, -HALL_Y + 2.86, fixed + off * 1.6, len, 0.12, 0.2);
       box(MAT.trim, mid, HALL_Y - 0.16, fixed + off * 1.6, len, 0.32, 0.2);
+      reveal(mid, -HALL_Y + 2.73, fixed + rRail, len, 0.12, 0.02);
+      reveal(mid, HALL_Y - 0.40, fixed + rCrown, len, 0.14, 0.02, MAT.revealNavy);
     }
   }
 
@@ -1073,17 +1698,20 @@
   function bookcase(s, cx, cz) {
     var byc = -1.4, BD = 0.9, BH = 7.2, BW = 3.4;
     var bTop = byc + BH / 2, bBot = byc - BH / 2;
-    box(MAT.oak, cx + s * (BD / 2 - 0.05), byc, cz, 0.1, BH, BW);        // back panel
-    box(MAT.oak, cx, byc, cz - BW / 2 + 0.06, BD, BH, 0.12);            // side
-    box(MAT.oak, cx, byc, cz + BW / 2 - 0.06, BD, BH, 0.12);            // side
-    box(MAT.oak, cx, bTop - 0.07, cz, BD, 0.14, BW);                   // top
-    box(MAT.oak, cx, bBot + 0.07, cz, BD, 0.14, BW);                   // bottom (plinth)
+    // WALNUT, not the light oak this was. The reference's bookcase is a dark
+    // walnut case standing against a pale wall, and that contrast is the whole
+    // reason it reads as a piece of furniture rather than as joinery built in.
+    box(MAT.walnut, cx + s * (BD / 2 - 0.05), byc, cz, 0.1, BH, BW);     // back panel
+    box(MAT.walnut, cx, byc, cz - BW / 2 + 0.06, BD, BH, 0.12);         // side
+    box(MAT.walnut, cx, byc, cz + BW / 2 - 0.06, BD, BH, 0.12);         // side
+    box(MAT.walnut, cx, bTop - 0.07, cz, BD, 0.14, BW);                // top
+    box(MAT.walnut, cx, bBot + 0.07, cz, BD, 0.14, BW);                // bottom (plinth)
 
     // Four compartments; a shelf caps the lower three. Each surface holds books.
     var surfaces = [bBot + 0.14], k, sy;
     for (k = 1; k <= 3; k++) {
       sy = bBot + k * (BH / 4);
-      box(MAT.oak, cx, sy, cz, BD - 0.16, 0.1, BW - 0.24);             // recessed shelf
+      box(MAT.walnut, cx, sy, cz, BD - 0.16, 0.1, BW - 0.24);          // recessed shelf
       surfaces.push(sy + 0.05);
     }
 
@@ -1093,13 +1721,68 @@
     var m = 0, si, zz, h, w;
     for (si = 0; si < surfaces.length; si++) {
       zz = cz - BW / 2 + 0.35;
-      while (zz < cz + BW / 2 - 0.3) {
+      // Books stop short of the far end of every shelf. Packed wall to wall they
+      // read as an archive; the reference's shelves are half books and half
+      // objects, with air around them, which is what makes it a room and not a
+      // library. The gap is where the terracotta goes.
+      while (zz < cz + BW / 2 - 1.15) {
         w = rand(0.12, 0.24);
         h = rand(0.95, 1.5);
         box(bmats[(m++) % bmats.length], cx - s * 0.04, surfaces[si] + h / 2, zz + w / 2, BD - 0.28, h, w);
         zz += w + rand(0.0, 0.05);
       }
+      vessel(cx - s * 0.04, surfaces[si], cz + BW / 2 - 0.66, si);
     }
+  }
+
+  /**
+   * A walnut slant-front secretary desk, per the reference.
+   *
+   * The one piece here that cannot be built from axis-aligned boxes: the whole
+   * character of a bureau is the sloping fall-front, and box() has no rotation.
+   * So the lid is made as a mesh directly and turned about z -- which tilts the
+   * x-axis, and every room is entered along x, so the slope faces the person
+   * sitting at it whichever side of the hall the room is on.
+   *
+   * `s` is the room side. The high edge of the lid must be the one toward the far
+   * WALL (greater |x|) and the low edge toward the chair, which is what s * ANGLE
+   * gives: for s=+1 the +x end lifts, for s=-1 the -x end does.
+   */
+  function secretaryDesk(s, cx, cz) {
+    var f = -HALL_Y, legH = 1.62, y0 = f + legH;   // writing height
+    var W = 2.2, D = 4.4, i, j;
+
+    for (i = -1; i <= 1; i += 2) {
+      for (j = -1; j <= 1; j += 2) {
+        legAt(cx + i * (W / 2 - 0.2), f + legH / 2, cz + j * (D / 2 - 0.2), legH);
+      }
+    }
+    // Stretcher between the front legs, as in the reference.
+    box(MAT.walnut, cx - s * (W / 2 - 0.2), f + 0.45, cz, 0.1, 0.1, D - 0.4);
+
+    box(MAT.walnut, cx, y0 + 0.22, cz, W, 0.44, D);                    // drawer carcass
+    for (j = -1; j <= 1; j += 2) {                                     // brass pulls
+      box(MAT.brass, cx - s * (W / 2 + 0.03), y0 + 0.22, cz + j * 1.05, 0.08, 0.16, 0.55);
+    }
+
+    var lid = new THREE.Mesh(GEO.box, MAT.walnut);
+    lid.position.set(cx + s * 0.06, y0 + 0.94, cz);
+    lid.scale.set(1.95, 0.13, D - 0.12);
+    lid.rotation.z = s * 0.56;
+    lid.castShadow = true; lid.receiveShadow = true;
+    houseGroup.add(lid);
+
+    // The case behind the slope, closing it off against the wall side.
+    box(MAT.walnut, cx + s * (W / 2 - 0.06), y0 + 0.92, cz, 0.18, 1.2, D);
+  }
+
+  /** A terracotta vessel: bellied body, short neck. The one warm accent among all
+   *  the blue and walnut, and the reference leans on it hard. */
+  function vessel(vx, vy, vz, k) {
+    var h = 0.46 + (k % 2) * 0.16;
+    var r = 0.21 + (k % 3) * 0.025;
+    cyl(MAT.terra, vx, vy + h / 2, vz, r, h);
+    cyl(MAT.terra, vx, vy + h + 0.05, vz, r * 0.52, 0.11);
   }
 
   function buildRoom(R, basePath) {
@@ -1116,11 +1799,15 @@
     plane(MAT.accent, xMid, 0, z0, ROOM_D, 2 * HALL_Y, '+z');
     plane(MAT.wall, xMid, 0, z1, ROOM_D, 2 * HALL_Y, '-z');
 
-    // Navy wainscot to match the navy walls above it, so the whole wall reads as
-    // one colour broken only by the white chair rail, baseboard and crown.
-    trimRun('x', xFar, z0, z1, s > 0 ? -1 : 1, MAT.wainsNavy);
-    trimRun('z', z0, xIn, xFar, 1, MAT.wainsNavy);
-    trimRun('z', z1, xIn, xFar, -1, MAT.wainsNavy);
+    // White panelled wainscot under the navy, matching the hallway -- it is one
+    // house, and turning out of a white-paneled corridor into a room with a navy
+    // dado would read as a different building.
+    trimRun('x', xFar, z0, z1, s > 0 ? -1 : 1, MAT.wains);
+    trimRun('z', z0, xIn, xFar, 1, MAT.wains);
+    trimRun('z', z1, xIn, xFar, -1, MAT.wains);
+    panelRun('x', xFar, z0, z1, s > 0 ? -1 : 1);
+    panelRun('z', z0, xIn, xFar, 1);
+    panelRun('z', z1, xIn, xFar, -1);
 
     // A picture rail and, flanking the art, two windows on the wall you stand and
     // face. A single flat plane of plaster is what made this read as a box with a
@@ -1159,9 +1846,14 @@
     switch (R.theme) {
       case 'living':
         shadowPad(s * 19, z, 5.6, 8.4); shadowPad(s * 15.5, z, 4, 5.4);
-        box(MAT.navy, s * 19, -3.9, z, 3.4, 1.5, 6.2);             // sofa
-        box(MAT.navy, s * 20.4, -2.8, z, 0.6, 2.2, 6.2);           // back
-        for (i = -1; i <= 1; i += 2) { box(MAT.navy, s * 19, -2.9, z + i * 2.9, 3.4, 1.1, 0.5); }
+        // The same velvet piece as the hearth chairs, just wide -- a sofa IS an
+        // armchair stretched, and building it from the one function keeps the two
+        // rooms upholstered in the same furniture. Faces -s, i.e. back to the far
+        // wall and looking in toward the doorway you arrive through.
+        // 2.9 deep, not 3.4: at 3.4 the back sat so far behind the seat that the
+        // whole thing read as a daybed. A sofa is only about as deep as an
+        // armchair -- it is the WIDTH that makes it a sofa.
+        velvetChair(s * 19, z, 6.2, 2.9, -s);
         box(MAT.walnut, s * 15.5, -4.4, z, 2.2, 0.24, 3.6);        // coffee table
         for (i = 0; i < 4; i++) { box(MAT.walnut, s * (14.6 + (i % 2) * 1.8), -4.75, z + (i < 2 ? -1.4 : 1.4), 0.16, 0.7, 0.16); }
         floorLamp(s * 21.4, z - 4.4);   // brings its own stand
@@ -1176,12 +1868,20 @@
         lamp(s * 21, -1.4, z + 3.0, -2.5);   // console top, near the far end
         break;
       case 'study':
-        shadowPad(s * 19, z, 4.4, 6.6); shadowPad(s * 21.4, z - 4.6, 2.6, 5);
-        box(MAT.oakWood, s * 19, -3.7, z, 2.6, 0.26, 5);          // desk: oak, to match the floor
-        for (i = 0; i < 4; i++) { box(MAT.oakWood, s * (18 + (i % 2) * 2), -4.4, z + (i < 2 ? -2.2 : 2.2), 0.2, 1.4, 0.2); }
-        box(MAT.slate, s * 19, -3.2, z, 1.4, 0.9, 2.2);            // chair back
+        shadowPad(s * 19.4, z, 3.4, 5.4); shadowPad(s * 21.4, z - 4.6, 2.6, 5);
+        // A walnut slant-front secretary, as in the reference, replacing a flat
+        // oak slab on four posts. The desk chair replaces a MAT.slate box that was
+        // captioned "chair back" and was exactly that -- a slab hanging in the air
+        // at desk height with no seat, no legs and nothing under it.
+        secretaryDesk(s, s * 19.4, z);
+        velvetChair(s * 16.9, z, 2.0, 2.0, s);   // pulled up to the desk, facing it
         bookcase(s, s * 21.4, z - 4.6);
-        lamp(s * 19.6, -2.7, z + 2, -3.57);   // desk top
+        // The lamp moves onto its own side table. It used to stand on the desk
+        // top, which no longer exists as a flat surface -- the secretary's lid
+        // slopes, so a lamp placed there would hover over the slope.
+        shadowPad(s * 21, z + 4.3, 2, 3);
+        box(MAT.walnut, s * 21, -4.1, z + 4.3, 1.1, 1.8, 2.4);     // top at y = -3.2
+        lamp(s * 21, -2.2, z + 4.3, -3.2);
         break;
       case 'entry':
         // The front door USED to stand here, dead centre of the far wall -- which
@@ -1235,8 +1935,9 @@
         box(MAT.slate, s * 20.6, -3.4, z, 0.6, 3.2, 3.4);
         box(MAT.shade, s * 20.38, -3.9, z, 0.2, 1.4, 2.6);         // the fire itself -- 0.02 proud of the slate so it no longer z-fights the surround
         box(MAT.walnut, s * 21, 1.9, z, 1.6, 0.34, 6.6);           // mantel
-        box(MAT.navy, s * 16.6, -3.9, z - 2.2, 2.6, 1.5, 2.6);     // armchairs
-        box(MAT.navy, s * 16.6, -3.9, z + 2.2, 2.6, 1.5, 2.6);
+        // The one pair of real chairs. Boxes until the mesh lands -- see armchair().
+        armchair(s, s * 16.6, z - 2.2, 1);
+        armchair(s, s * 16.6, z + 2.2, -1);
         shadowPad(s * 18.4, z, 2, 2);
         box(MAT.walnut, s * 18.4, -4.2, z, 1.2, 1.6, 1.2);         // top at y = -3.4
         lamp(s * 18.4, -2.4, z, -3.4);
@@ -1253,20 +1954,29 @@
 
     plane(MAT.hallFloor, 0, -HALL_Y, zMid, 2 * HALL_X, zLen, 'up');
     plane(MAT.ceil, 0, HALL_Y, zMid, 2 * HALL_X, zLen, 'down');
-    rugOnFloor(0, zMid, 3.4, zLen - 4);   // runner
+    rugOnFloor(0, zMid, 3.4, zLen - 4, MAT.runner);   // runner -- own material, tiled down its length
     plane(MAT.wall, 0, 0, HALL_Z1, 2 * HALL_X, 2 * HALL_Y, '+z');   // far end
     // The crown returns across the back wall, tying the two side runs together at
     // the end of the hall instead of dying into the corners -- and it caps the wall
     // the logo hangs on. Same profile as trimRun's crown, run along x and stood
     // proud of the wall into the hall.
     box(MAT.trim, 0, HALL_Y - 0.16, HALL_Z1 + 0.096, 2 * HALL_X, 0.32, 0.2);   // 0.096 = every other crown's proud offset, so the return wraps the corner flush instead of floating
-    // The Coldwell Banker lockup, centred on the back wall as the corridor's focal
-    // terminus: the official white stacked monogram (BRAND.md forbids recolouring
-    // it), hung as a plaque via the same depth-tested, proximity-lit path as the
-    // hearth mark. On the live same-origin page it renders; under file:// the SVG
-    // taints the canvas and bakeMonogram swallows it (see the harness header) --
-    // exactly as the existing mark already behaves.
-    bakeMonogram(_monoStackUrl, 0, 0.7, HALL_Z1 + 0.22, 3.8, 0);
+    // The corridor's terminus: a closed white four-panel door, as in the
+    // reference. The hall used to just stop at a blank wall, which -- once the fog
+    // was eased enough to actually SEE the end -- read as an unfinished box.
+    hallEndDoor();
+
+    // The Coldwell Banker lockup. It used to hang dead centre of this wall at
+    // y=0.7 at 3.8 wide, which is now exactly where the door is: the door would
+    // have covered the middle of the mark and left two slivers showing down either
+    // side. That is precisely the failure recorded in the 'entry' room, where a
+    // door was put in front of the scene plate and it rendered as two black
+    // rectangles -- so the mark moves rather than the door being dropped.
+    //
+    // Above the door head and its cornice (top ~2.9) and below the crown (4.84),
+    // which is where a transom or an overdoor plaque belongs anyway. Smaller to
+    // suit the gap.
+    bakeMonogram(_monoStackUrl, 0, 3.75, HALL_Z1 + 0.22, 1.5, 0);
 
     // The hallway walls exist only where a room does NOT open. Rather than
     // punching holes, each side is drawn as the gaps between its doorways --
@@ -1286,7 +1996,17 @@
           // The 0.5 of depth here is the entire reason entrance() has something
           // to line.
           box(MAT.wall, s * HALL_X, 0, (prev + z + 3) / 2, WALL_T, 2 * HALL_Y, prev - (z + 3));
-          trimRun('x', s * HALL_X - s * (WALL_T / 2), z + 3, prev, s > 0 ? -1 : 1, MAT.wainsNavy);
+          trimRun('x', s * HALL_X - s * (WALL_T / 2), z + 3, prev, s > 0 ? -1 : 1, MAT.wains);
+          // Panels only span the wall BETWEEN doorways, which is exactly the run
+          // trimRun was just given -- so they can never collide with a casing.
+          panelRun('x', s * HALL_X - s * (WALL_T / 2), z + 3, prev, s > 0 ? -1 : 1);
+          // Brass sconces on the navy above the dado. These were taken out once,
+          // on the grounds that regularly spaced wall fittings read as a hotel
+          // corridor -- but the reference is a domestic hall and has exactly this,
+          // a pair of brass sconces with cream shades above the panelling, and
+          // without them the navy above the rail is a bare field. Only on segments
+          // with room for one, so none lands hard against a door casing.
+          if (prev - (z + 3) >= 4) { sconce(s, (prev + z + 3) / 2); }
         }
         // Over-door panel, so the opening reads as a doorway and not a missing wall.
         box(MAT.wall, s * HALL_X, 4.3, z, WALL_T, 1.4, 6);
@@ -1299,18 +2019,66 @@
       }
       if (prev - HALL_Z1 > 0.1) {
         box(MAT.wall, s * HALL_X, 0, (prev + HALL_Z1) / 2, WALL_T, 2 * HALL_Y, prev - HALL_Z1);
-        trimRun('x', s * HALL_X - s * (WALL_T / 2), HALL_Z1, prev, s > 0 ? -1 : 1, MAT.wainsNavy);
+        trimRun('x', s * HALL_X - s * (WALL_T / 2), HALL_Z1, prev, s > 0 ? -1 : 1, MAT.wains);
+        panelRun('x', s * HALL_X - s * (WALL_T / 2), HALL_Z1, prev, s > 0 ? -1 : 1);
       }
     }
 
-    // Recessed downlights flush in the ceiling, down the centre of the hall --
-    // replacing the wall sconces. A hallway is lit from above; wall fittings this
-    // regularly spaced read more like a hotel corridor than a home.
-    for (z = HALL_Z0 - 3; z > HALL_Z1 + 3; z -= 6) {
-      ceilingLight(0, z);
+    // Brass pendants on chains down the centre of the hall.
+    //
+    // These were flush recessed downlights, on the reasoning that a hallway is lit
+    // from above and that regularly spaced wall fittings read like a hotel
+    // corridor. The first half of that is right and the fitting was still wrong:
+    // a recessed downlight is a flat disc on the ceiling, so the corridor had no
+    // object hanging IN it at all, and the eye had nothing to judge the height or
+    // the depth of the space against. The reference hangs a domed brass pendant on
+    // a short chain, and that single object is doing a lot of the work.
+    //
+    // CLEARANCE: the camera walks the centre line at eye height y~0 and takes up
+    // to +/-1.9 of mouse parallax in y (see the px/py drift in the frame loop), so
+    // nothing may hang below ~2.2. hallPendant puts the widest part of the shade
+    // at y=2.75 and its glass at 2.45, clearing the worst-case eye by 0.55.
+    for (z = HALL_Z0 - 5; z > HALL_Z1 + 4; z -= 10) {
+      hallPendant(0, z);
     }
   }
 
+
+  /**
+   * The closed door that ends the corridor: leaf, four raised panels, moulded
+   * casing, a cornice cap over the head, and a brass knob.
+   *
+   * Everything is measured forward from the back wall at HALL_Z1 in strictly
+   * increasing z, so no two faces are coplanar and nothing z-fights:
+   *     wall      HALL_Z1
+   *     leaf      +0.08 .. +0.20
+   *     panels    +0.19 .. +0.23   (proud of the leaf face by 0.03)
+   *     casing    +0.09 .. +0.31   (stands proud of everything, as an architrave does)
+   */
+  function hallEndDoor() {
+    var zw = HALL_Z1;
+    var DW = 3.6, DH = 7.2;
+    var yBot = -HALL_Y, yTop = yBot + DH, ycy = (yBot + yTop) / 2;
+
+    box(MAT.trim, 0, ycy, zw + 0.14, DW, DH, 0.12);            // the leaf
+
+    // Four raised panels: two tall below, two shorter above, as in the reference.
+    var px = 0.86, pw = 1.4, i;
+    for (i = -1; i <= 1; i += 2) {
+      box(MAT.trim, i * px, yBot + 5.0, zw + 0.21, pw, 2.4, 0.04);   // upper
+      box(MAT.trim, i * px, yBot + 1.9, zw + 0.21, pw, 3.0, 0.04);   // lower
+    }
+
+    // Casing: two jambs and a head, then a cornice shelf over it.
+    box(MAT.trim, -(DW / 2 + 0.26), ycy + 0.2, zw + 0.2, 0.52, DH + 0.4, 0.22);
+    box(MAT.trim, (DW / 2 + 0.26), ycy + 0.2, zw + 0.2, 0.52, DH + 0.4, 0.22);
+    box(MAT.trim, 0, yTop + 0.26, zw + 0.2, DW + 1.04, 0.52, 0.22);
+    box(MAT.trim, 0, yTop + 0.62, zw + 0.26, DW + 1.5, 0.22, 0.34);   // cornice cap
+
+    // Knob. A short cylinder lying on its side would need a rotation; at this
+    // distance a small box is the same handful of pixels.
+    box(MAT.brass, DW / 2 - 0.45, ycy - 0.3, zw + 0.3, 0.22, 0.22, 0.14);
+  }
 
   function bakeMonogram(url, x, y, z, h, yaw) {
     if (!url) { return; }
@@ -1350,11 +2118,15 @@
     houseGroup = new THREE.Group();
     corridorGroup = houseGroup;   // the rest of the engine still calls it that
     _lampPts.length = 0;
+    _armSlots.length = 0;
     buildMaterials();
     buildHall();
     var i;
     for (i = 0; i < ROOM.length; i++) { if (ROOM[i].side !== 0) { buildRoom(ROOM[i], _artBase); } }
     for (i = 0; i < ROOM.length; i++) { if (ROOM[i].side !== 0) { hangArt(ROOM[i], _artBase); } }
+    // After the rooms, because it needs the slots they registered. Async and
+    // entirely optional: the boxes it replaces are already standing.
+    loadArmchair();
 
     // Lighting. The count is FIXED once, here at build time -- Three rebuilds every
     // material's shader when the light count changes, so nothing may add or remove a
@@ -1428,7 +2200,12 @@
     // the room content so daylit far walls are not muddied toward the depth colour,
     // and the colour itself is lifted a little off pure Midnight so the fade reads
     // as cool haze rather than a wall of black at the end of the corridor.
-    scene.fog = new THREE.Fog(0x14243d, 15, 60);
+    // Eased again for the reference match. At (15, 60) over a 70-long hall the far
+    // end crushed to black, so the corridor terminated in a void -- the reference
+    // is a bright, fully-lit hall you can see the end of. Pushing the far plane
+    // past the hall's own length and lifting the colour toward the wall navy keeps
+    // the depth cue without the black hole at the end of it.
+    scene.fog = new THREE.Fog(0x35496e, 34, 150);
 
     // The brand mark, hung as a small plaque rather than blazing across the hall.
     bakeMonogram(_monoStackUrl, ROOM[7].side * (HALL_X + ROOM_D - 0.34), -2.6, ROOM[7].z + 4.6, 1.6, yawFor(ROOM[7].side));
@@ -2267,6 +3044,10 @@
     // basePath keeps working. Empty -> photoTex() returns null -> procedural
     // fallback, so a missing folder degrades rather than breaks.
     _texBase = opts.texBase || (_artBase ? _artBase.replace(/webgl\/?$/, 'textures/') : '');
+    // Generated furniture (the armchair GLB) sits one level up from the images, in
+    // assets/models/. Derived from the same basePath on the same terms as the
+    // textures: empty -> loadArmchair() no-ops -> the box proxies stand.
+    _modelBase = opts.modelBase || (_artBase ? _artBase.replace(/images\/webgl\/?$/, 'models/') : '');
 
     var sel = opts.canvas || '#cb9-canvas';
     canvas = (typeof sel === 'string') ? document.querySelector(sel) : sel;

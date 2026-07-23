@@ -227,7 +227,12 @@ $cb9_plate = function ($i) use ($cb9_plates) {
                                     <a href="<?php echo esc_url(home_url('/office/')); ?>" class="cb9-card cb9-card--action" data-cb9-card data-cursor="Visit" <?php echo $cb9_fl(); ?>>
                                         <div class="cb9-card__inner">
                                             <h3 class="cb9-h3">Visit Our Office</h3>
-                                            <p class="cb9-p">Stop by our office on Knickerbocker Road. We&rsquo;d love to meet you.</p>
+                                            <?php // The real office, per coldwellbanker.com and the brokerage's own
+                                                  // site: 3017 Knickerbocker Rd, San Angelo, TX 76904 / (325) 944-9559.
+                                                  // It previously said only "our office on Knickerbocker Road" --
+                                                  // correct, but a "Visit Our Office" card with no address and no
+                                                  // phone number is the one card on the page that has to be specific. ?>
+                                            <p class="cb9-p">3017 Knickerbocker Rd, San Angelo, TX 76904. Call (325)&nbsp;944-9559 &mdash; we&rsquo;d love to meet you.</p>
                                             <span class="cb9-go">Directions <?php echo cb_get_svg_icon('chevron-down'); ?></span>
                                         </div>
                                     </a>
@@ -251,6 +256,16 @@ $cb9_plate = function ($i) use ($cb9_plates) {
                                     <div class="cb9-card__inner">
                                         <span class="cb9-eyebrow">Featured Properties</span>
                                         <h2 class="cb9-h2">The latest on the market.</h2>
+                                        <?php // "updated live from the MLS" is ACCURATE: the cards below are
+                                              // rendered by [cb_listings], which queries the Spark MLS client.
+                                              //
+                                              // Do not "correct" this by reading the harness. harness/
+                                              // build-harness.php replaces both live shortcodes on this page with
+                                              // static stand-ins, so cb-home9-harness.html shows six invented
+                                              // properties with made-up addresses. Those exist only in the
+                                              // harness. Auditing the generated harness instead of this file is
+                                              // exactly how this line got wrongly flagged as a false claim once
+                                              // already. ?>
                                         <p class="cb9-p">A hand-picked look at premier San Angelo homes, updated live from the MLS.</p>
                                     </div>
                                 </div>
@@ -258,7 +273,12 @@ $cb9_plate = function ($i) use ($cb9_plates) {
                             <div class="cb9-page__body">
                                 <div class="cb9-card cb9-card--frame" data-cb9-card data-cb9-frame <?php echo $cb9_fl(); ?>>
                                     <div class="cb9-card__inner">
-                                        <?php echo do_shortcode('[cb_listings filter="featured" count="6" columns="3"]'); ?>
+                                        <?php // Six listings, 2 across x 3 down. Was columns="3", which laid the
+                                              // same six out 3x2. Two columns suits this panel better anyway:
+                                              // the page is a fixed reading panel roughly 60rem wide, so at three
+                                              // across each card was narrow enough that the price, address and
+                                              // bed/bath line all had to compete for the same short measure. ?>
+                                        <?php echo do_shortcode('[cb_listings filter="featured" count="6" columns="2"]'); ?>
                                     </div>
                                 </div>
                                 <div class="cb9-card cb9-card--cta-row" data-cb9-card <?php echo $cb9_fl(); ?>>
@@ -283,7 +303,15 @@ $cb9_plate = function ($i) use ($cb9_plates) {
                             <div class="cb9-lod">
                                 <div class="cb9-card cb9-card--head" data-cb9-card <?php echo $cb9_fl(); ?>>
                                     <div class="cb9-card__inner">
-                                        <span class="cb9-eyebrow">Since 2000</span>
+                                        <?php // "Since 2000" was wrong. Coldwell Banker Legacy's own San Angelo
+                                              // office page says "For over 35 years we have had the privilege of
+                                              // providing value-based real estate services", and third-party
+                                              // listings give an establishment date of 1980. Either way the
+                                              // brokerage predates 2000 by a wide margin. Using their own wording
+                                              // rather than a specific year, because the sources disagree on the
+                                              // year (1980 / "over 35" / "over 30") but all agree it is well
+                                              // before 2000. See cblegacysanangelo.com office page. ?>
+                                        <span class="cb9-eyebrow">Serving the Concho Valley for over 35 years</span>
                                         <h2 class="cb9-h2">A legacy of results in the Concho&nbsp;Valley.</h2>
                                     </div>
                                 </div>
@@ -304,7 +332,10 @@ $cb9_plate = function ($i) use ($cb9_plates) {
                                     </div>
                                     <div class="cb9-card cb9-card--stat" data-cb9-card <?php echo $cb9_fl(); ?>>
                                         <div class="cb9-card__inner">
-                                            <div class="cb9-stat__num" data-count="<?php echo esc_attr(get_theme_mod('cb_years_serving', '25')); ?>">0</div>
+                                            <?php // Default was 25, which contradicted the brokerage's own
+                                                  // "over 35 years" and was also internally inconsistent with the
+                                                  // old "Since 2000" eyebrow (2026-2000 = 26, not 25). ?>
+                                            <div class="cb9-stat__num" data-count="<?php echo esc_attr(get_theme_mod('cb_years_serving', '35')); ?>">0</div>
                                             <div class="cb9-stat__label">Years Serving San Angelo</div>
                                         </div>
                                     </div>
@@ -454,6 +485,11 @@ $cb9_plate = function ($i) use ($cb9_plates) {
                                     <div class="cb9-card__inner">
                                         <span class="cb9-eyebrow">Client Stories</span>
                                         <h2 class="cb9-h2">What our clients say.</h2>
+                                        <?php // Accurate: the quotes below come from [cb_testimonials], which
+                                              // serves real client reviews. The "The Walsh Family, College Hills"
+                                              // quote you see in cb-home9-harness.html is a STAND-IN written into
+                                              // harness/build-harness.php, not shipping content -- see the note on
+                                              // the listings card above. ?>
                                         <p class="cb9-p">Real reviews from Coldwell Banker Legacy San Angelo clients &mdash; verified via Testimonial Tree.</p>
                                     </div>
                                 </div>
@@ -507,6 +543,11 @@ $cb9_plate = function ($i) use ($cb9_plates) {
                                         </article>
                                     <?php endwhile; wp_reset_postdata();
                                     else :
+                                        // EMPTY-STATE ONLY. The loop above serves real published posts; this
+                                        // runs solely when the site has none, so the blog card is never an
+                                        // empty box. These three titles are therefore not shipping content --
+                                        // they are what a brand-new install shows. They do appear in the
+                                        // generated harness, which has no WordPress and so never has posts.
                                         $placeholders = [
                                             ['title' => '12 San Angelo Secrets Only Locals Know', 'cat' => 'Community', 'date' => 'April 10, 2026'],
                                             ['title' => 'Spring 2026 San Angelo Market Report', 'cat' => 'Market Update', 'date' => 'April 5, 2026'],

@@ -61,6 +61,8 @@ $VARIANTS = [
         'ink'     => '#fff',
         'accent'  => 'var(--cb-bright-blue)',
         'basePath' => null,
+        // Home 8's world is wireframe and particles -- no meshes to load.
+        'extraJs'  => [],
         // Desktop-only gate: Home 8's floaty layout needs a wide screen + fine pointer.
         'gate'     => "window.matchMedia('(min-width: 1025px)').matches\n        && window.matchMedia('(prefers-reduced-motion: no-preference)').matches\n        && !window.matchMedia('(pointer: coarse)').matches",
     ],
@@ -80,6 +82,10 @@ $VARIANTS = [
         'accent'  => 'var(--cb-gold)',
         // Home 9 hangs Home 2's plates as framed art on the room walls.
         'basePath' => '../theme/assets/images/webgl/',
+        // Home 9 is the only variant with a real mesh in it (the hearth armchairs).
+        // Loaded after three, since it attaches THREE.GLTFLoader. Optional by
+        // design: home9.js keeps its box proxies if this 404s.
+        'extraJs'  => ['../theme/assets/js/vendor/GLTFLoader.js'],
         // Home 9 runs the 3D on phones/tablets too -- only reduced-motion still falls
         // back to the flat layout. sizePages() is already responsive (84% of the
         // viewport, capped at 1100) and the grids collapse to one column under 600px.
@@ -266,7 +272,12 @@ function do_shortcode($s) {
             ['$1,150,000', '700 Concho River Walk',   '6 bd &middot; 5 ba &middot; 5,200 sqft', 'Featured',  'alt-river-42.jpg'],
             ['$225,000',   '108 Christoval Lane',     '3 bd &middot; 1 ba &middot; 1,320 sqft', 'Price cut', 'alt-fortconcho.jpg'],
         ];
-        $out = '<div class="' . $GLOBALS['NS'] . '-grid ' . $GLOBALS['NS'] . '-grid--3">';
+        // 2 across x 3 down, matching the columns="2" the partial now passes to
+        // the real [cb_listings]. The stub has to track that by hand -- it does
+        // not parse the shortcode's attributes -- so if the partial's column
+        // count changes again, change it here too or the harness stops
+        // previewing what actually ships.
+        $out = '<div class="' . $GLOBALS['NS'] . '-grid ' . $GLOBALS['NS'] . '-grid--2">';
         foreach ($rows as $r) {
             $out .= '<article class="h-listing">'
                   . '<div class="h-listing__img" data-tag="' . $r[3] . '">'
@@ -449,7 +460,7 @@ $tail = <<<'HTML'
 
 <!-- Load order is a hard contract (CONTRACT.md): three -> cursor -> motion -> engine.
      Motion is optional; the engine falls back to CSS keyframes + rAF counters. -->
-<script src="../theme/assets/js/vendor/three.min.js"></script>
+<script src="../theme/assets/js/vendor/three.min.js"></script>{{EXTRAJS}}
 <script src="../theme/assets/js/cb-webgl/cursor.js"></script>
 <script src="../theme/assets/js/vendor/motion.js"></script>
 <script src="{{ENGINE}}"></script>
@@ -644,6 +655,11 @@ foreach ($which as $n) {
     $partial = ob_get_clean();
 
     $basePath = $V['basePath'] ? ("\n    basePath: '" . $V['basePath'] . "',") : '';
+    // Extra <script> tags, emitted straight after three so they can extend it.
+    $extraJs = '';
+    foreach (($V['extraJs'] ?? []) as $src) {
+        $extraJs .= "\n" . '<script src="' . $src . '"></script>';
+    }
     $subs = [
         '{{TITLE}}'    => $V['title'],
         '{{PARTIAL}}'  => $V['partial'],
@@ -658,6 +674,7 @@ foreach ($which as $n) {
         '{{INK}}'      => $V['ink'],
         '{{ACCENT}}'   => $V['accent'],
         '{{BASEPATH}}' => $basePath,
+        '{{EXTRAJS}}'  => $extraJs,
         '{{GATE}}'     => $V['gate'],
     ];
     $page = strtr($head, $subs) . "\n" . $partial . strtr($tail, $subs);

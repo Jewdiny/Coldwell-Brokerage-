@@ -268,7 +268,7 @@ $cb8_plate = function ($i) use ($cb8_plates) {
                             <div class="cb8-lod">
                                 <div class="cb8-card cb8-card--head" data-cb8-card <?php echo $cb8_fl(); ?>>
                                     <div class="cb8-card__inner">
-                                        <span class="cb8-eyebrow">Since 2000</span>
+                                        <span class="cb8-eyebrow">Serving the Concho Valley for over 35 years</span>
                                         <h2 class="cb8-h2">A legacy of results in the Concho&nbsp;Valley.</h2>
                                     </div>
                                 </div>
@@ -289,7 +289,7 @@ $cb8_plate = function ($i) use ($cb8_plates) {
                                     </div>
                                     <div class="cb8-card cb8-card--stat" data-cb8-card <?php echo $cb8_fl(); ?>>
                                         <div class="cb8-card__inner">
-                                            <div class="cb8-stat__num" data-count="<?php echo esc_attr(get_theme_mod('cb_years_serving', '25')); ?>">0</div>
+                                            <div class="cb8-stat__num" data-count="<?php echo esc_attr(get_theme_mod('cb_years_serving', '35')); ?>">0</div>
                                             <div class="cb8-stat__label">Years Serving San Angelo</div>
                                         </div>
                                     </div>
