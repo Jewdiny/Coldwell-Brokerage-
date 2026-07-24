@@ -596,12 +596,15 @@
    a zero badge. */
 .cb-saved-link__count[hidden] { display: none; }
 
-/* Remove control on a saved card. Sits over the photo, top-left, so it is not
-   confused with the price or status badge. */
+/* Remove control on a saved card.
+   TOP RIGHT, not top left: the status badge sits at top:1rem left:1rem and the
+   two overlapped, so "ACTIVE" rendered underneath the remove button. Top right
+   is where the save heart lives on a normal card, and this page has no heart --
+   so the control a reader reaches for is in the place they already know. */
 .cb-saved-remove {
   position: absolute;
   top: 0.6rem;
-  left: 0.6rem;
+  right: 0.6rem;
   z-index: 2;
   width: 2rem;
   height: 2rem;
