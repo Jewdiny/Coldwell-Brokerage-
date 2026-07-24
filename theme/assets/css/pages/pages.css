@@ -421,6 +421,96 @@
 }
 
 /* ==========================================================================
+   LUXURY — COLDWELL BANKER GLOBAL LUXURY (MONOCHROME)
+
+   Global Luxury is a black/white/grey identity. Rather than override every
+   accent rule on the page one at a time, this REDEFINES the --cb-gold custom
+   property on the page scope. Custom properties inherit, so every existing
+   `var(--cb-gold)` inside .cb-luxury-page resolves to the monochrome value --
+   including rules written later, which is what stops the page drifting back to
+   accent colour a component at a time.
+
+   Dark sections re-override to white: black type on a dark hero is nothing.
+   ========================================================================== */
+.cb-luxury-page {
+  --cb-gold: #111111;
+  --cb-gold-light: #6E6E6E;
+}
+
+.cb-luxury-page .cb-luxury-hero,
+.cb-luxury-page .cb-cta {
+  --cb-gold: #FFFFFF;
+  --cb-gold-light: #D8D8D8;
+}
+
+/* The section rule above the fold is a hairline, not a bar. */
+.cb-luxury-page .cb-section__divider {
+  background: var(--cb-gold);
+  opacity: 0.65;
+}
+
+/* Global Luxury lockup: official CB mark over the wordmark, set in type.
+   letter-spacing is what makes this read as a luxury wordmark rather than a
+   heading, so it is deliberately wide. */
+.cb-gl-lockup {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.85rem;
+  margin-bottom: 1.75rem;
+}
+
+.cb-gl-lockup__mark {
+  width: auto;
+  height: 54px;
+  max-width: 100%;
+}
+
+.cb-gl-lockup__word {
+  font-family: var(--font-heading);
+  font-size: 0.8125rem;
+  font-weight: 400;
+  text-transform: uppercase;
+  letter-spacing: 0.42em;
+  /* Tracking adds trailing space after the final letter; nudge back so the
+     wordmark reads optically centred under the mark. */
+  text-indent: 0.42em;
+  color: rgba(255, 255, 255, 0.92);
+  white-space: nowrap;
+}
+
+/* What Global Luxury means — replaces the fabricated trend rings. */
+.cb-gl-points {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.75rem;
+}
+
+.cb-gl-point {
+  padding: 1.75rem;
+  border-left: 2px solid var(--cb-gold);
+  background: var(--cb-white, #fff);
+}
+
+.cb-gl-point h4 {
+  margin: 0 0 0.6rem;
+  font-size: 1.125rem;
+  letter-spacing: 0.02em;
+}
+
+.cb-gl-point p {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.75;
+  color: var(--cb-text-muted);
+}
+
+/* Luxury listing cards lose the accent border along with everything else. */
+.cb-luxury-page .cb-property-card--luxury {
+  border-color: rgba(0, 0, 0, 0.18);
+}
+
+/* ==========================================================================
    RENTALS — TENANT RESOURCES
    ========================================================================== */
 .cb-tenant-actions {
@@ -1033,6 +1123,8 @@
   .cb-trust-indicators { grid-template-columns: 1fr; }
   .cb-value-options { grid-template-columns: 1fr; }
   .cb-tenant-actions { grid-template-columns: 1fr; }
+  .cb-gl-points { grid-template-columns: 1fr; }
+  .cb-gl-lockup__word { letter-spacing: 0.3em; text-indent: 0.3em; font-size: 0.75rem; }
   .cb-tabs { flex-wrap: wrap; }
   .cb-agent-detail { grid-template-columns: 1fr; text-align: center; }
   .cb-agent-detail__photo { max-width: 250px; margin: 0 auto; }
