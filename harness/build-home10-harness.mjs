@@ -44,9 +44,19 @@ function extractSections(html) {
   return out;
 }
 
+// Section order, and therefore nav-dot order. Communities sits at 3 and the
+// old "Value" section is gone -- its Property Watch signup became a pop-up.
+// Keep in step with $cb10_nav in theme/template-parts/home10-filmed-scenes.php
+// and with the panel order in home9-house-scenes.php: the dots index by
+// position, so a mismatch mislabels every room rather than failing loudly.
+// Declared HERE, above the count assertion that uses it -- const is in the
+// temporal dead zone until its declaration runs, so a later declaration throws.
+const LABELS = ['Arrival', 'Welcome', 'Listings', 'Communities',
+                'Legacy', 'Front door', 'Connect'];
+
 const sections = extractSections(src);
-if (sections.length !== 8) {
-  console.error(`expected 8 panels, found ${sections.length} -- the Home 9 harness markup moved`);
+if (sections.length !== LABELS.length) {
+  console.error(`expected ${LABELS.length} panels, found ${sections.length} -- the Home 9 harness markup moved`);
   process.exit(1);
 }
 
@@ -79,13 +89,7 @@ function extractStandInCss(html) {
 
 const standInCss = extractStandInCss(src);
 
-// Section order, and therefore nav-dot order. Communities sits at 3 (client
-// request), pushing Legacy and Front door down. Keep in step with $cb10_nav in
-// theme/template-parts/home10-filmed-scenes.php and with the panel order in
-// home9-house-scenes.php -- the dots index by position, so a mismatch labels
-// every room wrongly rather than failing loudly.
-const LABELS = ['Arrival', 'Welcome', 'Listings', 'Communities',
-                'Legacy', 'Front door', 'Value', 'Connect'];
+
 
 // The OUTER wrapper drops its cb9-page class and takes cb10-page instead. It
 // cannot keep both: cb-home9.css's flat fallback pins .cb9-page with

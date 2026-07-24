@@ -56,7 +56,7 @@ if (!defined('ABSPATH')) { exit; }
  */
 $cb10_nav = [
     'Arrival', 'Welcome', 'Listings', 'Communities',
-    'Legacy', 'Front door', 'Value', 'Connect',
+    'Legacy', 'Front door', 'Connect',
 ];
 
 ob_start();
@@ -122,6 +122,39 @@ if ($cb10_count !== count($cb10_nav)) {
 
     <div class="cb10-pages">
         <?php echo $cb10_pages; // phpcs:ignore WordPress.Security.EscapeOutput -- lifted, already-escaped template markup ?>
+    </div>
+
+    <?php /*
+     * PROPERTY WATCH POP-UP.
+     *
+     * This is the "Never miss a listing" signup that used to be a whole section
+     * of its own (the old second-to-last panel, removed with the rest of that
+     * slide). It now appears once, after the reader passes slide 3, so the email
+     * ask arrives after they have seen listings and communities rather than
+     * interrupting the walk.
+     *
+     * Shown at most once per browser -- home10.js records dismissal in
+     * localStorage. It is NOT part of the walk: it sits outside .cb10-pages so
+     * the section indexing is untouched.
+     *
+     * Starts hidden with the `hidden` attribute rather than only CSS, so with no
+     * JS at all it never appears -- there would be nothing to dismiss it with.
+     */ ?>
+    <div class="cb10-modal" id="cb10-watch" role="dialog" aria-modal="true"
+         aria-labelledby="cb10-watch-title" hidden>
+        <div class="cb10-modal__scrim" data-cb10-close></div>
+        <div class="cb10-modal__box" role="document">
+            <button class="cb10-modal__x" type="button" data-cb10-close aria-label="Close">&times;</button>
+            <span class="cb9-eyebrow">Property Watch</span>
+            <h3 class="cb9-h3" id="cb10-watch-title">Never miss a listing</h3>
+            <p class="cb9-p">Property Watch emails you the moment a home matching your criteria hits the market.</p>
+            <form class="cb9-watch__form" data-cb-watch>
+                <input type="email" class="cb9-watch__input" name="email"
+                       placeholder="Enter your email address" aria-label="Email address" required>
+                <button type="submit" class="cb-btn cb-btn--primary">Sign Up</button>
+            </form>
+            <p class="cb9-watch__note">No spam. Unsubscribe anytime.</p>
+        </div>
     </div>
 
 </div><!-- /.cb10-shell -->

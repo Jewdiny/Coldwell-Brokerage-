@@ -450,49 +450,7 @@ $cb9_plate = function ($i) use ($cb9_plates) {
         </section>
 
         <!-- 5 -- COMMUNITIES -------------------------------------------- -->
-        <section class="cb9-page" data-cb9-page="6" id="cb9-sell" aria-label="Sell your home">
-            <div class="cb9-page__float">
-                <div class="cb9-page__skin">
-                    <?php $cb9_plate(6); ?>
-                    <div class="cb9-page__scroll" tabindex="0">
-                        <div class="cb9-page__inner">
-                            <div class="cb9-lod">
-                                <div class="cb9-card cb9-card--head" data-cb9-card <?php echo $cb9_fl(); ?>>
-                                    <div class="cb9-card__inner">
-                                        <span class="cb9-eyebrow">For Sellers</span>
-                                        <h2 class="cb9-h2">What&rsquo;s my home worth today?</h2>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="cb9-page__body">
-                                <div class="cb9-grid cb9-grid--2">
-                                    <div class="cb9-card cb9-card--cta" data-cb9-card <?php echo $cb9_fl(); ?>>
-                                        <div class="cb9-card__inner">
-                                            <p class="cb9-p" style="margin-top:0">Get a free, no-obligation valuation grounded in live San Angelo market data &mdash; usually within 24 hours.</p>
-                                            <a href="<?php echo esc_url(home_url('/home-value/')); ?>" class="cb-btn cb-btn--primary cb-btn--lg">Get My Home Value</a>
-                                        </div>
-                                    </div>
-                                    <div class="cb9-card cb9-card--watch" data-cb9-card <?php echo $cb9_fl(); ?>>
-                                        <div class="cb9-card__inner">
-                                            <h3 class="cb9-h3">Never miss a listing</h3>
-                                            <p class="cb9-p">Property Watch emails you the moment a home matching your criteria hits the market.</p>
-                                            <form class="cb9-watch__form" data-cb-watch>
-                                                <input type="email" class="cb9-watch__input" name="email" placeholder="Enter your email address" aria-label="Email address" required>
-                                                <button type="submit" class="cb-btn cb-btn--primary">Sign Up</button>
-                                            </form>
-                                            <p class="cb9-watch__note">No spam. Unsubscribe anytime.</p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- 7 -- TESTIMONIALS + BLOG + BRAND CLOSE ---------------------- -->
-        <section class="cb9-page" data-cb9-page="7" id="cb9-connect" aria-label="Reviews and stories">
+        <section class="cb9-page" data-cb9-page="6" id="cb9-connect" aria-label="Reviews and stories">
             <div class="cb9-page__float">
                 <div class="cb9-page__skin">
                     <?php $cb9_plate(7); ?>

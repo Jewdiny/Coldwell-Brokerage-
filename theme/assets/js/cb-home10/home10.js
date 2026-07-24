@@ -93,6 +93,12 @@
   // section i -- so TRANS[0] is the intro (coming in the front door and looking
   // down the hall) and TRANS[7] is kitchen -> hearth. Every TRANS[i] is pinned
   // end-to-start against its neighbours; see the header.
+  // SEVEN sections, not eight. The old "Value" panel was removed (its Property
+  // Watch signup became the pop-up), and _n is min(SECTIONS, panels) -- so with
+  // eight rooms listed against seven panels the LAST room would simply never be
+  // reached. The kitchen is dropped rather than the hearth: the closing section
+  // wants the fireplace, not the worktop. t6-kitchen.mp4 stays in the repo,
+  // unused, so restoring a section is a one-line change.
   var SECTIONS = [
     { id: 'arrival',     still: '01-hall.jpg',    trans: 't0-intro.mp4' },
     { id: 'welcome',     still: '02-living.jpg',  trans: 't1-living.mp4' },
@@ -100,7 +106,6 @@
     { id: 'communities', still: '04-study.jpg',   trans: 't3-study.mp4' },
     { id: 'legacy',      still: '05-entry.jpg',   trans: 't4-entry.mp4' },
     { id: 'door',        still: '06-dining.jpg',  trans: 't5-dining.mp4' },
-    { id: 'value',       still: '07-kitchen.jpg', trans: 't6-kitchen.mp4' },
     { id: 'connect',     still: '08-hearth.jpg',  trans: 't7-hearth.mp4' }
   ];
 
@@ -204,6 +209,60 @@
       var v = vids[k];
       if (v && v.preload !== 'auto') { v.preload = 'auto'; }
     }
+  }
+
+  /**
+   * Property Watch pop-up: shown once, after the reader gets past slide 3.
+   *
+   * "After slide 3" is deliberately >= 3 rather than an exact match: a fast
+   * flick can jump the active section from 2 to 5 in one frame, and an equality
+   * test would miss it entirely and never fire.
+   *
+   * Suppressed for good once dismissed or submitted, remembered in
+   * localStorage. Wrapped in try/catch because Safari's private mode throws on
+   * localStorage access -- and a storage failure must not be allowed to block
+   * the modal's close button, which would trap the reader behind a scrim.
+   */
+  var WATCH_KEY = 'cb10_watch_dismissed';
+  var _watchEl = null, _watchDone = false, _watchLastFocus = null;
+
+  function watchSeen() {
+    try { return window.localStorage.getItem(WATCH_KEY) === '1'; } catch (e) { return false; }
+  }
+  function watchRemember() {
+    try { window.localStorage.setItem(WATCH_KEY, '1'); } catch (e) {}
+  }
+  function closeWatch() {
+    if (!_watchEl) { return; }
+    _watchEl.hidden = true;
+    watchRemember();
+    if (_watchLastFocus && _watchLastFocus.focus) {
+      try { _watchLastFocus.focus(); } catch (e) {}
+    }
+  }
+  function openWatch() {
+    if (!_watchEl || _watchDone || _capture || watchSeen()) { return; }
+    _watchDone = true;
+    _watchLastFocus = document.activeElement;
+    _watchEl.hidden = false;
+    var input = _watchEl.querySelector('input[type="email"]');
+    if (input) { try { input.focus(); } catch (e) {} }
+  }
+  function initWatch() {
+    _watchEl = document.getElementById('cb10-watch');
+    if (!_watchEl) { return; }
+    if (watchSeen()) { _watchDone = true; return; }
+
+    var closers = _watchEl.querySelectorAll('[data-cb10-close]');
+    for (var i = 0; i < closers.length; i++) {
+      closers[i].addEventListener('click', closeWatch);
+    }
+    document.addEventListener('keydown', function (e) {
+      if (!_watchEl.hidden && (e.key === 'Escape' || e.keyCode === 27)) { closeWatch(); }
+    });
+    // Submitting counts as answering the ask -- do not show it again either way.
+    var form = _watchEl.querySelector('form');
+    if (form) { form.addEventListener('submit', function () { watchRemember(); }); }
   }
 
   /** Section scroll length. Kept in JS rather than CSS so the spacer and the
@@ -429,6 +488,7 @@
       // into wherever you landed. Backward is an arrival, never a walk.
       enterSection(i, i > _active);
       primeAround(i);
+      if (i >= 3) { openWatch(); }
       _panel = 0;
     }
     updatePages(i, dt);
@@ -475,6 +535,7 @@
     buildStage();
     layout();
     document.documentElement.classList.add('cb10-on');
+    initWatch();
 
     window.addEventListener('resize', layout, { passive: true });
     window.addEventListener('orientationchange', relayout, { passive: true });

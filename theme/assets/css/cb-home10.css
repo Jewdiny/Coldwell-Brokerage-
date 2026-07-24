@@ -278,6 +278,64 @@ body.cb-page--home10-preview {
   text-shadow: 0 2px 16px rgba(0, 0, 0, .7), 0 1px 3px rgba(0, 0, 0, .55);
 }
 
+/* ---- Property Watch pop-up -----------------------------------------------
+   Outside .cb10-pages on purpose, so it is not a section and does not affect
+   the walk's indexing. z-index sits above the nav (5) and the panels (2). */
+.cb10-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+}
+.cb10-modal[hidden] { display: none; }
+
+.cb10-modal__scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(4, 10, 24, .72);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
+}
+
+.cb10-modal__box {
+  position: relative;
+  width: min(30rem, 100%);
+  max-height: 86vh;
+  max-height: 86dvh;
+  overflow: auto;
+  padding: clamp(1.4rem, 3vw, 2.2rem);
+  border-radius: 14px;
+  background: rgba(10, 20, 42, .96);
+  border: 1px solid rgba(240, 235, 224, .16);
+  box-shadow: 0 40px 90px -30px rgba(0, 0, 0, .85);
+  color: var(--cb10-ink);
+  /* Enters rather than snaps. Transform+opacity only, so it composites. */
+  animation: cb10-modal-in .32s cubic-bezier(.2, .7, .2, 1) both;
+}
+@keyframes cb10-modal-in {
+  from { opacity: 0; transform: translateY(14px) scale(.97); }
+  to   { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cb10-modal__box { animation: none; }
+}
+
+/* 44px hit area for a finger, while the glyph stays small. */
+.cb10-modal__x {
+  position: absolute;
+  top: .35rem; right: .35rem;
+  width: 44px; height: 44px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.6rem; line-height: 1;
+  color: var(--cb10-ink);
+  background: none; border: 0; cursor: pointer;
+  opacity: .7;
+}
+.cb10-modal__x:hover { opacity: 1; }
+
 /* ---- phones and tablets -------------------------------------------------- */
 /*
    The walk runs on touch devices too, so these are real layout rules, not a
