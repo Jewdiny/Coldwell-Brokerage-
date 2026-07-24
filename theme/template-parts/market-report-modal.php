@@ -14,13 +14,20 @@
  *   - it is inert markup without JS, and hidden by [hidden] until opened, so a
  *     reader with scripts off is not left with a modal stuck across the page.
  *
- * Expects $cb_name (the community's display name) in scope; falls back to the
- * Concho Valley so it cannot render a sentence with a hole in it.
+ * The area name arrives through get_template_part()'s $args, NOT as an inherited
+ * variable: template files are included inside load_template()'s function scope,
+ * so a caller's locals are not visible here. Falls back to a generic name so the
+ * sentence can never render with a hole in it -- but the fallback is bare
+ * ("Concho Valley"), because the heading supplies its own "the".
  *
  * @package CB_Legacy_Luxury
  */
 
-$cb_mr_area = isset($cb_name) && $cb_name !== '' ? $cb_name : 'the Concho Valley';
+$cb_mr_area = '';
+if (isset($args['area']) && is_string($args['area'])) {
+    $cb_mr_area = trim($args['area']);
+}
+if ($cb_mr_area === '') { $cb_mr_area = 'Concho Valley'; }
 ?>
 <div class="cb-signup-modal" id="cb-market-report-modal" role="dialog" aria-modal="true"
      aria-labelledby="cb-mr-title" hidden>

@@ -215,8 +215,14 @@ get_header();
 /* Quarterly market report signup. Rendered on every community page, so Wall
    has it along with the rest -- it is one component and singling out a single
    area would mean the same pop-up existed on one page and not its neighbours.
-   Restricting it later is a one-line condition on $cb_slug. */
-get_template_part('template-parts/market-report-modal');
+   Restricting it later is a one-line condition on $cb_slug.
+
+   The area name MUST go through the $args parameter. Template files are
+   included inside load_template()'s function scope, so $cb_name is local to
+   this file and simply does not exist inside the part -- it silently fell back
+   to the generic name and every community page, Wall included, asked "How is
+   the Concho Valley market doing?". */
+get_template_part('template-parts/market-report-modal', null, ['area' => $cb_name]);
 ?>
 
 <?php get_footer(); ?>
