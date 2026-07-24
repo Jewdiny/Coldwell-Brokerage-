@@ -291,20 +291,23 @@
     _lastW = w;
     _laidOut = true;
 
-    // 0.85 viewports per section. Was 1.85, then 1.25, and the client still
-    // found it too much work to get from one room to the next.
+    // 0.425 viewports per section. Was 1.85, then 1.25, then 0.85, and the
+    // client asked to halve it again -- from one room to the next should be a
+    // short flick, not a scroll.
     //
     // This is the only number that controls it. The walk plays at its own pace
     // regardless of scrolling, so shortening a section does NOT speed up or
-    // truncate the video -- it only removes empty scrolling. Below one viewport
-    // a room costs less than a single screen of travel: roughly one firm swipe
-    // on a phone, seven wheel notches on a desktop, down from ten.
+    // truncate the video -- it only removes empty scrolling. At well under half
+    // a screen a room costs a gentle nudge: roughly a light thumb-flick on a
+    // phone, three or four wheel notches on a desktop, down from seven.
     //
-    // Seven rooms now span about 6 viewports rather than 8.75.
+    // Eight rooms now span about 3 viewports of travel rather than ~6.
     //
-    // The floor stays at 420px so that on a very short viewport a section never
-    // becomes so brief that momentum scrolling skips a room outright.
-    _secH = Math.max(420, Math.round(h * 0.85));
+    // The floor halves in step, to 210px, so the reduction actually lands on a
+    // typical desktop (a 342px section would otherwise be clamped back up by the
+    // old 420px floor) while still keeping a section long enough that momentum
+    // scrolling on a very short viewport does not skip a room outright.
+    _secH = Math.max(210, Math.round(h * 0.425));
     _total = _secH * _n;
     var sp = document.getElementById('cb10-spacer');
     if (sp) { sp.style.height = _total + 'px'; }
@@ -418,7 +421,7 @@
     // Each clip ends with a 0.4s dissolve onto its still plate -- the room,
     // resolved. Waiting for a hard stop (the old 0.12s) meant the reader
     // watched the room settle, then waited again for text. With sections now
-    // 0.85 viewports there is less scroll to absorb that pause, so the two
+    // 0.425 viewports there is less scroll to absorb that pause, so the two
     // overlap instead: PANEL_FADE is 0.45s, so at a 0.5s lead the panel is
     // fully legible almost exactly as the walk ends. Nothing is cut short --
     // the clip still plays to its end underneath.
