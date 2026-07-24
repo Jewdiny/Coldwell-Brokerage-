@@ -317,32 +317,51 @@ $cb9_plate = function ($i) use ($cb9_plates) {
                                 </div>
                             </div>
                             <div class="cb9-page__body">
+                                <?php /* GLOBAL, not local. These were the San Angelo office's own
+                                   numbers (1,200 homes sold / 30 agents / 35 years / 20 communities);
+                                   the client asked for the Coldwell Banker network figures instead.
+                                   The local heading above still works because the framing is now
+                                   "a local brokerage standing on a global network" -- which is why
+                                   the caption line was added, so four worldwide numbers under a
+                                   Concho Valley headline do not read as a contradiction.
+
+                                   EVERY FIGURE IS CUSTOMIZER-EDITABLE (Appearance > Customize >
+                                   Stats Section). Coldwell Banker publishes these in its corporate
+                                   boilerplate and revises them year to year, so they must not be
+                                   frozen in a template -- and they should be checked against the
+                                   current CB brand/press boilerplate before this is treated as
+                                   approved copy. The defaults below are the long-standing published
+                                   figures, not something derived or estimated here. */ ?>
+                                <div class="cb9-card cb9-card--chip" data-cb9-card <?php echo $cb9_fl(); ?>>
+                                    <div class="cb9-card__inner">
+                                        <span class="cb9-eyebrow">Backed by the Coldwell Banker&reg; network</span>
+                                    </div>
+                                </div>
                                 <div class="cb9-grid cb9-grid--4">
                                     <div class="cb9-card cb9-card--stat" data-cb9-card <?php echo $cb9_fl(); ?>>
                                         <div class="cb9-card__inner">
-                                            <div class="cb9-stat__num" data-count="<?php echo esc_attr(get_theme_mod('cb_homes_sold', '1200')); ?>">0</div>
-                                            <div class="cb9-stat__label">Homes Sold</div>
+                                            <div class="cb9-stat__num" data-count="<?php echo esc_attr(get_theme_mod('cb_global_agents', '100000')); ?>">0</div>
+                                            <div class="cb9-stat__label">Affiliated Agents Worldwide</div>
                                         </div>
                                     </div>
                                     <div class="cb9-card cb9-card--stat" data-cb9-card <?php echo $cb9_fl(); ?>>
                                         <div class="cb9-card__inner">
-                                            <div class="cb9-stat__num" data-count="30">0</div>
-                                            <div class="cb9-stat__label">Expert Agents</div>
+                                            <div class="cb9-stat__num" data-count="<?php echo esc_attr(get_theme_mod('cb_global_offices', '2700')); ?>">0</div>
+                                            <div class="cb9-stat__label">Offices Globally</div>
                                         </div>
                                     </div>
                                     <div class="cb9-card cb9-card--stat" data-cb9-card <?php echo $cb9_fl(); ?>>
                                         <div class="cb9-card__inner">
-                                            <?php // Default was 25, which contradicted the brokerage's own
-                                                  // "over 35 years" and was also internally inconsistent with the
-                                                  // old "Since 2000" eyebrow (2026-2000 = 26, not 25). ?>
-                                            <div class="cb9-stat__num" data-count="<?php echo esc_attr(get_theme_mod('cb_years_serving', '35')); ?>">0</div>
-                                            <div class="cb9-stat__label">Years Serving San Angelo</div>
+                                            <div class="cb9-stat__num" data-count="<?php echo esc_attr(get_theme_mod('cb_global_countries', '40')); ?>">0</div>
+                                            <div class="cb9-stat__label">Countries &amp; Territories</div>
                                         </div>
                                     </div>
                                     <div class="cb9-card cb9-card--stat" data-cb9-card <?php echo $cb9_fl(); ?>>
                                         <div class="cb9-card__inner">
-                                            <div class="cb9-stat__num" data-count="20">0</div>
-                                            <div class="cb9-stat__label">Communities Served</div>
+                                            <?php // 1906 -> now. Derived, not hardcoded, so it never goes stale.
+                                                  $cb_brand_years = max(1, (int) date('Y') - 1906); ?>
+                                            <div class="cb9-stat__num" data-count="<?php echo esc_attr($cb_brand_years); ?>">0</div>
+                                            <div class="cb9-stat__label">Years Since 1906</div>
                                         </div>
                                     </div>
                                 </div>

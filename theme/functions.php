@@ -1151,6 +1151,36 @@ function cb_customize_register($wp_customize) {
         'priority' => 35,
     ]);
 
+    /*
+     * GLOBAL (Coldwell Banker network) figures -- what the homepage Legacy panel
+     * shows since the client asked for global rather than local stats.
+     *
+     * Editable rather than hardcoded because Coldwell Banker revises its
+     * corporate boilerplate periodically; a number frozen in a template quietly
+     * becomes a false brand claim. The defaults are CB's long-standing published
+     * figures and should be confirmed against the current brand/press boilerplate
+     * before being treated as approved marketing copy.
+     *
+     * The LOCAL settings below (cb_homes_sold, cb_years_serving) are intentionally
+     * kept: the older home variants and other templates still render them.
+     */
+    $cb_global_stats = [
+        'cb_global_agents'    => ['100000', __('Global: Affiliated Agents Worldwide', 'cb-legacy')],
+        'cb_global_offices'   => ['2700',   __('Global: Offices Worldwide', 'cb-legacy')],
+        'cb_global_countries' => ['40',     __('Global: Countries & Territories', 'cb-legacy')],
+    ];
+    foreach ($cb_global_stats as $cb_gs_key => $cb_gs) {
+        $wp_customize->add_setting($cb_gs_key, [
+            'default'           => $cb_gs[0],
+            'sanitize_callback' => 'sanitize_text_field',
+        ]);
+        $wp_customize->add_control($cb_gs_key, [
+            'label'   => $cb_gs[1],
+            'section' => 'cb_stats_section',
+            'type'    => 'text',
+        ]);
+    }
+
     $wp_customize->add_setting('cb_homes_sold', [
         'default'           => '1200',
         'sanitize_callback' => 'sanitize_text_field',
