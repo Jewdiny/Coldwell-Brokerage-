@@ -23,8 +23,28 @@ $f_beds         = isset($_GET['beds'])  ? intval($_GET['beds'])  : 0;
 $f_baths        = isset($_GET['baths']) ? intval($_GET['baths']) : 0;
 $f_type         = isset($_GET['type'])  ? sanitize_text_field($_GET['type']) : '';
 $f_sort         = isset($_GET['sort'])  ? sanitize_text_field($_GET['sort']) : 'newest';
+// Open Houses view, linked from the Find a Home nav dropdown.
+$f_openhouse    = !empty($_GET['open_house']);
 
 $parts = ["StandardStatus Eq 'Active'"];
+
+if ($f_openhouse) {
+    /*
+     * Spark exposes scheduled open houses as a related resource, and the
+     * documented way to restrict listings to those that have one is a
+     * subquery on OpenHouses. Kept as a single clause so it composes with
+     * every other filter (price, beds, neighbourhood) rather than replacing
+     * them -- an Open Houses view still has to honour the search the visitor
+     * came in with.
+     *
+     * NOTE: cannot be verified against live data while the Spark key is
+     * disabled (HTTP 401 / API 1010). The expression follows Spark's
+     * documented syntax, but confirm the count is non-zero once the key is
+     * restored -- an unsupported field would come back as simply "no results",
+     * which looks identical to "no open houses this week".
+     */
+    $parts[] = 'OpenHouses Any';
+}
 
 if ($f_neighborhood && isset($communities[$f_neighborhood])) {
     $parts[] = '(' . $communities[$f_neighborhood]['expr'] . ')';
@@ -57,6 +77,7 @@ $orderby = $orderby_map[$f_sort] ?? $orderby_map['newest'];
 
 // Heading copy reflects current filter so the page is keyword-targeted per state.
 $page_h1 = 'San Angelo Homes for Sale';
+if ($f_openhouse) { $page_h1 = 'San Angelo Open Houses'; }
 if ($f_neighborhood && isset($communities[$f_neighborhood])) {
     $page_h1 = $communities[$f_neighborhood]['name'] . ' Homes for Sale';
 }
@@ -89,6 +110,13 @@ get_header();
         <form class="cb-filter-bar" method="get" action="<?php echo esc_url(get_permalink()); ?>" id="cb-filter-form">
             <?php if ($f_neighborhood) : ?>
                 <input type="hidden" name="neighborhood" value="<?php echo esc_attr($f_neighborhood); ?>">
+            <?php endif; ?>
+            <?php /* Carry the Open Houses view through a filter submit. Without
+                 this, setting a price or bed count silently drops you back to
+                 all listings -- the form GETs to the same URL and any param not
+                 represented by a field is lost. */ ?>
+            <?php if ($f_openhouse) : ?>
+                <input type="hidden" name="open_house" value="1">
             <?php endif; ?>
 
             <div class="cb-filter-bar__group">

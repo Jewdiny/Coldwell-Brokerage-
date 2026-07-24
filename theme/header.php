@@ -56,8 +56,19 @@ $cb_transparent_header = is_front_page()
         </a>
 
         <nav class="cb-nav" role="navigation" aria-label="<?php esc_attr_e('Primary Navigation', 'cb-legacy'); ?>">
+            <?php /* Find a Home gains a dropdown so Open Houses has a home in the
+                 nav. The parent stays a real link, not href="#", so the primary
+                 destination is still reachable by keyboard and on touch, where
+                 hovering a dropdown parent is not possible. */ ?>
             <div class="cb-nav__item">
-                <a href="<?php echo esc_url(home_url('/find-a-home/')); ?>" class="cb-nav__link">Find a Home</a>
+                <a href="<?php echo esc_url(home_url('/find-a-home/')); ?>" class="cb-nav__link">
+                    Find a Home
+                    <span class="cb-nav__arrow"><?php echo cb_get_svg_icon('chevron-down'); ?></span>
+                </a>
+                <div class="cb-nav__dropdown">
+                    <a href="<?php echo esc_url(home_url('/find-a-home/')); ?>" class="cb-nav__dropdown-link">Search All Listings</a>
+                    <a href="<?php echo esc_url(home_url('/find-a-home/?open_house=1')); ?>" class="cb-nav__dropdown-link">Open Houses</a>
+                </div>
             </div>
             <div class="cb-nav__item">
                 <a href="#" class="cb-nav__link">
@@ -80,7 +91,7 @@ $cb_transparent_header = is_front_page()
                     <a href="<?php echo esc_url(home_url('/home-value/')); ?>" class="cb-nav__dropdown-link">What is My Home Worth?</a>
                     <a href="<?php echo esc_url(home_url('/buyer-seller-resources/')); ?>" class="cb-nav__dropdown-link">Buyer &amp; Seller Tips</a>
                     <a href="<?php echo esc_url(home_url('/getting-a-home-loan/')); ?>" class="cb-nav__dropdown-link">Getting a Home Loan</a>
-                    <a href="<?php echo esc_url(home_url('/corporate-relocation/')); ?>" class="cb-nav__dropdown-link">Corporate Relocation</a>
+                    <a href="<?php echo esc_url(home_url('/corporate-relocation/')); ?>" class="cb-nav__dropdown-link">Relocating to San Angelo</a>
                     <a href="<?php echo esc_url(home_url('/market-report/')); ?>" class="cb-nav__dropdown-link">Market Report</a>
                 </div>
             </div>
@@ -117,10 +128,17 @@ $cb_transparent_header = is_front_page()
 
 <!-- Mobile Menu -->
 <div class="cb-mobile-menu" id="cb-mobile-menu">
+    <?php /* The mobile menu is a flat list -- it has no dropdowns -- so anything
+         added to a desktop dropdown has to be added here explicitly or it is
+         simply unreachable on a phone. Open Houses, the mortgage page and
+         relocation were all desktop-only until now. */ ?>
     <a href="<?php echo esc_url(home_url('/find-a-home/')); ?>" class="cb-mobile-menu__link">Find a Home</a>
+    <a href="<?php echo esc_url(home_url('/find-a-home/?open_house=1')); ?>" class="cb-mobile-menu__link">Open Houses</a>
     <a href="<?php echo esc_url(home_url('/luxury/')); ?>" class="cb-mobile-menu__link">Luxury</a>
     <a href="<?php echo esc_url(home_url('/our-team/')); ?>" class="cb-mobile-menu__link">Our Team</a>
     <a href="<?php echo esc_url(home_url('/home-value/')); ?>" class="cb-mobile-menu__link">Home Value</a>
+    <a href="<?php echo esc_url(home_url('/getting-a-home-loan/')); ?>" class="cb-mobile-menu__link">Getting a Home Loan</a>
+    <a href="<?php echo esc_url(home_url('/corporate-relocation/')); ?>" class="cb-mobile-menu__link">Relocating to San Angelo</a>
     <a href="<?php echo esc_url(home_url('/rentals/')); ?>" class="cb-mobile-menu__link">Rentals</a>
     <a href="<?php echo esc_url(home_url('/about/')); ?>" class="cb-mobile-menu__link">About</a>
     <a href="<?php echo esc_url(home_url('/blog/')); ?>" class="cb-mobile-menu__link">Blog</a>
