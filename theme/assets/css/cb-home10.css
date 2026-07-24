@@ -395,6 +395,11 @@ body.cb-page--home10-preview {
 #cb9-connect .cb9-page__body {
   align-items: center;
 }
+/* The social card carries its own align-self:flex-start, which beats the
+   parent's align-items:center and pinned it to the left. Override it (and the
+   head, for good measure) so both actually centre. */
+#cb9-connect .cb9-card--head,
+#cb9-connect .cb9-social { align-self: center; }
 #cb9-connect .cb9-card--head { text-align: center; }
 #cb9-connect .cb9-card--head .cb9-card__inner {
   background: none !important;
