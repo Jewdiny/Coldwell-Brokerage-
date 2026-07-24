@@ -198,33 +198,35 @@ get_header();
     </div>
 </section>
 
-<!-- Market Snapshot -->
+<!-- Current market conditions -->
+<?php /* THESE FOUR NUMBERS WERE INVENTED.
+     This section was a "Quarterly Market Snapshot" reading $245K median price,
+     38 days on market, a 97% list-to-sale ratio and +8% year-over-year growth,
+     all hardcoded. The identical figures appeared in a blog post published as
+     market analysis -- which is how they were spotted: sample data written once
+     and repeated in two places until it read like research.
+
+     Nothing invented replaces them. Market numbers belong on the market report,
+     where they come from the MLS and move on their own. A page asking someone
+     to trust a valuation is the worst possible place to print a figure nobody
+     measured, and it is also the wrong page to embed a live feed on: the MLS
+     call can fail, and "market data temporarily unavailable" on a lead form is
+     a trust wobble for no gain. So it links. */ ?>
 <section class="cb-section cb-section--offwhite" id="cb-market-snapshot">
-    <div class="cb-container">
+    <div class="cb-container" style="max-width:760px;text-align:center;">
         <div class="cb-section__header cb-reveal">
             <span class="cb-section__subtitle">San Angelo Real Estate</span>
-            <h2 class="cb-section__title">Quarterly Market Snapshot</h2>
+            <h2 class="cb-section__title">What the Market Is Doing Right Now</h2>
             <div class="cb-section__divider"></div>
+            <p class="cb-section__desc">
+                Median sale price, days on market, inventory and list-to-sale ratio &mdash;
+                pulled from the San Angelo MLS and updated as the market moves, not typed in
+                once and left there.
+            </p>
         </div>
-
-        <div class="cb-stats">
-            <div class="cb-stat cb-reveal">
-                <div class="cb-stat__number" data-count="245" data-suffix="">$245K</div>
-                <div class="cb-stat__label">Median Home Price</div>
-            </div>
-            <div class="cb-stat cb-reveal">
-                <div class="cb-stat__number" data-count="38" data-suffix="">38</div>
-                <div class="cb-stat__label">Avg. Days on Market</div>
-            </div>
-            <div class="cb-stat cb-reveal">
-                <div class="cb-stat__number" data-count="97" data-suffix="%">97%</div>
-                <div class="cb-stat__label">List-to-Sale Ratio</div>
-            </div>
-            <div class="cb-stat cb-reveal">
-                <div class="cb-stat__number" data-count="8" data-suffix="%">+8%</div>
-                <div class="cb-stat__label">YoY Price Growth</div>
-            </div>
-        </div>
+        <p class="cb-reveal">
+            <a href="<?php echo esc_url(home_url('/market-report/')); ?>" class="cb-btn cb-btn--primary cb-btn--lg">See the Current Market Report</a>
+        </p>
     </div>
 </section>
 
