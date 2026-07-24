@@ -47,16 +47,18 @@
 if (!defined('ABSPATH')) { exit; }
 
 /**
- * Nav labels, in section order. Must match home10.js's SECTIONS length (8) AND
- * the panel order in home9-house-scenes.php -- these are just labels for dots
- * that index by position, so if the panels are reordered and this is not, every
- * dot names the wrong room.
+ * Nav labels, in section order. Must match home10.js's SECTIONS length AND the
+ * panel order in home9-house-scenes.php -- these are just labels for dots that
+ * index by position, so if the panels are reordered and this is not, every dot
+ * names the wrong room. All three lists are eight.
  *
  * Communities sits at 3 (client request), pushing Legacy and Front door down.
+ * Kitchen sits between Front door and Connect (client request) -- a blank room
+ * for now, awaiting copy; its scene is 07-kitchen / t6-kitchen.
  */
 $cb10_nav = [
     'Arrival', 'Welcome', 'Listings', 'Communities',
-    'Legacy', 'Front door', 'Connect',
+    'Legacy', 'Front door', 'Kitchen', 'Connect',
 ];
 
 ob_start();

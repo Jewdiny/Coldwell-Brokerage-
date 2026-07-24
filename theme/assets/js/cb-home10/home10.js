@@ -93,12 +93,18 @@
   // section i -- so TRANS[0] is the intro (coming in the front door and looking
   // down the hall) and TRANS[7] is kitchen -> hearth. Every TRANS[i] is pinned
   // end-to-start against its neighbours; see the header.
-  // SEVEN sections, not eight. The old "Value" panel was removed (its Property
-  // Watch signup became the pop-up), and _n is min(SECTIONS, panels) -- so with
-  // eight rooms listed against seven panels the LAST room would simply never be
-  // reached. The kitchen is dropped rather than the hearth: the closing section
-  // wants the fireplace, not the worktop. t6-kitchen.mp4 stays in the repo,
-  // unused, so restoring a section is a one-line change.
+  // EIGHT sections. The old "Value" panel was removed (its Property Watch signup
+  // became the pop-up), which is why this is eight and not nine. The kitchen was
+  // then also dropped for a while to hold SECTIONS, the nav labels and the lifted
+  // panels at seven; it is back now, by client request, as a blank room to be
+  // filled in. Re-adding it also restored the intended camera continuity: t6
+  // moves dining -> kitchen and t7 moves kitchen -> hearth, which is how both
+  // clips were authored -- with kitchen gone, t7-hearth was starting on a frame
+  // (the worktop) the reader had never been shown.
+  //
+  // _n is min(SECTIONS, panels). Keep THREE lists equal or rooms silently drop:
+  // this array, $cb10_nav in home10-filmed-scenes.php, and the .cb9-page panels
+  // in home9-house-scenes.php. All three are eight.
   var SECTIONS = [
     { id: 'arrival',     still: '01-hall.jpg',    trans: 't0-intro.mp4' },
     { id: 'welcome',     still: '02-living.jpg',  trans: 't1-living.mp4' },
@@ -106,6 +112,7 @@
     { id: 'communities', still: '04-study.jpg',   trans: 't3-study.mp4' },
     { id: 'legacy',      still: '05-entry.jpg',   trans: 't4-entry.mp4' },
     { id: 'door',        still: '06-dining.jpg',  trans: 't5-dining.mp4' },
+    { id: 'kitchen',     still: '07-kitchen.jpg', trans: 't6-kitchen.mp4' },
     { id: 'connect',     still: '08-hearth.jpg',  trans: 't7-hearth.mp4' }
   ];
 
