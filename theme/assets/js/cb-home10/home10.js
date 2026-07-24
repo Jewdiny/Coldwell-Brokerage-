@@ -284,12 +284,20 @@
     _lastW = w;
     _laidOut = true;
 
-    // 1.25 viewports per section, was 1.85. The client asked for less dead
-    // vertical scroll between scenes, and this is the only number that controls
-    // it: the walk plays at its own pace regardless, so shortening a section
-    // only removes the empty scrolling AFTER the room has been arrived at --
-    // it does not speed up or truncate the video.
-    _secH = Math.max(420, Math.round(h * 1.25));
+    // 0.85 viewports per section. Was 1.85, then 1.25, and the client still
+    // found it too much work to get from one room to the next.
+    //
+    // This is the only number that controls it. The walk plays at its own pace
+    // regardless of scrolling, so shortening a section does NOT speed up or
+    // truncate the video -- it only removes empty scrolling. Below one viewport
+    // a room costs less than a single screen of travel: roughly one firm swipe
+    // on a phone, seven wheel notches on a desktop, down from ten.
+    //
+    // Seven rooms now span about 6 viewports rather than 8.75.
+    //
+    // The floor stays at 420px so that on a very short viewport a section never
+    // becomes so brief that momentum scrolling skips a room outright.
+    _secH = Math.max(420, Math.round(h * 0.85));
     _total = _secH * _n;
     var sp = document.getElementById('cb10-spacer');
     if (sp) { sp.style.height = _total + 'px'; }
@@ -397,7 +405,17 @@
     }
 
     if (!v.__dur) { return false; }
-    return v.currentTime >= v.__dur - 0.12;
+
+    // Start the panel during the clip's tail dissolve rather than after it.
+    //
+    // Each clip ends with a 0.4s dissolve onto its still plate -- the room,
+    // resolved. Waiting for a hard stop (the old 0.12s) meant the reader
+    // watched the room settle, then waited again for text. With sections now
+    // 0.85 viewports there is less scroll to absorb that pause, so the two
+    // overlap instead: PANEL_FADE is 0.45s, so at a 0.5s lead the panel is
+    // fully legible almost exactly as the walk ends. Nothing is cut short --
+    // the clip still plays to its end underneath.
+    return v.currentTime >= v.__dur - 0.5;
   }
 
   /**
