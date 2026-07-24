@@ -186,3 +186,56 @@ function cb_handle_pm_form() {
 }
 add_action('wp_ajax_cb_pm_form', 'cb_handle_pm_form');
 add_action('wp_ajax_nopriv_cb_pm_form', 'cb_handle_pm_form');
+
+/**
+ * Quarterly market report signup (community page modal).
+ *
+ * Stores the subscriber in an option as well as emailing the office, because an
+ * email notification is not a mailing list: if someone deletes the message the
+ * subscriber is gone and nobody knows. The option is the record; the email is
+ * the prompt to act on it.
+ *
+ * Deduplicates on email + area so a repeat submission does not create a second
+ * entry, and caps the stored list so a scripted flood cannot grow an option row
+ * without limit. Beyond that cap, signups still email through -- the ceiling
+ * protects the database, and must not silently drop a real person's request.
+ */
+function cb_handle_market_report_signup() {
+    check_ajax_referer('wp_rest', 'nonce');
+
+    $email = sanitize_email($_POST['email'] ?? '');
+    $area  = sanitize_text_field($_POST['area'] ?? '');
+
+    if (!$email || !is_email($email)) {
+        wp_send_json_error(['message' => 'Please enter a valid email address.']);
+    }
+
+    $list  = get_option('cb_market_report_subscribers', []);
+    if (!is_array($list)) { $list = []; }
+
+    $key = strtolower($email) . '|' . strtolower($area);
+    if (!isset($list[$key]) && count($list) < 5000) {
+        $list[$key] = [
+            'email' => $email,
+            'area'  => $area,
+            'date'  => current_time('mysql'),
+        ];
+        update_option('cb_market_report_subscribers', $list, false);
+    }
+
+    $to      = cb_lead_recipient();
+    $subject = 'Market Report Signup' . ($area ? ' - ' . $area : '');
+    $body    = "New quarterly market report signup from homes-sanangelo.com\n\n"
+             . "Email: {$email}\n"
+             . "Area of interest: " . ($area ?: '(not specified)') . "\n"
+             . "Date: " . current_time('mysql') . "\n\n"
+             . "The full subscriber list is stored in the cb_market_report_subscribers option.\n";
+
+    wp_mail($to, $subject, $body, ['Content-Type: text/plain; charset=UTF-8']);
+
+    // The signup is recorded whether or not the notification email went out, so
+    // report success on the strength of the record, not the mail server.
+    wp_send_json_success(['message' => 'You are on the list. The next report is on its way.']);
+}
+add_action('wp_ajax_cb_market_report_signup', 'cb_handle_market_report_signup');
+add_action('wp_ajax_nopriv_cb_market_report_signup', 'cb_handle_market_report_signup');

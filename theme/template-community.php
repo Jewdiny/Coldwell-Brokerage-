@@ -211,4 +211,12 @@ get_header();
 
 </div>
 
+<?php
+/* Quarterly market report signup. Rendered on every community page, so Wall
+   has it along with the rest -- it is one component and singling out a single
+   area would mean the same pop-up existed on one page and not its neighbours.
+   Restricting it later is a one-line condition on $cb_slug. */
+get_template_part('template-parts/market-report-modal');
+?>
+
 <?php get_footer(); ?>

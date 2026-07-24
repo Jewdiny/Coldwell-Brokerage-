@@ -541,6 +541,127 @@
 }
 
 /* ==========================================================================
+   SIGNUP MODAL (quarterly market report, community pages)
+   ========================================================================== */
+.cb-signup-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+}
+
+/* Belt and braces with the hidden attribute: a stylesheet that sets display on
+   this class would otherwise override [hidden] and pin an un-openable modal
+   across the page. */
+.cb-signup-modal[hidden] { display: none; }
+
+.cb-signup-modal__scrim {
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 22, 40, 0.62);
+}
+
+.cb-signup-modal__box {
+  position: relative;
+  width: 100%;
+  max-width: 30rem;
+  padding: 2.25rem 2rem 1.75rem;
+  background: var(--cb-white, #fff);
+  border-radius: 6px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.28);
+  animation: cb-signup-in 0.28s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@keyframes cb-signup-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cb-signup-modal__box { animation: none; }
+}
+
+.cb-signup-modal__x {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.65rem;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 0;
+  background: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--cb-text-muted);
+  cursor: pointer;
+}
+
+.cb-signup-modal__x:hover { color: var(--cb-text); }
+
+.cb-signup-modal__eyebrow {
+  display: block;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--cb-gold);
+  margin-bottom: 0.5rem;
+}
+
+.cb-signup-modal__title {
+  margin: 0 0 0.65rem;
+  font-size: 1.375rem;
+  line-height: 1.3;
+}
+
+.cb-signup-modal__desc {
+  margin: 0 0 1.25rem;
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  color: var(--cb-text-muted);
+}
+
+.cb-signup-modal__form {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.cb-signup-modal__form .cb-form__input {
+  flex: 1 1 12rem;
+  width: auto;
+}
+
+.cb-signup-modal__status:empty { display: none; }
+
+.cb-signup-modal__status {
+  margin: 0.9rem 0 0;
+  font-size: 0.9375rem;
+  text-align: center;
+}
+
+.cb-signup-modal__fine {
+  margin: 0.9rem 0 0;
+  font-size: 0.75rem;
+  color: var(--cb-text-muted);
+}
+
+/* Label kept for screen readers where the placeholder is the visible cue. */
+.cb-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ==========================================================================
    RENTALS — TENANT RESOURCES
    ========================================================================== */
 .cb-tenant-actions {
