@@ -405,9 +405,18 @@ h6 { font-size: 1.25rem; }
    picks one. Exact, and it cannot drift. No filter is applied to either. */
 .cb-header__logo-img { filter: none; }
 
-/* Default (solid header): blue mark. */
-.cb-header__logo-img--light { display: none; }
-.cb-header__logo-img--dark  { display: block; }
+/* Default (solid header): blue mark.
+   SCOPED UNDER .cb-header__logo ON PURPOSE -- do not simplify these back to a
+   bare .cb-header__logo-img--light. Forty lines up,
+       .cb-header__logo .cb-header__logo-img { display: block; }
+   sets display with TWO classes (0,2,0). A bare .cb-header__logo-img--light
+   rule is (0,1,0) and loses to it, so the white mark stayed displayed on every
+   solid header and both marks painted at once -- stacking into a
+   double-height, half-invisible logo on every inner page. Matching the two
+   classes ties the specificity and wins on order.
+   The transparent-header rules below are (0,3,0) and still win over these. */
+.cb-header__logo .cb-header__logo-img--light { display: none; }
+.cb-header__logo .cb-header__logo-img--dark  { display: block; }
 
 /* Transparent, unscrolled hero header: the white mark. */
 .cb-header--transparent:not(.cb-header--scrolled) .cb-header__logo-img--light { display: block; }
@@ -3119,8 +3128,13 @@ select:focus,
 /* --- Sections with offwhite background → use cb-icy from refined palette --- */
 .cb-section--offwhite { background: var(--cb-icy); }
 
-/* --- Header search consistency for any future use --- */
-.cb-header__logo-img { display: block; max-width: 280px; }
+/* --- Header logo sizing cap --- */
+/* display: block was removed here. Both header marks are inside
+   .cb-header__logo, which already sets display: block, and leaving a second
+   unconditional display declaration on the shared class 2,700 lines away from
+   the light/dark switch is exactly the kind of thing that silently re-breaks
+   it. Sizing only. */
+.cb-header__logo-img { max-width: 280px; }
 
 /* --- Loading skeleton spinner (cards) --- */
 .cb-property-card__image::before {
