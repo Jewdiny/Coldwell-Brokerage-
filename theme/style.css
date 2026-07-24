@@ -2782,6 +2782,34 @@ html.cb-lightbox-open { overflow: hidden; }
   padding: 0 1.5rem 1.5rem;
 }
 
+/* MOBILE STACK — RESTATED, AND IT HAS TO LIVE HERE.
+   There is a @media (max-width: 1023px) block ~180 lines above that stacks
+   these columns. It never applied. A media query adds NO specificity, so the
+   three rules immediately above -- same selectors, later in the file -- won at
+   every width. On a phone the split therefore stayed two columns: with the map
+   open, a 414px screen was being divided into a ~230px map and a ~180px column
+   of listings, with "Search this area" wrapping onto three lines.
+   Nobody caught it because the map was hidden by default on mobile and there
+   was no link that opened it. Section 4 now links straight into this view.
+   Restated after the desktop rules so it actually wins. */
+@media (max-width: 1023px) {
+  .cb-search-split__container {
+    grid-template-columns: 1fr;
+    min-height: auto;
+  }
+  .cb-search-split__map-col {
+    position: relative;
+    top: 0;
+    height: 62vh;
+    order: -1;
+  }
+  .cb-search-split__listings {
+    max-height: none;
+    overflow: visible;
+    padding: 0 1rem 1.5rem;
+  }
+}
+
 /* Results header (right column) */
 .cb-results-head {
   position: sticky;
