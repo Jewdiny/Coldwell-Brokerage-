@@ -434,6 +434,31 @@ body.cb-page--home10-preview {
 .cb9-quotes .cb-tt-widget--rotator [class*="star"] svg,
 .cb9-quotes .cb-tt-widget--rotator [class*="rating"] svg { width: 14px !important; height: 14px !important; }
 
+/* Collapse the reserved slot height. The visible review is only stars + four
+   lines + a name (~140px), but TT wrapped it in ~400px of empty white: 40px
+   padding top and bottom on the white container, another 20px each on the
+   content, an inline height:290px from its own script, and ~90px of dead space
+   inside the slide. Zero it all out so the box hugs the review. */
+.cb9-quotes .widget-container,
+.cb9-quotes .rotator-viewport,
+.cb9-quotes .testimonial-content,
+.cb9-quotes .testimonial-item {
+  height: auto !important;
+  min-height: 0 !important;
+}
+.cb9-quotes .widget-container { padding: .55rem .4rem !important; }
+.cb9-quotes .testimonial-content { padding: 0 !important; }
+/* Horizontal padding keeps the ‹ › arrows (absolute at the edges) off the words;
+   vertical padding stays tight. */
+.cb9-quotes .testimonial-item {
+  padding: .3rem 2.5rem !important;
+  gap: .35rem !important;
+  justify-content: flex-start !important;
+}
+/* TT's own View-All + Verified row duplicates our eyebrow and Read-All button,
+   and it was pure added height. Drop it. */
+.cb9-quotes .widget-buttons { display: none !important; }
+
 /* Slide-in. Replayed by cb-testimonial-rotate.js (a MutationObserver on the
    quote) whenever the review changes, so it animates on both the auto-advance
    and a manual arrow click -- TT swaps the text in place and gives us no hook of
