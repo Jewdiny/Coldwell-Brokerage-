@@ -159,7 +159,6 @@ $cb9_plate = function ($i) use ($cb9_plates) {
                                 <div class="cb9-card cb9-card--chip" data-cb9-card <?php echo $cb9_fl(); ?>>
                                     <div class="cb9-card__inner">
                                         <span class="cb9-eyebrow">Live Well With Coldwell&#8480;</span>
-                                        <span class="cb9-coords">31.46&deg;&nbsp;N &middot; 100.44&deg;&nbsp;W &middot; San Angelo, Texas</span>
                                     </div>
                                 </div>
                                 <div class="cb9-card cb9-card--title" data-cb9-card <?php echo $cb9_fl(); ?>>
