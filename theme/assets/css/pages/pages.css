@@ -421,6 +421,38 @@
 }
 
 /* ==========================================================================
+   RENTALS — TENANT RESOURCES
+   ========================================================================== */
+.cb-tenant-actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1.5rem;
+}
+
+.cb-tenant-action {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 2rem 1.75rem;
+  border: 1px solid var(--cb-border, rgba(0, 0, 0, 0.1));
+  border-radius: 4px;
+  background: var(--cb-white, #fff);
+}
+
+.cb-tenant-action h3 {
+  margin: 1rem 0 0.5rem;
+  font-size: 1.1875rem;
+}
+
+.cb-tenant-action p {
+  flex: 1;
+  margin: 0 0 1.25rem;
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  color: var(--cb-text-muted);
+}
+
+/* ==========================================================================
    HOME VALUE — TWO OPTIONS
    The choice between the instant CB Estimate and an agent CMA, stated before
    either one. Whole card is the link, so the target is the card and not just
@@ -1000,6 +1032,7 @@
   .cb-info-cards { flex-direction: column; }
   .cb-trust-indicators { grid-template-columns: 1fr; }
   .cb-value-options { grid-template-columns: 1fr; }
+  .cb-tenant-actions { grid-template-columns: 1fr; }
   .cb-tabs { flex-wrap: wrap; }
   .cb-agent-detail { grid-template-columns: 1fr; text-align: center; }
   .cb-agent-detail__photo { max-width: 250px; margin: 0 auto; }

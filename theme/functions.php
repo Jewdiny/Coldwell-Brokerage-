@@ -1269,6 +1269,48 @@ function cb_customize_register($wp_customize) {
         'section' => 'cb_contact',
         'type'    => 'email',
     ]);
+
+    /* Rentals and property management route separately from general sales.
+       A management enquiry or a maintenance question dropped into the general
+       info@ inbox is a lead nobody owns. Both default to the address the client
+       gave; either can be repointed here without a deploy. */
+    $wp_customize->add_setting('cb_pm_email', [
+        'default'           => 'propertymanagement@cbltexas.com',
+        'sanitize_callback' => 'sanitize_email',
+    ]);
+    $wp_customize->add_control('cb_pm_email', [
+        'label'       => __('Property Management Email', 'cb-legacy'),
+        'description' => __('Where enquiries from owners wanting their property managed are sent.', 'cb-legacy'),
+        'section'     => 'cb_contact',
+        'type'        => 'email',
+    ]);
+
+    $wp_customize->add_setting('cb_rentals_email', [
+        'default'           => 'propertymanagement@cbltexas.com',
+        'sanitize_callback' => 'sanitize_email',
+    ]);
+    $wp_customize->add_control('cb_rentals_email', [
+        'label'       => __('Rental Enquiry Email', 'cb-legacy'),
+        'description' => __('Where enquiries from people looking to rent are sent.', 'cb-legacy'),
+        'section'     => 'cb_contact',
+        'type'        => 'email',
+    ]);
+
+    /* Tenant payment portal. Deliberately EMPTY by default: the rentals page
+       shows the Pay Rent button only when a real URL is set here. A dead or
+       guessed link on a page where people go to pay their rent is worse than
+       no button at all -- so until this is filled in, that block tells them to
+       call the office instead. */
+    $wp_customize->add_setting('cb_tenant_portal_url', [
+        'default'           => '',
+        'sanitize_callback' => 'esc_url_raw',
+    ]);
+    $wp_customize->add_control('cb_tenant_portal_url', [
+        'label'       => __('Tenant Portal URL (Pay Rent)', 'cb-legacy'),
+        'description' => __('Full URL of the online rent payment / tenant portal. Leave blank to hide the Pay Rent button.', 'cb-legacy'),
+        'section'     => 'cb_contact',
+        'type'        => 'url',
+    ]);
 }
 add_action('customize_register', 'cb_customize_register');
 

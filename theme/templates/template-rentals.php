@@ -80,43 +80,153 @@ get_header();
     </div>
 </section>
 
+<!-- Tenant Resources -->
+<?php
+/* PAY RENT.
+   The button appears only when a real tenant portal URL is configured
+   (Customizer > Contact Information > Tenant Portal URL). It is deliberately
+   blank by default. A guessed or dead link on the page where people go to pay
+   their rent is worse than no button: they click it, it fails, and they assume
+   the rent did not go through. Until the real portal address is supplied, this
+   block tells them to call the office, which always works. */
+$cb_portal = trim((string) get_theme_mod('cb_tenant_portal_url', ''));
+?>
+<section class="cb-section cb-section--offwhite" id="cb-tenant-resources">
+    <div class="cb-container">
+        <div class="cb-section__header cb-reveal">
+            <span class="cb-section__subtitle">For Current Tenants</span>
+            <h2 class="cb-section__title">Tenant Resources</h2>
+            <div class="cb-section__divider"></div>
+        </div>
+
+        <div class="cb-tenant-actions">
+            <div class="cb-tenant-action cb-reveal">
+                <div class="cb-action-card__icon"><?php echo cb_get_svg_icon('sell'); ?></div>
+                <h3>Pay Rent</h3>
+                <?php if ($cb_portal) : ?>
+                    <p>Pay online through the tenant portal, any time.</p>
+                    <a href="<?php echo esc_url($cb_portal); ?>" class="cb-btn cb-btn--primary" target="_blank" rel="noopener">Pay Here</a>
+                <?php else : ?>
+                    <p>Call the office during business hours and we&rsquo;ll take your payment or set you up on the portal.</p>
+                    <a href="tel:3259449559" class="cb-btn cb-btn--primary">(325) 944-9559</a>
+                <?php endif; ?>
+            </div>
+
+            <div class="cb-tenant-action cb-reveal">
+                <div class="cb-action-card__icon"><?php echo cb_get_svg_icon('office'); ?></div>
+                <h3>Maintenance Request</h3>
+                <p>Something needs fixing? Tell us what and where and we&rsquo;ll get it scheduled.</p>
+                <a href="#cb-pm-form" class="cb-btn cb-btn--navy">Submit a Request</a>
+            </div>
+
+            <div class="cb-tenant-action cb-reveal">
+                <div class="cb-action-card__icon"><?php echo cb_get_svg_icon('phone'); ?></div>
+                <h3>Emergency Maintenance</h3>
+                <p>Burst pipe, no heat, no power, or anything unsafe &mdash; call us straight away, day or night.</p>
+                <a href="tel:3259449559" class="cb-btn cb-btn--navy">(325) 944-9559</a>
+            </div>
+        </div>
+    </div>
+</section>
+
 <!-- Available Rentals -->
-<section class="cb-section cb-section--offwhite" id="cb-available-rentals">
+<?php
+/* THESE WERE INVENTED.
+   This grid previously rendered three hard-coded listings -- 1205 W Avenue N,
+   3422 Green Meadow Dr and 714 S Abe St, with prices, bed/bath counts and
+   "Available" badges -- against a placeholder photo. None of them came from the
+   MLS. They were sample data presented to the public as real inventory a person
+   could enquire about and drive past.
+
+   Now it queries the MLS for Coldwell Banker Legacy's OWN rentals only, per the
+   brief: the brokerage's managed properties, not every rental in the county.
+   Three outcomes, and each says what is actually true:
+
+     listings   -> render them
+     none       -> say we have nothing available right now
+     API error  -> say the feed is unavailable and give a phone number
+
+   The last case matters today: the Spark API key is returning 401, so this
+   section currently shows the unavailable notice rather than silently rendering
+   an empty grid that reads as "this brokerage has no rentals".
+
+   The filter is exposed through the cb_rentals_filter hook so the expression
+   can be corrected without a deploy -- the office name spelling and the
+   rental property type both need confirming against live MLS data, which
+   cannot be done while the key is disabled. */
+$cb_rental_office = apply_filters('cb_rentals_office_name', 'Coldwell Banker Legacy');
+$cb_rental_filter = apply_filters(
+    'cb_rentals_filter',
+    "StandardStatus Eq 'Active' And PropertyType Eq 'E' And ListOfficeName Contains '"
+        . str_replace("'", "''", $cb_rental_office) . "'"
+);
+
+$cb_rentals = null;
+if (class_exists('CB_Spark_Client')) {
+    $cb_client  = new CB_Spark_Client();
+    $cb_rentals = $cb_client->get_listings([
+        'filter'  => $cb_rental_filter,
+        'limit'   => 12,
+        'orderby' => 'ListPrice asc',
+    ]);
+}
+?>
+<section class="cb-section" id="cb-available-rentals">
     <div class="cb-container">
         <div class="cb-section__header cb-reveal">
             <span class="cb-section__subtitle">Now Leasing</span>
             <h2 class="cb-section__title">Available Rentals</h2>
             <div class="cb-section__divider"></div>
-            <p class="cb-section__desc">Browse our current rental listings in San Angelo.</p>
+            <p class="cb-section__desc">Rental homes managed by Coldwell Banker Legacy in San Angelo and the Concho Valley.</p>
         </div>
 
-        <div class="cb-property-grid">
-            <?php
-            $rentals = [
-                ['price' => '$1,400/mo', 'address' => '1205 W Avenue N', 'beds' => 3, 'baths' => 2, 'sqft' => '1,450', 'badge' => 'Available'],
-                ['price' => '$1,800/mo', 'address' => '3422 Green Meadow Dr', 'beds' => 4, 'baths' => 2, 'sqft' => '1,900', 'badge' => 'Available'],
-                ['price' => '$950/mo', 'address' => '714 S Abe St', 'beds' => 2, 'baths' => 1, 'sqft' => '1,050', 'badge' => 'Available'],
-            ];
-            foreach ($rentals as $r) :
-            ?>
-            <div class="cb-property-card cb-reveal">
-                <div class="cb-property-card__image">
-                    <img src="<?php echo esc_url(CB_THEME_URI . '/assets/images/placeholder-property.jpg'); ?>" alt="<?php echo esc_attr($r['address']); ?>">
-                    <span class="cb-property-card__badge"><?php echo esc_html($r['badge']); ?></span>
-                    <div class="cb-property-card__price"><?php echo esc_html($r['price']); ?></div>
-                </div>
-                <div class="cb-property-card__body">
-                    <h3 class="cb-property-card__address"><?php echo esc_html($r['address']); ?></h3>
-                    <p class="cb-property-card__location">San Angelo, TX</p>
-                    <div class="cb-property-card__details">
-                        <span class="cb-property-card__detail"><?php echo cb_get_svg_icon('bed'); ?> <?php echo esc_html($r['beds']); ?> Beds</span>
-                        <span class="cb-property-card__detail"><?php echo cb_get_svg_icon('bath'); ?> <?php echo esc_html($r['baths']); ?> Baths</span>
-                        <span class="cb-property-card__detail"><?php echo cb_get_svg_icon('sqft'); ?> <?php echo esc_html($r['sqft']); ?> Sq Ft</span>
+        <?php if (is_array($cb_rentals) && !empty($cb_rentals)) : ?>
+            <div class="cb-property-grid">
+                <?php foreach ($cb_rentals as $cb_r) :
+                    $cb_addr  = $cb_r['UnparsedAddress'] ?? '';
+                    $cb_photo = CB_Spark_Client::photo_url($cb_r);
+                    $cb_price = !empty($cb_r['ListPrice']) ? '$' . number_format((float) $cb_r['ListPrice']) . '/mo' : 'Call for price';
+                ?>
+                <a class="cb-property-card cb-reveal" href="<?php echo esc_url(CB_Spark_Client::detail_url($cb_r)); ?>">
+                    <div class="cb-property-card__image">
+                        <img src="<?php echo esc_url($cb_photo ?: CB_THEME_URI . '/assets/images/placeholder-property.jpg'); ?>" alt="<?php echo esc_attr($cb_addr); ?>" loading="lazy">
+                        <span class="cb-property-card__badge">For Lease</span>
+                        <div class="cb-property-card__price"><?php echo esc_html($cb_price); ?></div>
                     </div>
-                </div>
+                    <div class="cb-property-card__body">
+                        <h3 class="cb-property-card__address"><?php echo esc_html($cb_addr); ?></h3>
+                        <p class="cb-property-card__location"><?php echo esc_html(trim(($cb_r['City'] ?? '') . ', ' . ($cb_r['StateOrProvince'] ?? ''), ' ,')); ?></p>
+                        <div class="cb-property-card__details">
+                            <span class="cb-property-card__detail"><?php echo cb_get_svg_icon('bed'); ?> <?php echo esc_html($cb_r['BedsTotal'] ?? '—'); ?> Beds</span>
+                            <span class="cb-property-card__detail"><?php echo cb_get_svg_icon('bath'); ?> <?php echo esc_html($cb_r['BathsTotal'] ?? '—'); ?> Baths</span>
+                            <span class="cb-property-card__detail"><?php echo cb_get_svg_icon('sqft'); ?> <?php echo esc_html(!empty($cb_r['BuildingAreaTotal']) ? number_format((float) $cb_r['BuildingAreaTotal']) : '—'); ?> Sq Ft</span>
+                        </div>
+                    </div>
+                </a>
+                <?php endforeach; ?>
             </div>
-            <?php endforeach; ?>
-        </div>
+
+        <?php elseif (is_wp_error($cb_rentals) || $cb_rentals === null) : ?>
+            <div class="cb-empty-state" style="text-align:center;max-width:38rem;margin:0 auto;padding:1rem 0;">
+                <p style="font-size:1.0625rem;line-height:1.75;">
+                    Our live rental listings aren&rsquo;t loading at the moment.
+                </p>
+                <p style="line-height:1.75;">
+                    Call <a href="tel:3259449559">(325) 944-9559</a> and we&rsquo;ll tell you exactly what&rsquo;s available today.
+                </p>
+            </div>
+
+        <?php else : ?>
+            <div class="cb-empty-state" style="text-align:center;max-width:38rem;margin:0 auto;padding:1rem 0;">
+                <p style="font-size:1.0625rem;line-height:1.75;">
+                    We don&rsquo;t have any rentals available right now.
+                </p>
+                <p style="line-height:1.75;">
+                    They move quickly &mdash; <a href="#cb-pm-form">tell us what you&rsquo;re looking for</a>
+                    and we&rsquo;ll contact you the moment something fits.
+                </p>
+            </div>
+        <?php endif; ?>
     </div>
 </section>
 
@@ -170,6 +280,67 @@ get_header();
     </div>
 </section>
 
+<!-- Property Management / Rental enquiry -->
+<?php /* One form, two destinations. The radio decides whether this reaches the
+     property management team or the rentals contact -- see cb_handle_pm_form().
+     Previously the page's only call to action was a link to the general contact
+     form, so an owner asking about management and a tenant reporting a leak both
+     landed in the same sales inbox. */ ?>
+<section class="cb-section cb-section--offwhite" id="cb-pm-form">
+    <div class="cb-container" style="max-width:700px;">
+        <div class="cb-section__header cb-reveal">
+            <span class="cb-section__subtitle">Get in Touch</span>
+            <h2 class="cb-section__title">Rentals &amp; Property Management</h2>
+            <div class="cb-section__divider"></div>
+        </div>
+
+        <form class="cb-form cb-reveal" id="cb-pm-inquiry-form">
+            <div class="cb-form__group">
+                <span class="cb-form__label">What can we help with?</span>
+                <div class="cb-form__radios" style="display:flex;gap:1.5rem;flex-wrap:wrap;margin-top:0.5rem;">
+                    <label style="display:flex;align-items:center;gap:0.5rem;font-weight:500;">
+                        <input type="radio" name="inquiry_type" value="owner" checked>
+                        I own a property to rent out
+                    </label>
+                    <label style="display:flex;align-items:center;gap:0.5rem;font-weight:500;">
+                        <input type="radio" name="inquiry_type" value="renter">
+                        I&rsquo;m looking to rent
+                    </label>
+                </div>
+            </div>
+
+            <div class="cb-form__row">
+                <div class="cb-form__group">
+                    <label class="cb-form__label" for="pm-name">Name</label>
+                    <input type="text" id="pm-name" name="name" class="cb-form__input" required>
+                </div>
+                <div class="cb-form__group">
+                    <label class="cb-form__label" for="pm-phone">Phone</label>
+                    <input type="tel" id="pm-phone" name="phone" class="cb-form__input">
+                </div>
+            </div>
+
+            <div class="cb-form__group">
+                <label class="cb-form__label" for="pm-email">Email</label>
+                <input type="email" id="pm-email" name="email" class="cb-form__input" required>
+            </div>
+
+            <div class="cb-form__group">
+                <label class="cb-form__label" for="pm-address">Property or area</label>
+                <input type="text" id="pm-address" name="address" class="cb-form__input" placeholder="Address, or the part of town you&rsquo;re after">
+            </div>
+
+            <div class="cb-form__group">
+                <label class="cb-form__label" for="pm-message">How can we help?</label>
+                <textarea id="pm-message" name="message" class="cb-form__textarea" rows="4"></textarea>
+            </div>
+
+            <button type="submit" class="cb-btn cb-btn--primary cb-btn--lg" style="width:100%;">Send</button>
+            <p class="cb-form__status" id="cb-pm-status" role="status" aria-live="polite" style="margin-top:1rem;text-align:center;"></p>
+        </form>
+    </div>
+</section>
+
 <!-- CTA -->
 <section class="cb-cta">
     <div class="cb-cta__bg" style="background-image:url('<?php echo esc_url(CB_THEME_URI . '/assets/images/cta-bg.jpg'); ?>');"></div>
@@ -178,9 +349,9 @@ get_header();
         <div class="cb-cta__content">
             <h2 class="cb-cta__title cb-reveal">Own Rental Property?</h2>
             <p class="cb-reveal" style="max-width:560px;margin:0 auto 2rem;opacity:0.9;font-size:1.125rem;">
-                Let us manage it for you. Free property management consultation available.
+                Let us manage it for you &mdash; tenant screening, rent collection, maintenance and compliance, handled.
             </p>
-            <a href="<?php echo esc_url(home_url('/contact/')); ?>" class="cb-btn cb-btn--primary cb-btn--lg cb-reveal">Get a Free Consultation</a>
+            <a href="#cb-pm-form" class="cb-btn cb-btn--primary cb-btn--lg cb-reveal">Talk to Our Management Team</a>
         </div>
     </div>
 </section>
