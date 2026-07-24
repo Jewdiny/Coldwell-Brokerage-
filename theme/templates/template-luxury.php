@@ -123,7 +123,8 @@ get_header();
 <!-- CTA -->
 <section class="cb-cta">
     <div class="cb-cta__bg" style="background-image:url('<?php echo esc_url(CB_THEME_URI . '/assets/images/cta-bg.jpg'); ?>');"></div>
-    <div class="cb-cta__overlay" style="background:rgba(10,22,40,0.9);"></div>
+    <?php /* Was rgba(10,22,40,0.9) -- navy. Neutral, to match the monochrome page. */ ?>
+    <div class="cb-cta__overlay" style="background:rgba(0,0,0,0.88);"></div>
     <div class="cb-container">
         <div class="cb-cta__content">
             <span class="cb-section__subtitle cb-reveal" style="color:var(--cb-gold-light);">Begin Your Luxury Journey</span>

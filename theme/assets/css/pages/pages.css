@@ -462,6 +462,23 @@
   opacity: 0.65;
 }
 
+/* The dark surfaces were literal navy -- rgba(10,22,40,...) -- not tokens, so
+   the variable overrides above could not reach them and the "black and white"
+   hero rendered navy. Neutral black here, and the hero photograph is
+   desaturated: greyscale imagery under a monochrome mark is the whole Global
+   Luxury look, and it also stops a warm-toned stock photo fighting it. */
+.cb-luxury-page .cb-luxury-hero__overlay {
+  background: rgba(0, 0, 0, 0.62);
+}
+
+.cb-luxury-page .cb-luxury-hero__bg img {
+  filter: grayscale(1) contrast(1.04);
+}
+
+.cb-luxury-page .cb-cta__bg {
+  filter: grayscale(1);
+}
+
 /* Global Luxury lockup: official CB mark over the wordmark, set in type.
    letter-spacing is what makes this read as a luxury wordmark rather than a
    heading, so it is deliberately wide. */
