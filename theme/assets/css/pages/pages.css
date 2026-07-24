@@ -432,13 +432,26 @@
 
    Dark sections re-override to white: black type on a dark hero is nothing.
    ========================================================================== */
+/* Override the BASE tokens, not just the aliases.
+   --cb-gold is defined as `var(--cb-bright-blue)`, so overriding --cb-gold
+   alone leaves every rule that reaches for --cb-bright-blue directly still
+   coloured -- and one does: a later .cb-section__subtitle rule in style.css
+   sets `color: var(--cb-bright-blue)` and wins on order over the earlier
+   var(--cb-gold) rule. Redefining the base colours here fixes the aliases and
+   the direct users in one place. */
 .cb-luxury-page {
+  --cb-bright-blue: #111111;
+  --cb-celestial: #6E6E6E;
+  --cb-blue: #111111;          /* drives --cb-navy */
+  --cb-icy: #F5F5F5;           /* off-white sections: neutral, not blue-tinted */
   --cb-gold: #111111;
   --cb-gold-light: #6E6E6E;
 }
 
 .cb-luxury-page .cb-luxury-hero,
 .cb-luxury-page .cb-cta {
+  --cb-bright-blue: #FFFFFF;
+  --cb-celestial: #D8D8D8;
   --cb-gold: #FFFFFF;
   --cb-gold-light: #D8D8D8;
 }
