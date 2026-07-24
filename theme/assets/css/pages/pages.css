@@ -541,6 +541,86 @@
 }
 
 /* ==========================================================================
+   SAVED HOMES — link from search results, and the page itself
+   ========================================================================== */
+.cb-results-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.cb-saved-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.9rem;
+  border: 1px solid var(--cb-gray-300);
+  border-radius: var(--radius-pill, 999px);
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--cb-text);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: border-color var(--transition-fast), color var(--transition-fast);
+}
+
+.cb-saved-link:hover,
+.cb-saved-link:focus-visible {
+  border-color: var(--cb-gold);
+  color: var(--cb-gold);
+}
+
+.cb-saved-link__icon svg {
+  display: block;
+  width: 17px;
+  height: 17px;
+}
+
+.cb-saved-link__count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.35rem;
+  height: 1.35rem;
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  background: var(--cb-gold);
+  color: #fff;
+  font-size: 0.75rem;
+  line-height: 1;
+}
+
+/* [hidden] must beat the inline-flex above, or an empty shortlist still shows
+   a zero badge. */
+.cb-saved-link__count[hidden] { display: none; }
+
+/* Remove control on a saved card. Sits over the photo, top-left, so it is not
+   confused with the price or status badge. */
+.cb-saved-remove {
+  position: absolute;
+  top: 0.6rem;
+  left: 0.6rem;
+  z-index: 2;
+  width: 2rem;
+  height: 2rem;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.cb-saved-remove:hover,
+.cb-saved-remove:focus-visible {
+  background: rgba(0, 0, 0, 0.8);
+}
+
+/* ==========================================================================
    SIGNUP MODAL (quarterly market report, community pages)
    ========================================================================== */
 .cb-signup-modal {

@@ -215,6 +215,18 @@ get_header();
                     <h1 class="cb-results-head__title"><?php echo esc_html($page_h1); ?></h1>
                     <p class="cb-results-head__count"><span id="cb-results-count">&mdash;</span> <span id="cb-results-noun">homes</span> for sale</p>
                 </div>
+                <?php /* The way back to what you saved. Every listing card here
+                     carries a bookmark, but until now nothing led to the list --
+                     you could save homes and never find them again. The badge is
+                     kept in step by cb-favorites.js and hides itself at zero, so
+                     an empty shortlist does not advertise itself. */ ?>
+                <a href="<?php echo esc_url(home_url('/saved-homes/')); ?>" class="cb-saved-link" aria-label="View your saved homes">
+                    <span class="cb-saved-link__icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21l-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                    </span>
+                    <span class="cb-saved-link__label">Saved</span>
+                    <span class="cb-saved-link__count" data-cb-fav-count hidden>0</span>
+                </a>
             </div>
             <?php
             echo CB_Spark_Shortcodes::render_listings([
