@@ -383,6 +383,31 @@ body.cb-page--home10-preview {
    .cb9-quotes (this panel only) so the testimonials page and agent-page rotators
    keep their own presentation. */
 
+/* No glass box on "Follow along", and centre it with the socials (client
+   request). The id survives Home 10's lift, so this targets the closing panel
+   only; the head box is cleared the same way slide 2's was -- clear the inner
+   and its ::before, not the card, so nothing shifts. align-items:center on the
+   panel's three flex columns shrink-wraps and centres the head card and the
+   social row; the review and monogram already centre themselves via align-self,
+   which still wins over this. */
+#cb9-connect .cb9-page__inner,
+#cb9-connect .cb9-lod,
+#cb9-connect .cb9-page__body {
+  align-items: center;
+}
+#cb9-connect .cb9-card--head { text-align: center; }
+#cb9-connect .cb9-card--head .cb9-card__inner {
+  background: none !important;
+  border: none;
+  box-shadow: none;
+}
+#cb9-connect .cb9-card--head .cb9-card__inner::before { display: none; }
+#cb9-connect .cb9-card--head .cb9-h2,
+#cb9-connect .cb9-card--head .cb9-p,
+#cb9-connect .cb9-card--head .cb9-eyebrow {
+  text-shadow: 0 2px 16px rgba(0, 0, 0, .7), 0 1px 3px rgba(0, 0, 0, .55);
+}
+
 /* --- social: the main attraction --- */
 .cb9-social .cb9-card__inner { gap: .7rem; justify-content: center; }
 .cb9-social__link {
