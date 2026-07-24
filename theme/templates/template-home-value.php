@@ -169,7 +169,7 @@ get_header();
     <div class="cb-container">
         <div class="cb-section__header cb-reveal">
             <span class="cb-section__subtitle">San Angelo Real Estate</span>
-            <h2 class="cb-section__title">Current Market Snapshot</h2>
+            <h2 class="cb-section__title">Quarterly Market Snapshot</h2>
             <div class="cb-section__divider"></div>
         </div>
 

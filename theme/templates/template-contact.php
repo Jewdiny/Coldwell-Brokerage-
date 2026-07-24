@@ -117,7 +117,7 @@ get_header();
                         <strong>Office Hours</strong>
                         <table>
                             <tr><td>Monday - Friday</td><td>8:00 AM - 5:00 PM</td></tr>
-                            <tr><td>Saturday</td><td>9:00 AM - 3:00 PM</td></tr>
+                            <tr><td>Saturday</td><td>By appointment</td></tr>
                             <tr><td>Sunday</td><td>By Appointment</td></tr>
                         </table>
                     </div>

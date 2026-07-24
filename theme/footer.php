@@ -90,8 +90,8 @@
                 </div>
                 <div class="cb-footer__contact-item">
                     <span class="cb-footer__contact-icon"><?php echo cb_get_svg_icon('email'); ?></span>
-                    <a href="mailto:<?php echo esc_attr(get_theme_mod('cb_email', 'info@homes-sanangelo.com')); ?>" style="color:inherit;">
-                        <?php echo esc_html(get_theme_mod('cb_email', 'info@homes-sanangelo.com')); ?>
+                    <a href="mailto:<?php echo esc_attr(get_theme_mod('cb_email', 'info@cbltexas.com')); ?>" style="color:inherit;">
+                        <?php echo esc_html(get_theme_mod('cb_email', 'info@cbltexas.com')); ?>
                     </a>
                 </div>
             </div>

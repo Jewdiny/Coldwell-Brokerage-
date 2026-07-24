@@ -122,12 +122,17 @@ get_header();
                 endwhile;
                 wp_reset_postdata();
             else :
-                // Placeholder agents
+                // Placeholder agents -- EMPTY-STATE ONLY. This branch runs solely
+                // when the cb_agent query returns nothing, so these names are not
+                // shipping content; they are what a site with no agents shows.
+                // REALTOR® carries the registered mark here for the same reason it
+                // does on the live agent titles: it is a collective membership mark
+                // and NAR requires the ® wherever the term appears.
                 $placeholder_agents = [
                     ['name' => 'Kenneth Wright', 'title' => 'Kenneth and Mandy Team'],
                     ['name' => 'Lance Powell', 'title' => 'Global Luxury Specialist'],
                     ['name' => 'Kriste Chiacchia', 'title' => 'GRI, New Door Team'],
-                    ['name' => 'Jerry Delgado', 'title' => 'Realtor'],
+                    ['name' => 'Jerry Delgado', 'title' => 'REALTOR®'],
                     ['name' => 'Jim Mundell', 'title' => 'Mundell Team'],
                     ['name' => 'Tammy Koonce', 'title' => 'Expect the Max Team'],
                     ['name' => 'Lacy B. Ellison', 'title' => 'New Door Team'],

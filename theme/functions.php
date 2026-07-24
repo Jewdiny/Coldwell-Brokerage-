@@ -502,7 +502,7 @@ function cb_brokerage_schema() {
     // so this schema mirrors whatever's shown publicly — keeping NAP consistent.
     $name    = 'Coldwell Banker Legacy';
     $phone   = get_theme_mod('cb_phone', '(325) 944-9559');
-    $email   = get_theme_mod('cb_email', 'info@homes-sanangelo.com');
+    $email   = get_theme_mod('cb_email', 'info@cbltexas.com');
     $address = get_theme_mod('cb_address', '3017 Knickerbocker, San Angelo, TX 76904');
 
     // Parse the address (very loose — works for "<street>, <city>, <state> <zip>" patterns).
@@ -647,7 +647,7 @@ function cb_get_communities() {
         ],
         'wall' => [
             'name'        => 'Wall',
-            'tagline'     => 'Family-friendly small-town living',
+            'tagline'     => 'Top-rated schools, small-town pace',
             'expr'        => "City Eq 'Wall'",
             'description' => "Wall is a thriving small community located just east of San Angelo, known across West Texas for one of the highest-rated public school districts in the region. Wall ISD consistently ranks among Texas's top-performing rural districts academically, athletically, and in college readiness — drawing families from across the Concho Valley who relocate specifically for the schools. Real estate in Wall ranges from new construction on small acreage to established family homes in mature neighborhoods like Windsor Estates, plus larger agricultural and ranch properties on the city's outskirts. The town has a tight-knit, friendly atmosphere with strong community traditions, low crime, and a steady identity rooted in agriculture and faith. Wall offers the rare combination of small-town quality of life with an easy 15-minute commute to San Angelo for work, shopping, and entertainment.",
             'image'       => 'assets/images/communities/wall.webp',
@@ -1206,7 +1206,7 @@ function cb_customize_register($wp_customize) {
     ]);
 
     $wp_customize->add_setting('cb_email', [
-        'default'           => 'info@homes-sanangelo.com',
+        'default'           => 'info@cbltexas.com',
         'sanitize_callback' => 'sanitize_email',
     ]);
 

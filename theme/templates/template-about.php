@@ -35,9 +35,9 @@ get_header();
     <div class="cb-container" style="max-width:900px;">
         <div class="cb-about-intro">
             <div class="cb-about-intro__text cb-reveal">
-                <h2>San Angelo's Trusted Real Estate Partner</h2>
+                <h2>Your Trusted Real Estate Partner</h2>
                 <p style="font-size:1.125rem;line-height:1.8;color:var(--cb-text-muted);margin-top:1.5rem;">
-                    For over 25 years, Coldwell Banker Legacy has been the leading real estate brokerage in the San Angelo and Concho Valley area. Our deep roots in the community, combined with the global reach of the Coldwell Banker brand, provide our clients with unmatched service and market expertise.
+                    For over 35 years, Coldwell Banker Legacy has been a leading real estate brokerage in the San Angelo and Concho Valley area. Our deep roots in the community, combined with the global reach of the Coldwell Banker brand, provide our clients with unmatched service and market expertise.
                 </p>
                 <p style="font-size:1.125rem;line-height:1.8;color:var(--cb-text-muted);margin-top:1rem;">
                     Our team of over 30 dedicated agents brings diverse specializations — from first-time homebuyers to luxury estates, commercial properties to ranch land. We are more than a real estate office; we are your neighbors, committed to the growth and prosperity of San Angelo.
@@ -59,15 +59,31 @@ get_header();
         <div class="cb-timeline">
             <div class="cb-timeline__line"></div>
 
+            <?php /* The first two entries are the brand and the office, and they
+                     are different dates: Coldwell Banker was founded in 1906 in San
+                     Francisco; the San Angelo brokerage opened in 1980. The previous
+                     first entry read "2001 — Founded in San Angelo", which was the
+                     same error family as the old "Since 2000" eyebrow: it contradicted
+                     the brokerage's own "over 35 years" and undercounted the office by
+                     two decades. IMAGES: each card has a slot ready below; drop the
+                     Canva timeline art in when it arrives. */ ?>
             <div class="cb-timeline__item cb-reveal--left">
-                <div class="cb-timeline__year">2001</div>
+                <div class="cb-timeline__year">1906</div>
                 <div class="cb-timeline__card">
-                    <h4>Founded in San Angelo</h4>
-                    <p>Coldwell Banker Legacy opens its doors on Knickerbocker Road, establishing a commitment to serving the Concho Valley.</p>
+                    <h4>Coldwell Banker is Founded</h4>
+                    <p>Colbert Coldwell and Benjamin Banker open in San Francisco, building the brand on a promise of honest, transparent representation.</p>
                 </div>
             </div>
 
             <div class="cb-timeline__item cb-timeline__item--right cb-reveal--right">
+                <div class="cb-timeline__year">1980</div>
+                <div class="cb-timeline__card">
+                    <h4>Opening in San Angelo</h4>
+                    <p>Coldwell Banker Legacy opens its doors on Knickerbocker Road, beginning what is now more than four decades serving the Concho Valley.</p>
+                </div>
+            </div>
+
+            <div class="cb-timeline__item cb-reveal--left">
                 <div class="cb-timeline__year">2008</div>
                 <div class="cb-timeline__card">
                     <h4>Expanded Services</h4>
@@ -94,8 +110,8 @@ get_header();
             <div class="cb-timeline__item cb-reveal--left">
                 <div class="cb-timeline__year">2026</div>
                 <div class="cb-timeline__card">
-                    <h4>New Era</h4>
-                    <p>Continuing to grow with a team of 30+ agents, serving over 20 communities across the Concho Valley region.</p>
+                    <h4>46 Years in the Concho Valley</h4>
+                    <p>Forty-six years on from opening in San Angelo, still growing &mdash; a team of 30+ agents serving over 20 communities across the region.</p>
                 </div>
             </div>
         </div>
@@ -131,7 +147,7 @@ get_header();
                     <h4 style="margin-bottom:1rem;">Office Hours</h4>
                     <table class="cb-hours-table">
                         <tr><td>Monday - Friday</td><td>8:00 AM - 5:00 PM</td></tr>
-                        <tr><td>Saturday</td><td>9:00 AM - 3:00 PM</td></tr>
+                        <tr><td>Saturday</td><td>By appointment</td></tr>
                         <tr><td>Sunday</td><td>By Appointment</td></tr>
                     </table>
                 </div>
