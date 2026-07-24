@@ -200,7 +200,7 @@ add_action('wp_enqueue_scripts', 'cb_enqueue_assets');
      • Mobile / reduced-motion→ clean stacked layout (accessible baseline)
    cb_home2_capability_script() guarantees only ONE controller ever runs.
    ========================================================================== */
-define('CB_HOME2_TEMPLATE', 'templates/template-home2-webgl.php');
+if (!defined('CB_HOME2_TEMPLATE')) { define('CB_HOME2_TEMPLATE', 'templates/template-home2-webgl.php'); }
 
 function cb_enqueue_home2_webgl() {
     if (!is_page_template(CB_HOME2_TEMPLATE)) { return; }
@@ -247,7 +247,7 @@ add_action('wp_enqueue_scripts', 'cb_enqueue_home2_webgl');
    Loads the 3D dust-nebula corridor walkthrough on the "Home 7 — Corridor
    Walkthrough Preview" page template ONLY.
    ========================================================================== */
-define('CB_HOME7_TEMPLATE', 'templates/template-home7-corridor.php');
+if (!defined('CB_HOME7_TEMPLATE')) { define('CB_HOME7_TEMPLATE', 'templates/template-home7-corridor.php'); }
 
 function cb_enqueue_home7_corridor() {
     if (!is_page_template(CB_HOME7_TEMPLATE)) { return; }
