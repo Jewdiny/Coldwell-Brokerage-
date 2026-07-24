@@ -173,6 +173,39 @@ get_header();
     </div>
 </section>
 
+<!-- Schools, taxes and crime: point at the primary sources -->
+<?php /* The area descriptions used to characterise school districts as
+     "top-rated", call one community "low crime", and say which areas suited
+     families. Those are the categories fair-housing complaints are built from
+     -- familial status and religion are protected classes, and safety language
+     has long been treated as a race proxy -- so a brokerage should not be the
+     one making the judgement.
+
+     The information itself is not withheld; it is sourced. These are the
+     authorities a buyer would be directed to anyway, and they are more current
+     and more complete than a paragraph of ours. */ ?>
+<section class="cb-section" style="padding-top:0;">
+    <div class="cb-container" style="max-width:760px;">
+        <div class="cb-source-note cb-reveal">
+            <h2 style="font-size:1.25rem;margin:0 0 0.75rem;">Schools, taxes and local statistics</h2>
+            <p style="line-height:1.75;color:var(--cb-text-muted);margin:0 0 0.75rem;">
+                We don&rsquo;t rate school districts or describe neighborhoods as safe or unsafe &mdash;
+                those are your judgements to make, and the primary sources are better than our summary
+                of them.
+            </p>
+            <ul style="line-height:2;color:var(--cb-text-muted);margin:0;padding-left:1.15rem;">
+                <li>School accountability ratings &mdash; <a href="https://txschools.gov" target="_blank" rel="nofollow noopener">Texas Education Agency</a></li>
+                <li>Property tax rates and valuations &mdash; Tom Green County Appraisal District</li>
+                <li>Local crime statistics &mdash; San Angelo Police Department</li>
+            </ul>
+            <p style="line-height:1.75;margin:1rem 0 0;">
+                Questions about <?php echo esc_html($cb_name); ?> specifically?
+                <a href="<?php echo esc_url(home_url('/contact/')); ?>">Ask one of our agents</a>.
+            </p>
+        </div>
+    </div>
+</section>
+
 <!-- Other communities -->
 <section class="cb-section cb-section--offwhite" style="padding:4rem 0;">
     <div class="cb-container">
