@@ -2589,30 +2589,6 @@ html.cb-lightbox-open { overflow: hidden; }
   outline-offset: 2px;
 }
 
-/* Mobile: stack, map hidden by default with toggle */
-@media (max-width: 1023px) {
-  .cb-search-split__container {
-    grid-template-columns: 1fr;
-    min-height: auto;
-  }
-  .cb-search-split__listings {
-    max-height: none;
-    overflow: visible;
-  }
-  .cb-search-split__map-col {
-    position: relative;
-    top: 0;
-    height: 70vh;
-    display: none;
-    order: -1;
-  }
-  .cb-search-split--map-visible .cb-search-split__map-col {
-    display: block;
-  }
-  .cb-map-toggle {
-    display: inline-block;
-  }
-}
 
 /* ==========================================================================
    LEAFLET MAP PIN STYLES
@@ -2782,16 +2758,22 @@ html.cb-lightbox-open { overflow: hidden; }
   padding: 0 1.5rem 1.5rem;
 }
 
-/* MOBILE STACK — RESTATED, AND IT HAS TO LIVE HERE.
-   There is a @media (max-width: 1023px) block ~180 lines above that stacks
-   these columns. It never applied. A media query adds NO specificity, so the
-   three rules immediately above -- same selectors, later in the file -- won at
-   every width. On a phone the split therefore stayed two columns: with the map
-   open, a 414px screen was being divided into a ~230px map and a ~180px column
-   of listings, with "Search this area" wrapping onto three lines.
-   Nobody caught it because the map was hidden by default on mobile and there
-   was no link that opened it. Section 4 now links straight into this view.
-   Restated after the desktop rules so it actually wins. */
+/* MOBILE / TABLET: STACK THE SPLIT VIEW. THIS BLOCK MUST STAY BELOW THE
+   DESKTOP RULES ABOVE — DO NOT MOVE IT UP.
+
+   This used to live ~180 lines earlier and never applied. A media query adds NO
+   specificity, so the desktop rules immediately above -- same selectors, later
+   in the file -- won at every width. On a phone the split stayed two columns:
+   with the map open, a 414px screen was divided into a ~230px map and a ~180px
+   listings column, "Search this area" wrapping onto three lines, and the
+   listings pane keeping a desktop max-height so it scrolled inside the page.
+
+   It went unnoticed because the map is hidden by default at these widths and
+   nothing linked to it -- you had to press Show Map to see the damage. Homepage
+   section 4 now links straight into this view.
+
+   Everything the old block did is here, in one place, so there is no half-dead
+   copy elsewhere for someone to edit and wonder why nothing changes. */
 @media (max-width: 1023px) {
   .cb-search-split__container {
     grid-template-columns: 1fr;
@@ -2801,12 +2783,20 @@ html.cb-lightbox-open { overflow: hidden; }
     position: relative;
     top: 0;
     height: 62vh;
+    display: none;
     order: -1;
+  }
+  /* Opened by the Show Map toggle, or server-side via ?view=map. */
+  .cb-search-split--map-visible .cb-search-split__map-col {
+    display: block;
   }
   .cb-search-split__listings {
     max-height: none;
     overflow: visible;
     padding: 0 1rem 1.5rem;
+  }
+  .cb-map-toggle {
+    display: inline-block;
   }
 }
 
