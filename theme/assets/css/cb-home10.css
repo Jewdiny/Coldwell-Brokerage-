@@ -367,34 +367,87 @@ body.cb-page--home10-preview {
   border-color: var(--cb10-gold);
   transform: translateY(-1px);
 }
-/* Enlarged on client request: the social accounts are the primary call to
-   action of the closing section, so the icons carry more weight and the pills
-   grew to match. */
-.cb9-social__link { gap: .6rem; padding: .62rem 1.2rem; font-size: .9rem; }
-.cb9-social__link svg { width: 26px; height: 26px; flex: 0 0 auto; }
+/* CLOSING SECTION -- social is the main attraction; reviews are a small,
+   sliding strip underneath.
 
-/* "Shrink the box": the quote frame was the tallest thing in the section.
-   Capped and centred so it reads as a supporting carousel under the social
-   row rather than the main event. Reduced further on client request -- the
-   reviews should sit smaller beneath the now-larger social row. */
+   SOCIAL AS THE HERO. On client request the social accounts are now the primary
+   call to action of the section, so the icons and pills are enlarged and the row
+   is centred to carry the weight.
+
+   THE REVIEW BOX WAS ~3,900px TALL. Testimonial Tree's rotator misbehaves inside
+   this fixed, narrow panel: it measured the container at ~236px, laid its two
+   slides side by side at ~118px each, and let a 1,000-character review wrap into
+   an 1,800px column. TT's own sizing cannot be trusted here, so the overrides
+   below take the layout back -- full width, a single slide shown, and the quote
+   clamped to a few lines so no one review can blow up the height. Scoped to
+   .cb9-quotes (this panel only) so the testimonials page and agent-page rotators
+   keep their own presentation. */
+
+/* --- social: the main attraction --- */
+.cb9-social .cb9-card__inner { gap: .7rem; justify-content: center; }
+.cb9-social__link {
+  gap: .7rem;
+  padding: .8rem 1.4rem;
+  font-size: 1rem;
+  min-height: 52px;
+}
+.cb9-social__link svg { width: 30px; height: 30px; flex: 0 0 auto; }
+
+/* --- reviews: compact, secondary --- */
 .cb10-on .cb9-quotes {
   width: 100%;
-  max-width: min(32rem, 100%);
+  max-width: min(30rem, 100%);
   align-self: center;
 }
-.cb10-on .cb9-quotes .cb9-card__inner { padding: .9rem 1.05rem; }
-.cb9-quotes__all { margin-top: .8rem; }
+.cb10-on .cb9-quotes .cb9-card__inner { padding: .85rem 1rem; }
+.cb9-quotes__all { margin-top: .7rem; }
 
-/* Testimonial Tree ships its own styles, so these override with scope +
-   !important. Scoped to .cb9-quotes (the homepage closing panel only) so the
-   testimonials page and agent-page rotators keep their own sizing. */
-.cb9-quotes .cb-tt-widget--rotator .testimonial-text {
+/* Reclaim the collapsed width TT set on itself, up the whole chain. */
+.cb9-quotes .cb-tt-widget--rotator,
+.cb9-quotes .widget-container,
+.cb9-quotes .rotator-viewport,
+.cb9-quotes .testimonial-content,
+.cb9-quotes .testimonial-item {
+  width: 100% !important;
+  max-width: 100% !important;
+}
+/* One slide, full width. TT swaps the first slide's content on advance, so the
+   second (buffer) slide is only height we do not want. */
+.cb9-quotes .testimonial-content { display: block !important; height: auto !important; }
+.cb9-quotes .rotator-viewport { overflow: hidden !important; height: auto !important; }
+.cb9-quotes .testimonial-item:not(:first-child) { display: none !important; }
+
+/* Clamp the quote so a long review stays a few short lines rather than a tall
+   column. The full text is still one tap away via "Read All Reviews". */
+.cb9-quotes .testimonial-text {
+  width: 100% !important;
   font-size: .88rem !important;
   line-height: 1.5 !important;
+  display: -webkit-box !important;
+  -webkit-box-orient: vertical !important;
+  -webkit-line-clamp: 4 !important;
+  line-clamp: 4 !important;
+  overflow: hidden !important;
+  max-height: 6.2em !important;
 }
 .cb9-quotes .cb-tt-widget--rotator .widget-container { font-size: .82rem !important; }
 .cb9-quotes .cb-tt-widget--rotator [class*="star"] svg,
 .cb9-quotes .cb-tt-widget--rotator [class*="rating"] svg { width: 14px !important; height: 14px !important; }
+
+/* Slide-in. Replayed by cb-testimonial-rotate.js (a MutationObserver on the
+   quote) whenever the review changes, so it animates on both the auto-advance
+   and a manual arrow click -- TT swaps the text in place and gives us no hook of
+   its own. */
+@keyframes cb-tt-slide-in {
+  from { opacity: 0; transform: translateX(26px); }
+  to   { opacity: 1; transform: none; }
+}
+.cb9-quotes .testimonial-item.cb-tt-sliding {
+  animation: cb-tt-slide-in .45s cubic-bezier(.2, .7, .2, 1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .cb9-quotes .testimonial-item.cb-tt-sliding { animation: none; }
+}
 
 /* Breathing room between the monogram and "Live Well With Coldwell". */
 .cb9-mark__logo { margin-bottom: 1.15rem !important; }

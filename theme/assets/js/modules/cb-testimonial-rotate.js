@@ -32,6 +32,39 @@
     return false;
   }
 
+  /**
+   * Replay the slide-in animation on the visible slide.
+   *
+   * Testimonial Tree swaps the quote text in place and exposes no event, so the
+   * animation is driven off the DOM changing: remove the class, force a reflow,
+   * add it back so the CSS keyframe restarts. The reduced-motion case is handled
+   * in CSS, so this can run unconditionally.
+   */
+  function playSlide(widget) {
+    var item = widget.querySelector('.testimonial-item');
+    if (!item) { return; }
+    item.classList.remove('cb-tt-sliding');
+    void item.offsetWidth; // reflow, so the animation can play again
+    item.classList.add('cb-tt-sliding');
+  }
+
+  /** Fire playSlide whenever the current quote text actually changes -- covers
+   *  both the timer and a manual arrow click. */
+  function watch(widget) {
+    if (!window.MutationObserver) { return; }
+    var scope = widget.querySelector('.testimonial-content') || widget;
+    var last = (function () {
+      var t = widget.querySelector('.testimonial-text');
+      return t ? (t.textContent || '').trim() : '';
+    })();
+    var obs = new MutationObserver(function () {
+      var t = widget.querySelector('.testimonial-text');
+      var now = t ? (t.textContent || '').trim() : '';
+      if (now && now !== last) { last = now; playSlide(widget); }
+    });
+    obs.observe(scope, { childList: true, subtree: true, characterData: true });
+  }
+
   function attach(widget) {
     var timer = null;
     function start() { if (!timer && !document.hidden) { timer = window.setInterval(function () { advance(widget); }, INTERVAL); } }
@@ -45,6 +78,7 @@
     widget.addEventListener('focusout', start);
     document.addEventListener('visibilitychange', function () { document.hidden ? stop() : start(); });
 
+    watch(widget);
     start();
   }
 
