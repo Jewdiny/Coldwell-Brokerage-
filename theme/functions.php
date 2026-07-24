@@ -631,13 +631,6 @@ function cb_get_communities() {
             'description' => "Lake Nasworthy is San Angelo's premier waterfront community — a 1,600-acre lake on the city's south side offering year-round boating, fishing, water sports, and luxury lakefront living. Homes around Lake Nasworthy range from charming weekend cabins to multi-million-dollar custom estates with private docks, boathouses, panoramic water views, and direct deep-water access. The lake itself is unique to the region: warm-water inflow from a nearby power plant keeps Nasworthy ice-free year-round, making it the only Texas lake where boating, swimming, and skiing are practical even in mid-winter. Residents enjoy proximity to Mary E. Lee Park, scenic Knickerbocker Road, and an active community of fellow lake-lovers. For buyers seeking a true waterfront lifestyle without leaving the city limits, Lake Nasworthy is unmatched in San Angelo and the broader Concho Valley.",
             'image'       => 'assets/images/communities/lake-nasworthy.webp',
         ],
-        'grape-creek' => [
-            'name'        => 'Grape Creek',
-            'tagline'     => 'Quiet country living',
-            'expr'        => "City Eq 'Grape Creek'",
-            'description' => "Grape Creek is a peaceful unincorporated rural community located just north of San Angelo along US Highway 87, offering the perfect balance of country living and city convenience. Property in Grape Creek typically sits on larger lots — often half-acre to multi-acre tracts — with rural-style homes, room for animals, gardens, workshops, and the kind of breathing room you simply can't find inside city limits. The Grape Creek ISD school district is small, well-regarded, and tight-knit, making the area especially attractive to families. Property taxes are typically lower than in the city, and the commute to San Angelo, Goodfellow AFB, or Angelo State University is an easy 15-minute drive. Buyers love Grape Creek for its affordability, slower pace, and authentic small-town Texas atmosphere — all while remaining a short trip from everything San Angelo has to offer.",
-            'image'       => '',
-        ],
         'christoval' => [
             'name'        => 'Christoval',
             'tagline'     => 'Hill country charm',
@@ -651,6 +644,13 @@ function cb_get_communities() {
             'expr'        => "City Eq 'Wall'",
             'description' => "Wall is a thriving small community located just east of San Angelo, known across West Texas for one of the highest-rated public school districts in the region. Wall ISD consistently ranks among Texas's top-performing rural districts academically, athletically, and in college readiness — drawing families from across the Concho Valley who relocate specifically for the schools. Real estate in Wall ranges from new construction on small acreage to established family homes in mature neighborhoods like Windsor Estates, plus larger agricultural and ranch properties on the city's outskirts. The town has a tight-knit, friendly atmosphere with strong community traditions, low crime, and a steady identity rooted in agriculture and faith. Wall offers the rare combination of small-town quality of life with an easy 15-minute commute to San Angelo for work, shopping, and entertainment.",
             'image'       => 'assets/images/communities/wall.webp',
+        ],
+        'grape-creek' => [
+            'name'        => 'Grape Creek',
+            'tagline'     => 'Quiet country living',
+            'expr'        => "City Eq 'Grape Creek'",
+            'description' => "Grape Creek is a peaceful unincorporated rural community located just north of San Angelo along US Highway 87, offering the perfect balance of country living and city convenience. Property in Grape Creek typically sits on larger lots — often half-acre to multi-acre tracts — with rural-style homes, room for animals, gardens, workshops, and the kind of breathing room you simply can't find inside city limits. The Grape Creek ISD school district is small, well-regarded, and tight-knit, making the area especially attractive to families. Property taxes are typically lower than in the city, and the commute to San Angelo, Goodfellow AFB, or Angelo State University is an easy 15-minute drive. Buyers love Grape Creek for its affordability, slower pace, and authentic small-town Texas atmosphere — all while remaining a short trip from everything San Angelo has to offer.",
+            'image'       => '',
         ],
     ];
 }
