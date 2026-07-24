@@ -9,6 +9,30 @@ define('CB_THEME_VERSION', '1.1.0');
 define('CB_THEME_DIR', get_template_directory());
 define('CB_THEME_URI', get_template_directory_uri());
 
+/**
+ * Cache-busting version for a theme asset, from its modification time.
+ *
+ * CB_THEME_VERSION is a hand-edited string that has not moved in a long time,
+ * and deploys copy files over the top of the existing theme. So every CSS and
+ * JS change shipped so far went out under ?ver=1.1.0 -- byte-for-byte a new
+ * file at a URL browsers had already cached and been told was current. A
+ * returning visitor keeps the old stylesheet until they hard-refresh, which is
+ * exactly the audience least likely to do it.
+ *
+ * filemtime() changes on every deploy by definition, so the query string tracks
+ * the file rather than someone remembering to bump a constant. Falls back to
+ * CB_THEME_VERSION if the file cannot be stat'd, so a bad path degrades to the
+ * old behaviour instead of emitting ?ver= with nothing after it.
+ *
+ * @param string $rel Path relative to the theme root, e.g. 'assets/css/pages/pages.css'.
+ * @return string
+ */
+function cb_asset_ver($rel) {
+    $path = CB_THEME_DIR . '/' . ltrim($rel, '/');
+    $mtime = @filemtime($path);
+    return $mtime ? (string) $mtime : CB_THEME_VERSION;
+}
+
 // Spark Platform API (Flexmls) credentials.
 // Stored as constants so they live with the theme; can be overridden via wp_options.
 if (!defined('CB_SPARK_KEY'))    { define('CB_SPARK_KEY',    'sa_bmccleery_key_1'); }
@@ -53,7 +77,7 @@ add_action('after_setup_theme', 'cb_theme_setup');
    ========================================================================== */
 function cb_enqueue_assets() {
     // Main stylesheet
-    wp_enqueue_style('cb-legacy-style', get_stylesheet_uri(), [], CB_THEME_VERSION);
+    wp_enqueue_style('cb-legacy-style', get_stylesheet_uri(), [], cb_asset_ver('style.css'));
 
     // GSAP Core + ScrollTrigger (vendored locally)
     wp_enqueue_script('gsap-core', CB_THEME_URI . '/assets/js/gsap.min.js', [], '3.12.5', true);
@@ -69,7 +93,7 @@ function cb_enqueue_assets() {
     );
 
     // Theme animation controller
-    wp_enqueue_script('cb-gsap-init', CB_THEME_URI . '/assets/js/gsap-init.js', ['gsap-core', 'gsap-scroll-trigger'], CB_THEME_VERSION, true);
+    wp_enqueue_script('cb-gsap-init', CB_THEME_URI . '/assets/js/gsap-init.js', ['gsap-core', 'gsap-scroll-trigger'], cb_asset_ver('assets/js/gsap-init.js'), true);
 
     // The front page no longer loads the cinematic scroll stack.
     //
@@ -91,26 +115,26 @@ function cb_enqueue_assets() {
     // the two stylesheets and client-gates the engine.
 
     // Inner page styles (loaded on all pages for shared components)
-    wp_enqueue_style('cb-pages-style', CB_THEME_URI . '/assets/css/pages/pages.css', ['cb-legacy-style'], CB_THEME_VERSION);
+    wp_enqueue_style('cb-pages-style', CB_THEME_URI . '/assets/css/pages/pages.css', ['cb-legacy-style'], cb_asset_ver('assets/css/pages/pages.css'));
 
     // Flexmls IDX style overrides
-    wp_enqueue_style('cb-idx-overrides', CB_THEME_URI . '/assets/css/idx-overrides.css', ['cb-legacy-style'], CB_THEME_VERSION);
+    wp_enqueue_style('cb-idx-overrides', CB_THEME_URI . '/assets/css/idx-overrides.css', ['cb-legacy-style'], cb_asset_ver('assets/css/idx-overrides.css'));
 
     // Page interactions (tabs, accordion, multi-step, agent search)
-    wp_enqueue_script('cb-pages', CB_THEME_URI . '/assets/js/modules/pages.js', ['cb-gsap-init'], CB_THEME_VERSION, true);
+    wp_enqueue_script('cb-pages', CB_THEME_URI . '/assets/js/modules/pages.js', ['cb-gsap-init'], cb_asset_ver('assets/js/modules/pages.js'), true);
 
     // Header scroll behavior
-    wp_enqueue_script('cb-header', CB_THEME_URI . '/assets/js/modules/header.js', [], CB_THEME_VERSION, true);
+    wp_enqueue_script('cb-header', CB_THEME_URI . '/assets/js/modules/header.js', [], cb_asset_ver('assets/js/modules/header.js'), true);
 
     // Form handlers
-    wp_enqueue_script('cb-forms', CB_THEME_URI . '/assets/js/modules/forms.js', [], CB_THEME_VERSION, true);
+    wp_enqueue_script('cb-forms', CB_THEME_URI . '/assets/js/modules/forms.js', [], cb_asset_ver('assets/js/modules/forms.js'), true);
 
     // Save/un-save listing cards (site-wide, no login)
-    wp_enqueue_script('cb-favorites', CB_THEME_URI . '/assets/js/modules/cb-favorites.js', [], CB_THEME_VERSION, true);
+    wp_enqueue_script('cb-favorites', CB_THEME_URI . '/assets/js/modules/cb-favorites.js', [], cb_asset_ver('assets/js/modules/cb-favorites.js'), true);
 
     // Listing detail page lightbox (only on /listing/<slug>-<id>/ pages)
     if (get_query_var('cb_listing_id')) {
-        wp_enqueue_script('cb-lightbox', CB_THEME_URI . '/assets/js/modules/lightbox.js', [], CB_THEME_VERSION, true);
+        wp_enqueue_script('cb-lightbox', CB_THEME_URI . '/assets/js/modules/lightbox.js', [], cb_asset_ver('assets/js/modules/lightbox.js'), true);
     }
 
     // Leaflet map + split-view search on /find-a-home/ only.
@@ -151,7 +175,7 @@ function cb_enqueue_assets() {
             'cb-map-search',
             CB_THEME_URI . '/assets/js/modules/cb-map-search.js',
             ['leaflet', 'leaflet-markercluster'],
-            CB_THEME_VERSION,
+            cb_asset_ver('assets/js/modules/cb-map-search.js'),
             true
         );
     }
@@ -185,17 +209,17 @@ function cb_enqueue_home2_webgl() {
     // Lenis smooth scroll + scene controller + styles. home.js drives the
     // Version-A fallback; it stays dormant when WebGL takes over (no .cb-cinematic).
     wp_enqueue_script('cb-lenis', CB_THEME_URI . '/assets/js/vendor/lenis.min.js', [], '1.1.18', true);
-    wp_enqueue_style('cb-scroll-home', CB_THEME_URI . '/assets/css/scroll-home.css', ['cb-legacy-style'], CB_THEME_VERSION);
-    wp_enqueue_script('cb-home-animations', CB_THEME_URI . '/assets/js/page-animations/home.js', ['cb-gsap-init', 'cb-lenis'], CB_THEME_VERSION, true);
+    wp_enqueue_style('cb-scroll-home', CB_THEME_URI . '/assets/css/scroll-home.css', ['cb-legacy-style'], cb_asset_ver('assets/css/scroll-home.css'));
+    wp_enqueue_script('cb-home-animations', CB_THEME_URI . '/assets/js/page-animations/home.js', ['cb-gsap-init', 'cb-lenis'], cb_asset_ver('assets/js/page-animations/home.js'), true);
 
     // --- WebGL cinematic layer (vendored Three.js + modules). Order matters. ---
     wp_enqueue_script('three',         CB_THEME_URI . '/assets/js/vendor/three.min.js', [], '0.160.0', true);
-    wp_enqueue_script('cb-wg-shaders', CB_THEME_URI . '/assets/js/cb-webgl/shaders.js', ['three'], CB_THEME_VERSION, true);
-    wp_enqueue_script('cb-wg-engine',  CB_THEME_URI . '/assets/js/cb-webgl/engine.js',  ['three', 'cb-wg-shaders'], CB_THEME_VERSION, true);
-    wp_enqueue_script('cb-wg-scenes',  CB_THEME_URI . '/assets/js/cb-webgl/scenes.js',  ['three', 'cb-wg-engine'], CB_THEME_VERSION, true);
-    wp_enqueue_script('cb-wg-cursor',  CB_THEME_URI . '/assets/js/cb-webgl/cursor.js',  ['three'], CB_THEME_VERSION, true);
-    wp_enqueue_script('cb-wg-main',    CB_THEME_URI . '/assets/js/cb-webgl/main.js',    ['three', 'cb-wg-shaders', 'cb-wg-engine', 'cb-wg-scenes', 'cb-wg-cursor'], CB_THEME_VERSION, true);
-    wp_enqueue_style('cb-webgl',       CB_THEME_URI . '/assets/css/cb-webgl.css', ['cb-scroll-home'], CB_THEME_VERSION);
+    wp_enqueue_script('cb-wg-shaders', CB_THEME_URI . '/assets/js/cb-webgl/shaders.js', ['three'], cb_asset_ver('assets/js/cb-webgl/shaders.js'), true);
+    wp_enqueue_script('cb-wg-engine',  CB_THEME_URI . '/assets/js/cb-webgl/engine.js',  ['three', 'cb-wg-shaders'], cb_asset_ver('assets/js/cb-webgl/engine.js'), true);
+    wp_enqueue_script('cb-wg-scenes',  CB_THEME_URI . '/assets/js/cb-webgl/scenes.js',  ['three', 'cb-wg-engine'], cb_asset_ver('assets/js/cb-webgl/scenes.js'), true);
+    wp_enqueue_script('cb-wg-cursor',  CB_THEME_URI . '/assets/js/cb-webgl/cursor.js',  ['three'], cb_asset_ver('assets/js/cb-webgl/cursor.js'), true);
+    wp_enqueue_script('cb-wg-main',    CB_THEME_URI . '/assets/js/cb-webgl/main.js',    ['three', 'cb-wg-shaders', 'cb-wg-engine', 'cb-wg-scenes', 'cb-wg-cursor'], cb_asset_ver('assets/js/cb-webgl/main.js'), true);
+    wp_enqueue_style('cb-webgl',       CB_THEME_URI . '/assets/css/cb-webgl.css', ['cb-scroll-home'], cb_asset_ver('assets/css/cb-webgl.css'));
 
     // Same-origin images → no crossOrigin needed (main.js loader handles this).
     // Gate init() to the SAME "eligible desktop" definition used by header.php and
@@ -232,13 +256,13 @@ function cb_enqueue_home7_corridor() {
     wp_enqueue_script('three', CB_THEME_URI . '/assets/js/vendor/three.min.js', [], '0.160.0', true);
 
     // Custom cursor (shared with Home 2 WebGL)
-    wp_enqueue_script('cb-wg-cursor', CB_THEME_URI . '/assets/js/cb-webgl/cursor.js', ['three'], CB_THEME_VERSION, true);
+    wp_enqueue_script('cb-wg-cursor', CB_THEME_URI . '/assets/js/cb-webgl/cursor.js', ['three'], cb_asset_ver('assets/js/cb-webgl/cursor.js'), true);
 
     // Corridor engine
-    wp_enqueue_script('cb-corridor', CB_THEME_URI . '/assets/js/cb-corridor/corridor.js', ['three', 'cb-wg-cursor'], CB_THEME_VERSION, true);
+    wp_enqueue_script('cb-corridor', CB_THEME_URI . '/assets/js/cb-corridor/corridor.js', ['three', 'cb-wg-cursor'], cb_asset_ver('assets/js/cb-corridor/corridor.js'), true);
 
     // Corridor styles
-    wp_enqueue_style('cb-corridor', CB_THEME_URI . '/assets/css/cb-corridor.css', ['cb-legacy-style'], CB_THEME_VERSION);
+    wp_enqueue_style('cb-corridor', CB_THEME_URI . '/assets/css/cb-corridor.css', ['cb-legacy-style'], cb_asset_ver('assets/css/cb-corridor.css'));
 
     // Init inline — gates on capable desktop so it never runs on mobile/tablet.
     $cb_mono    = esc_js(CB_THEME_URI . '/assets/images/logos/monogram-horizontal-stacked.svg');

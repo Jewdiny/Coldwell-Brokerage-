@@ -42,11 +42,29 @@ if (!function_exists('cb_home10_is_target')) {
     }
 }
 
+/**
+ * Cache-buster for a Home 10 asset, from its modification time.
+ *
+ * This used to be CB_THEME_VERSION . '-h10' -- a constant that does not move
+ * when the files do. Deploys copy new CSS and JS over the same paths, so
+ * returning visitors were being served a stale homepage from cache while the
+ * server had the new one. filemtime() moves on every deploy by construction.
+ *
+ * Defined locally rather than calling the theme's cb_asset_ver(): this is an
+ * mu-plugin and loads before the theme, and keeping the dependency one-way
+ * means the loader still works if it is ever used with the theme absent.
+ */
+if (!function_exists('cb_home10_ver')) {
+    function cb_home10_ver($rel) {
+        $mtime = @filemtime(get_template_directory() . '/' . ltrim($rel, '/'));
+        return ($mtime ? (string) $mtime : (defined('CB_THEME_VERSION') ? CB_THEME_VERSION : '1.1.0')) . '-h10';
+    }
+}
+
 if (!function_exists('cb_home10_enqueue')) {
     function cb_home10_enqueue() {
         if (!cb_home10_is_target()) { return; }
         $uri = get_template_directory_uri();
-        $ver = (defined('CB_THEME_VERSION') ? CB_THEME_VERSION : '1.1.0') . '-h10';
 
         // BOTH stylesheets, in this order, and both unconditionally.
         //
@@ -60,8 +78,8 @@ if (!function_exists('cb_home10_enqueue')) {
         // and the nav. Its floating rules are likewise nested under .cb10-on,
         // added by home10.js. Without JS this is a plain, readable, stacked
         // page -- which is the whole point of loading the CSS unconditionally.
-        wp_enqueue_style('cb-home9', $uri . '/assets/css/cb-home9.css', ['cb-legacy-style'], $ver);
-        wp_enqueue_style('cb-home10', $uri . '/assets/css/cb-home10.css', ['cb-home9'], $ver);
+        wp_enqueue_style('cb-home9', $uri . '/assets/css/cb-home9.css', ['cb-legacy-style'], cb_home10_ver('assets/css/cb-home9.css'));
+        wp_enqueue_style('cb-home10', $uri . '/assets/css/cb-home10.css', ['cb-home9'], cb_home10_ver('assets/css/cb-home10.css'));
 
         // NOTE: home10.js is deliberately NOT enqueued. PHP cannot see the
         // viewport or the connection, and this page pulls ~16MB of video once
@@ -104,8 +122,7 @@ if (!function_exists('cb_home10_gate')) {
     function cb_home10_gate() {
         if (!cb_home10_is_target()) { return; }
         $uri  = get_template_directory_uri();
-        $ver  = (defined('CB_THEME_VERSION') ? CB_THEME_VERSION : '1.1.0') . '-h10';
-        $eng  = esc_js($uri . '/assets/js/cb-home10/home10.js?ver=' . $ver);
+        $eng  = esc_js($uri . '/assets/js/cb-home10/home10.js?ver=' . cb_home10_ver('assets/js/cb-home10/home10.js'));
         $base = esc_js($uri . '/assets/');
         ?>
         <script id="cb-home10-gate">
