@@ -33,39 +33,80 @@
   }
 
   /**
-   * Replay the slide-in animation on the visible slide.
+   * Render the current review into OUR OWN card.
    *
-   * Testimonial Tree swaps the quote text in place and exposes no event, so the
-   * animation is driven off the DOM changing: remove the class, force a reflow,
-   * add it back so the CSS keyframe restarts. The reduced-motion case is handled
-   * in CSS, so this can run unconditionally.
+   * Testimonial Tree's widget lays itself out badly inside this narrow fixed
+   * panel -- it reserved hundreds of pixels of empty white and let the arrows
+   * overlap the text, and no amount of CSS wrestled it into a clean, compact
+   * shape. So the TT widget is kept in the DOM purely as the live data source
+   * and rotation engine (hidden via CSS on .js), and its current review is read
+   * out and drawn into a small card we fully control -- which also lets the
+   * review match the dark panel instead of a clashing white box.
+   *
+   * html.js gates the swap, so a scripts-off visitor still sees TT's own widget.
    */
-  function playSlide(widget) {
-    var item = widget.querySelector('.testimonial-item');
-    if (!item) { return; }
-    item.classList.remove('cb-tt-sliding');
-    void item.offsetWidth; // reflow, so the animation can play again
-    item.classList.add('cb-tt-sliding');
+  function ensureCard(widget) {
+    var host = (widget.closest && widget.closest('.cb9-card__inner')) || widget.parentElement;
+    if (!host) { return null; }
+    var card = host.querySelector('.cb-review');
+    if (!card) {
+      card = document.createElement('blockquote');
+      card.className = 'cb-review';
+      // Deliberately NOT aria-live: announcing a fresh review every few seconds
+      // would be hostile to a screen-reader user. It reads as ordinary content.
+      card.innerHTML =
+        '<div class="cb-review__stars" aria-hidden="true"></div>' +
+        '<p class="cb-review__text"></p>' +
+        '<cite class="cb-review__author"></cite>';
+      // Sit it above our own "Read All Reviews" button when that is present.
+      var btn = host.querySelector('.cb9-quotes__all');
+      if (btn) { host.insertBefore(card, btn); } else { host.appendChild(card); }
+    }
+    return card;
   }
 
-  /** Fire playSlide whenever the current quote text actually changes -- covers
-   *  both the timer and a manual arrow click. */
+  function render(widget) {
+    var textEl = widget.querySelector('.testimonial-text');
+    var text = textEl ? (textEl.textContent || '').trim() : '';
+    if (!text) { return; }
+
+    var card = ensureCard(widget);
+    if (!card) { return; }
+
+    var starsEl = widget.querySelector('.star-rating');
+    var authorEl = widget.querySelector('.author-name');
+    var author = authorEl ? (authorEl.textContent || '').replace(/^[\s\-–—]+/, '').trim() : '';
+
+    card.querySelector('.cb-review__stars').innerHTML = starsEl ? starsEl.innerHTML : '';
+    card.querySelector('.cb-review__text').textContent = '“' + text + '”';
+    card.querySelector('.cb-review__author').textContent = author ? ('— ' + author) : '';
+
+    // Replay the slide-in: drop the class, force a reflow, add it back.
+    card.classList.remove('cb-review--in');
+    void card.offsetWidth;
+    card.classList.add('cb-review--in');
+  }
+
+  /** Re-render whenever TT swaps the quote -- covers the timer and any manual
+   *  advance -- so our card always shows what TT currently has. */
   function watch(widget) {
-    if (!window.MutationObserver) { return; }
+    if (!window.MutationObserver) { render(widget); return; }
     var scope = widget.querySelector('.testimonial-content') || widget;
-    var last = (function () {
-      var t = widget.querySelector('.testimonial-text');
-      return t ? (t.textContent || '').trim() : '';
-    })();
+    var last = '';
     var obs = new MutationObserver(function () {
       var t = widget.querySelector('.testimonial-text');
       var now = t ? (t.textContent || '').trim() : '';
-      if (now && now !== last) { last = now; playSlide(widget); }
+      if (now && now !== last) { last = now; render(widget); }
     });
     obs.observe(scope, { childList: true, subtree: true, characterData: true });
+    render(widget); // initial paint
   }
 
   function attach(widget) {
+    // We render our own card from this widget's data; hide the original from
+    // assistive tech so the review is not announced twice.
+    widget.setAttribute('aria-hidden', 'true');
+
     var timer = null;
     function start() { if (!timer && !document.hidden) { timer = window.setInterval(function () { advance(widget); }, INTERVAL); } }
     function stop() { if (timer) { window.clearInterval(timer); timer = null; } }

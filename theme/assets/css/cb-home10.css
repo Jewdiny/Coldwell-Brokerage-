@@ -459,19 +459,61 @@ body.cb-page--home10-preview {
    and it was pure added height. Drop it. */
 .cb9-quotes .widget-buttons { display: none !important; }
 
-/* Slide-in. Replayed by cb-testimonial-rotate.js (a MutationObserver on the
-   quote) whenever the review changes, so it animates on both the auto-advance
-   and a manual arrow click -- TT swaps the text in place and gives us no hook of
-   its own. */
-@keyframes cb-tt-slide-in {
-  from { opacity: 0; transform: translateX(26px); }
+/* WITH JS: hide Testimonial Tree's own widget and show the clean card that
+   cb-testimonial-rotate.js renders in its place. The widget stays in the DOM as
+   the live data source and rotation engine -- it is moved off-screen at a real
+   width (not display:none, not 1px) so its own text-swapping keeps working, and
+   its arrow can still be clicked programmatically. No-JS falls back to TT's own
+   widget with the constraints above. */
+html.js .cb9-quotes .cb-tt-widget {
+  position: absolute !important;
+  left: -9999px !important;
+  top: 0 !important;
+  width: 320px !important;
+  height: auto !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Our review card: matches the dark panel rather than TT's white box, and can
+   never grow tall -- the quote is clamped and the whole thing is only stars,
+   four lines and a name. */
+.cb-review { margin: 0; text-align: center; }
+.cb-review__stars {
+  display: flex;
+  justify-content: center;
+  gap: 3px;
+  margin-bottom: .55rem;
+  color: var(--cb10-gold, #E0B64B);
+}
+.cb-review__stars svg { width: 15px; height: 15px; fill: currentColor; }
+.cb-review__text {
+  margin: 0 0 .55rem;
+  font-size: .92rem;
+  line-height: 1.55;
+  color: var(--cb10-ink, #f0ebe0);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+  overflow: hidden;
+}
+.cb-review__author {
+  display: block;
+  font-size: .8rem;
+  font-style: italic;
+  opacity: .68;
+  color: var(--cb10-ink, #f0ebe0);
+}
+
+/* Slide-in, replayed by JS each time the review changes. */
+@keyframes cb-review-in {
+  from { opacity: 0; transform: translateX(24px); }
   to   { opacity: 1; transform: none; }
 }
-.cb9-quotes .testimonial-item.cb-tt-sliding {
-  animation: cb-tt-slide-in .45s cubic-bezier(.2, .7, .2, 1);
-}
+.cb-review--in { animation: cb-review-in .45s cubic-bezier(.2, .7, .2, 1); }
 @media (prefers-reduced-motion: reduce) {
-  .cb9-quotes .testimonial-item.cb-tt-sliding { animation: none; }
+  .cb-review--in { animation: none; }
 }
 
 /* Breathing room between the monogram and "Live Well With Coldwell". */
