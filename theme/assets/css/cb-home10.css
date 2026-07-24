@@ -198,6 +198,86 @@ body.cb-page--home10-preview {
   transform: scale(1.3);
 }
 
+/* ---- slide 1: clear background, centred text ------------------------------
+   The arrival panel is the one slide whose job is the ROOM, not the reading.
+   So it loses the glass entirely and the copy centres over the hallway.
+
+   Targeting: the panels are lifted from Home 9, so the first one is
+   [data-cb10-page="0"] and the cards inside keep their cb9- classes. Killing
+   the background on .cb9-card__inner (the glass) rather than on the card keeps
+   the layout identical -- only the fill, border and shadow go. */
+.cb10-on .cb10-page[data-cb10-page="0"] .cb9-page__skin {
+  background: none;
+  border: none;
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+.cb10-on .cb10-page[data-cb10-page="0"] .cb9-card__inner {
+  background: none !important;
+  border: none;
+  box-shadow: none;
+}
+.cb10-on .cb10-page[data-cb10-page="0"] .cb9-card__inner::before { display: none; }
+
+/* Centre the arrival copy. The cards are align-self: flex-start in a column
+   flex container (see cb-home9.css), so centring means overriding that as well
+   as the text alignment -- text-align alone would centre the words inside a
+   card that is still hugging the left edge. */
+.cb10-on .cb10-page[data-cb10-page="0"] .cb9-page__inner { align-items: center; }
+.cb10-on .cb10-page[data-cb10-page="0"] .cb9-card { align-self: center; }
+.cb10-on .cb10-page[data-cb10-page="0"] .cb9-card__inner,
+.cb10-on .cb10-page[data-cb10-page="0"] .cb9-h1,
+.cb10-on .cb10-page[data-cb10-page="0"] .cb9-sub { text-align: center; }
+
+/* Without the glass behind it, the copy needs its own legibility against a
+   photograph -- a soft shadow does that without putting a box back. */
+.cb10-on .cb10-page[data-cb10-page="0"] .cb9-h1,
+.cb10-on .cb10-page[data-cb10-page="0"] .cb9-sub,
+.cb10-on .cb10-page[data-cb10-page="0"] .cb9-eyebrow,
+.cb10-on .cb10-page[data-cb10-page="0"] .cb9-coords {
+  text-shadow: 0 2px 18px rgba(0, 0, 0, .75), 0 1px 3px rgba(0, 0, 0, .6);
+}
+
+/* Blurred, then resolving into frame. Runs once on arrival; the class is added
+   by home10.js when the panel first becomes readable. prefers-reduced-motion
+   users get the resolved state immediately and no animation at all. */
+.cb10-on .cb10-page[data-cb10-page="0"] .cb9-card {
+  filter: blur(14px);
+  transform: translateY(14px) scale(1.015);
+  opacity: 0;
+  transition: filter 1.15s cubic-bezier(.2,.7,.2,1),
+              transform 1.15s cubic-bezier(.2,.7,.2,1),
+              opacity .9s ease-out;
+}
+.cb10-on .cb10-page[data-cb10-page="0"].is-resolved .cb9-card {
+  filter: blur(0);
+  transform: none;
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cb10-on .cb10-page[data-cb10-page="0"] .cb9-card {
+    filter: none; transform: none; opacity: 1; transition: none;
+  }
+}
+
+/* ---- slide 2: no glass on the heading ------------------------------------
+   Client asked for the top box's dark container to go. Only the HEAD card
+   loses its fill -- the four action cards below keep theirs, because those are
+   clickable targets and need an edge to read as buttons. Same technique as
+   slide 1: clear .cb9-card__inner, not the card, so nothing moves. */
+.cb10-on .cb10-page[data-cb10-page="1"] .cb9-card--head .cb9-card__inner {
+  background: none !important;
+  border: none;
+  box-shadow: none;
+}
+.cb10-on .cb10-page[data-cb10-page="1"] .cb9-card--head .cb9-card__inner::before { display: none; }
+.cb10-on .cb10-page[data-cb10-page="1"] .cb9-card--head .cb9-h2,
+.cb10-on .cb10-page[data-cb10-page="1"] .cb9-card--head .cb9-p,
+.cb10-on .cb10-page[data-cb10-page="1"] .cb9-card--head .cb9-eyebrow {
+  text-shadow: 0 2px 16px rgba(0, 0, 0, .7), 0 1px 3px rgba(0, 0, 0, .55);
+}
+
 /* ---- phones and tablets -------------------------------------------------- */
 /*
    The walk runs on touch devices too, so these are real layout rules, not a

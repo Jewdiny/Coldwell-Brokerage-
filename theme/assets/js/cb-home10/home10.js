@@ -225,7 +225,12 @@
     _lastW = w;
     _laidOut = true;
 
-    _secH = Math.max(420, Math.round(h * 1.85));
+    // 1.25 viewports per section, was 1.85. The client asked for less dead
+    // vertical scroll between scenes, and this is the only number that controls
+    // it: the walk plays at its own pace regardless, so shortening a section
+    // only removes the empty scrolling AFTER the room has been arrived at --
+    // it does not speed up or truncate the video.
+    _secH = Math.max(420, Math.round(h * 1.25));
     _total = _secH * _n;
     var sp = document.getElementById('cb10-spacer');
     if (sp) { sp.style.height = _total + 'px'; }
@@ -392,6 +397,13 @@
       // the scroll gesture when the cursor happens to be over it.
       if (on > 0.5) { el.removeAttribute('inert'); } else { el.setAttribute('inert', ''); }
       el.classList.toggle('is-read', on > 0.5);
+      // One-way latch driving the arrival panel's blur-into-frame reveal
+      // (cb-home10.css). Deliberately never removed: toggling it would replay
+      // the blur every time the reader scrolled back to the top, which reads as
+      // a glitch rather than an entrance.
+      if (on > 0.5 && !el.classList.contains('is-resolved')) {
+        el.classList.add('is-resolved');
+      }
       // Counting starts when the panel is actually legible, not when its
       // section becomes active -- otherwise the numbers would finish counting
       // behind a still-transparent panel during the walk in.

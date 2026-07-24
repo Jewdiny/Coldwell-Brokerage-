@@ -61,8 +61,8 @@
 
 if (!defined('ABSPATH')) { exit; }
 
-$hero_title    = get_theme_mod('cb_hero_title', 'Find Your Dream Home in San Angelo');
-$hero_subtitle = get_theme_mod('cb_hero_subtitle', 'Discover luxury living with Coldwell Banker Legacy. Your trusted partner in San Angelo real estate.');
+$hero_title    = get_theme_mod('cb_hero_title', 'Discover Texas living.');
+$hero_subtitle = get_theme_mod('cb_hero_subtitle', 'Browse available properties across multiple counties.');
 
 $cb_communities = function_exists('cb_get_communities') ? cb_get_communities() : [];
 $cb_featured    = ['grape-creek', 'bentwood', 'college-hills', 'christoval', 'wall', 'lake-nasworthy'];
@@ -197,7 +197,7 @@ $cb9_plate = function ($i) use ($cb9_plates) {
                                     <div class="cb9-card__inner">
                                         <span class="cb9-eyebrow">Welcome to the Concho Valley</span>
                                         <h2 class="cb9-h2">At home in San&nbsp;Angelo.</h2>
-                                        <p class="cb9-p">Whether you&rsquo;re buying, selling, or just dreaming &mdash; start here. Four ways we help you move forward.</p>
+                                        <p class="cb9-p">Whether you&rsquo;re buying, selling, or just dreaming &mdash; start here.</p>
                                     </div>
                                 </div>
                             </div>
@@ -213,18 +213,17 @@ $cb9_plate = function ($i) use ($cb9_plates) {
                                     <a href="<?php echo esc_url(home_url('/home-value/')); ?>" class="cb9-card cb9-card--action" data-cb9-card data-cursor="Value" <?php echo $cb9_fl(); ?>>
                                         <div class="cb9-card__inner">
                                             <h3 class="cb9-h3">Sell Your Home</h3>
-                                            <p class="cb9-p">Get a free home valuation and connect with an expert agent.</p>
-                                            <span class="cb9-go">Get value <?php echo cb_get_svg_icon('chevron-down'); ?></span>
+                                            <p class="cb9-p">Price your home, connect with an expert agent.</p>
+                                            <span class="cb9-go">Connect <?php echo cb_get_svg_icon('chevron-down'); ?></span>
                                         </div>
                                     </a>
                                     <a href="<?php echo esc_url(home_url('/our-team/')); ?>" class="cb9-card cb9-card--action" data-cb9-card data-cursor="Meet" <?php echo $cb9_fl(); ?>>
                                         <div class="cb9-card__inner">
                                             <h3 class="cb9-h3">Meet Our Team</h3>
                                             <p class="cb9-p">Connect with experienced agents who know San Angelo inside and out.</p>
-                                            <span class="cb9-go">Meet us <?php echo cb_get_svg_icon('chevron-down'); ?></span>
                                         </div>
                                     </a>
-                                    <a href="<?php echo esc_url(home_url('/office/')); ?>" class="cb9-card cb9-card--action" data-cb9-card data-cursor="Visit" <?php echo $cb9_fl(); ?>>
+                                    <a href="https://www.google.com/maps/dir/?api=1&amp;destination=3017+Knickerbocker+Rd%2C+San+Angelo%2C+TX+76904" target="_blank" rel="noopener" class="cb9-card cb9-card--action" data-cb9-card data-cursor="Visit" <?php echo $cb9_fl(); ?>>
                                         <div class="cb9-card__inner">
                                             <h3 class="cb9-h3">Visit Our Office</h3>
                                             <?php // The real office, per coldwellbanker.com and the brokerage's own
@@ -232,7 +231,7 @@ $cb9_plate = function ($i) use ($cb9_plates) {
                                                   // It previously said only "our office on Knickerbocker Road" --
                                                   // correct, but a "Visit Our Office" card with no address and no
                                                   // phone number is the one card on the page that has to be specific. ?>
-                                            <p class="cb9-p">3017 Knickerbocker Rd, San Angelo, TX 76904. Call (325)&nbsp;944-9559 &mdash; we&rsquo;d love to meet you.</p>
+                                            <p class="cb9-p">3017 Knickerbocker Rd, San Angelo, TX 76904. Call (325)&nbsp;944-9559.</p>
                                             <span class="cb9-go">Directions <?php echo cb_get_svg_icon('chevron-down'); ?></span>
                                         </div>
                                     </a>
@@ -254,8 +253,8 @@ $cb9_plate = function ($i) use ($cb9_plates) {
                             <div class="cb9-lod">
                                 <div class="cb9-card cb9-card--head" data-cb9-card <?php echo $cb9_fl(); ?>>
                                     <div class="cb9-card__inner">
-                                        <span class="cb9-eyebrow">Featured Properties</span>
-                                        <h2 class="cb9-h2">The latest on the market.</h2>
+                                        <span class="cb9-eyebrow">Access the MLS</span>
+                                        <h2 class="cb9-h2">Find your home.</h2>
                                         <?php // "updated live from the MLS" is ACCURATE: the cards below are
                                               // rendered by [cb_listings], which queries the Spark MLS client.
                                               //
@@ -525,68 +524,10 @@ $cb9_plate = function ($i) use ($cb9_plates) {
                                     </div>
                                 </div>
 
-                                <div class="cb9-card cb9-card--head" data-cb9-card <?php echo $cb9_fl(); ?>>
-                                    <div class="cb9-card__inner">
-                                        <span class="cb9-eyebrow">From Our Blog</span>
-                                        <h2 class="cb9-h2 cb9-h2--sm">Local insight &amp; market news.</h2>
-                                    </div>
-                                </div>
-                                <div class="cb9-grid cb9-grid--3">
-                                    <?php
-                                    $blog_posts = new WP_Query([
-                                        'post_type'      => 'post',
-                                        'posts_per_page' => 3,
-                                        'post_status'    => 'publish',
-                                    ]);
-                                    if ($blog_posts->have_posts()) :
-                                        while ($blog_posts->have_posts()) : $blog_posts->the_post(); ?>
-                                        <article class="cb9-card cb9-card--blog" data-cb9-card <?php echo $cb9_fl(); ?>>
-                                            <div class="cb9-card__inner">
-                                                <?php if (has_post_thumbnail()) : ?>
-                                                    <?php /* loading=eager, not WordPress's default lazy: a position:fixed
-                                                             page always intersects the viewport, so a lazy blog thumbnail
-                                                             here can defer forever and never appear. */ ?>
-                                                    <div class="cb9-blog__image"><?php the_post_thumbnail('cb-blog-thumb', ['loading' => 'eager', 'decoding' => 'async']); ?></div>
-                                                <?php else : ?>
-                                                    <div class="cb9-blog__image cb9-blog__image--ph" aria-hidden="true"></div>
-                                                <?php endif; ?>
-                                                <div class="cb9-blog__body">
-                                                    <?php $categories = get_the_category(); if ($categories) : ?>
-                                                        <span class="cb9-blog__cat"><?php echo esc_html($categories[0]->name); ?></span>
-                                                    <?php endif; ?>
-                                                    <h3 class="cb9-h3"><a href="<?php the_permalink(); ?>"><?php the_title(); ?></a></h3>
-                                                    <p class="cb9-p"><?php echo esc_html(get_the_excerpt()); ?></p>
-                                                    <span class="cb9-blog__meta"><?php echo get_the_date(); ?></span>
-                                                </div>
-                                            </div>
-                                        </article>
-                                    <?php endwhile; wp_reset_postdata();
-                                    else :
-                                        // EMPTY-STATE ONLY. The loop above serves real published posts; this
-                                        // runs solely when the site has none, so the blog card is never an
-                                        // empty box. These three titles are therefore not shipping content --
-                                        // they are what a brand-new install shows. They do appear in the
-                                        // generated harness, which has no WordPress and so never has posts.
-                                        $placeholders = [
-                                            ['title' => '12 San Angelo Secrets Only Locals Know', 'cat' => 'Community', 'date' => 'April 10, 2026'],
-                                            ['title' => 'Spring 2026 San Angelo Market Report', 'cat' => 'Market Update', 'date' => 'April 5, 2026'],
-                                            ['title' => 'First-Time Home Buyer Guide for West Texas', 'cat' => 'Buying Tips', 'date' => 'March 28, 2026'],
-                                        ];
-                                        foreach ($placeholders as $p) : ?>
-                                        <article class="cb9-card cb9-card--blog" data-cb9-card <?php echo $cb9_fl(); ?>>
-                                            <div class="cb9-card__inner">
-                                                <div class="cb9-blog__image cb9-blog__image--ph" aria-hidden="true"></div>
-                                                <div class="cb9-blog__body">
-                                                    <span class="cb9-blog__cat"><?php echo esc_html($p['cat']); ?></span>
-                                                    <h3 class="cb9-h3"><a href="<?php echo esc_url(home_url('/blog/')); ?>"><?php echo esc_html($p['title']); ?></a></h3>
-                                                    <p class="cb9-p">Discover the latest insights about San Angelo real estate and community living.</p>
-                                                    <span class="cb9-blog__meta"><?php echo esc_html($p['date']); ?></span>
-                                                </div>
-                                            </div>
-                                        </article>
-                                    <?php endforeach;
-                                    endif; ?>
-                                </div>
+                                <?php /* BLOG REMOVED FROM THE HOMEPAGE (client request). The posts themselves
+                                     are untouched and /blog/ still lists them -- only this homepage
+                                     block is gone. That also retires the three placeholder titles
+                                     which rendered here whenever the site had no published posts. */ ?>
 
                                 <div class="cb9-card cb9-card--mark" data-cb9-card <?php echo $cb9_fl(); ?>>
                                     <div class="cb9-card__inner">
