@@ -26,6 +26,13 @@ $f_sort         = isset($_GET['sort'])  ? sanitize_text_field($_GET['sort']) : '
 // Open Houses view, linked from the Find a Home nav dropdown.
 $f_openhouse    = !empty($_GET['open_house']);
 
+/* Map view. The split view already had a map, but it was hidden behind a
+   "Show Map" button and there was no way to link to it -- so "view listings on
+   a map" was something a visitor had to discover by clicking, and no link
+   anywhere could land them on it. ?view=map opens it server-side, so the map is
+   there in the first paint rather than appearing after JS runs. */
+$f_mapview      = (isset($_GET['view']) && $_GET['view'] === 'map');
+
 $parts = ["StandardStatus Eq 'Active'"];
 
 if ($f_openhouse) {
@@ -118,6 +125,11 @@ get_header();
             <?php if ($f_openhouse) : ?>
                 <input type="hidden" name="open_house" value="1">
             <?php endif; ?>
+            <?php /* Same reason: without this, changing a filter while looking
+                 at the map throws you back to the list view. */ ?>
+            <?php if ($f_mapview) : ?>
+                <input type="hidden" name="view" value="map">
+            <?php endif; ?>
 
             <div class="cb-filter-bar__group">
                 <label class="cb-filter-bar__label" for="cb-f-min">Min Price</label>
@@ -193,7 +205,7 @@ get_header();
             <?php endif; ?>
         </form>
 
-        <button type="button" class="cb-map-toggle" id="cb-map-toggle" aria-pressed="false">
+        <button type="button" class="cb-map-toggle" id="cb-map-toggle" aria-pressed="<?php echo $f_mapview ? 'true' : 'false'; ?>">
             <span class="cb-map-toggle__label cb-map-toggle__label--show">Show Map</span>
             <span class="cb-map-toggle__label cb-map-toggle__label--hide">Hide Map</span>
         </button>
@@ -201,7 +213,10 @@ get_header();
 </section>
 
 <!-- Split View: Map + Cards (Zillow-style) -->
-<section class="cb-search-split" id="cb-search-split">
+<?php /* --map-visible is applied server-side when ?view=map, so a link into the
+     map view paints with the map already open instead of flashing the list
+     first and sliding it in once JS has run. */ ?>
+<section class="cb-search-split<?php echo $f_mapview ? ' cb-search-split--map-visible' : ''; ?>" id="cb-search-split">
     <div class="cb-search-split__container">
         <div class="cb-search-split__map-col">
             <div class="cb-search-split__map" id="cb-map" data-default-lat="31.4377" data-default-lng="-100.4503" data-default-zoom="11">

@@ -514,7 +514,12 @@ html.cb9-on .cb9-card:focus-within {
 .cb9-card--cta .cb-btn, .cb9-card--watch .cb-btn { margin-top: 1.2rem; }
 
 .cb9-card--cta-row { width: 100%; align-self: flex-start; }
-.cb9-card--cta-row .cb9-card__inner { background: none; border: none; box-shadow: none; padding: .2rem; }
+/* Now holds two buttons -- the map and the written guides -- so it has to wrap
+   rather than push them off the panel on a narrow screen. */
+.cb9-card--cta-row .cb9-card__inner {
+  background: none; border: none; box-shadow: none; padding: .2rem;
+  display: flex; gap: .6rem; flex-wrap: wrap; align-items: center;
+}
 .cb9-card--cta-row .cb9-card__inner::before { display: none; }
 
 .cb9-watch__form { display: flex; gap: .5rem; margin-top: .9rem; flex-wrap: wrap; }

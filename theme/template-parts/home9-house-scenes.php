@@ -315,15 +315,22 @@ $cb9_plate = function ($i) use ($cb9_plates) {
                                         $c = $cb_communities[$slug];
                                         $img_url = function_exists('cb_community_image_url') ? cb_community_image_url($c) : '';
                                     ?>
-                                        <a href="<?php echo esc_url(home_url('/communities/' . $slug . '/')); ?>"
-                                           class="cb9-card cb9-card--community" data-cb9-card data-cursor="View" <?php echo $cb9_fl(); ?>>
+                                        <?php /* "View Listings" now goes to the map, filtered to this
+                                             area, rather than to the community's own page. The label
+                                             promised listings and delivered an article about the
+                                             neighbourhood; this takes you to the homes on a map, which
+                                             is what the words say and what the brief asked for. The
+                                             community page is still reachable from the Communities
+                                             index and the site nav. */ ?>
+                                        <a href="<?php echo esc_url(add_query_arg(['neighborhood' => $slug, 'view' => 'map'], home_url('/find-a-home/'))); ?>"
+                                           class="cb9-card cb9-card--community" data-cb9-card data-cursor="Map" <?php echo $cb9_fl(); ?>>
                                             <div class="cb9-card__inner">
                                                 <?php if ($img_url) : ?>
                                                     <img src="<?php echo esc_url($img_url); ?>" alt="<?php echo esc_attr($c['name'] . ', San Angelo TX'); ?>" class="cb9-community__img" decoding="async">
                                                 <?php endif; ?>
                                                 <div class="cb9-community__overlay">
                                                     <h3 class="cb9-h3"><?php echo esc_html($c['name']); ?></h3>
-                                                    <span class="cb9-go">View Listings</span>
+                                                    <span class="cb9-go">View on Map</span>
                                                 </div>
                                             </div>
                                         </a>
@@ -331,6 +338,10 @@ $cb9_plate = function ($i) use ($cb9_plates) {
                                 </div>
                                 <div class="cb9-card cb9-card--cta-row" data-cb9-card <?php echo $cb9_fl(); ?>>
                                     <div class="cb9-card__inner">
+                                        <?php /* The map view for the whole area, and the written guides.
+                                             Two different questions -- "where are the homes" and "what is
+                                             this neighbourhood like" -- so both routes stay. */ ?>
+                                        <a href="<?php echo esc_url(add_query_arg('view', 'map', home_url('/find-a-home/'))); ?>" class="cb-btn cb-btn--primary">See Every Home on the Map</a>
                                         <a href="<?php echo esc_url(home_url('/communities/')); ?>" class="cb-btn cb-btn--outline">Explore All Communities</a>
                                     </div>
                                 </div>
