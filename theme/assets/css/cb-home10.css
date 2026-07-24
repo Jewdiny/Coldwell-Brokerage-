@@ -336,6 +336,53 @@ body.cb-page--home10-preview {
 }
 .cb10-modal__x:hover { opacity: 1; }
 
+/* ---- final section: social row, shrunk testimonial carousel ---------------- */
+.cb9-social .cb9-card__inner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .6rem;
+  padding: 0 !important;
+  background: none !important;
+  border: none;
+  box-shadow: none;
+}
+.cb9-social__link {
+  display: inline-flex;
+  align-items: center;
+  gap: .5rem;
+  /* 44px min height: these are the only touch targets in the section. */
+  min-height: 44px;
+  padding: .55rem 1rem;
+  border-radius: 999px;
+  border: 1px solid rgba(240, 235, 224, .28);
+  background: rgba(10, 20, 42, .55);
+  color: var(--cb10-ink);
+  text-decoration: none;
+  font: 600 .82rem/1 system-ui, -apple-system, "Segoe UI", sans-serif;
+  letter-spacing: .04em;
+  transition: background .2s, border-color .2s, transform .2s;
+}
+.cb9-social__link:hover {
+  background: rgba(201, 168, 76, .18);
+  border-color: var(--cb10-gold);
+  transform: translateY(-1px);
+}
+.cb9-social__link svg { width: 18px; height: 18px; flex: 0 0 auto; }
+
+/* "Shrink the box": the quote frame was the tallest thing in the section.
+   Capped and centred so it reads as a supporting carousel under the social
+   row rather than the main event. */
+.cb10-on .cb9-quotes {
+  width: 100%;
+  max-width: min(38rem, 100%);
+  align-self: center;
+}
+.cb10-on .cb9-quotes .cb9-card__inner { padding: 1.1rem 1.25rem; }
+.cb9-quotes__all { margin-top: .9rem; }
+
+/* Breathing room between the monogram and "Live Well With Coldwell". */
+.cb9-mark__logo { margin-bottom: 1.15rem !important; }
+
 /* ---- phones and tablets -------------------------------------------------- */
 /*
    The walk runs on touch devices too, so these are real layout rules, not a

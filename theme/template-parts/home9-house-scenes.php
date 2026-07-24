@@ -456,29 +456,44 @@ $cb9_plate = function ($i) use ($cb9_plates) {
                     <?php $cb9_plate(7); ?>
                     <div class="cb9-page__scroll" tabindex="0">
                         <div class="cb9-page__inner">
+                            <?php /* FINAL SECTION: social first, testimonials underneath.
+                                 Reordered on client request -- this is now the "follow us"
+                                 close, with reviews as supporting proof at the bottom rather
+                                 than the headline. */ ?>
                             <div class="cb9-lod">
                                 <div class="cb9-card cb9-card--head" data-cb9-card <?php echo $cb9_fl(); ?>>
                                     <div class="cb9-card__inner">
-                                        <span class="cb9-eyebrow">Client Stories</span>
-                                        <h2 class="cb9-h2">What our clients say.</h2>
-                                        <?php // Accurate: the quotes below come from [cb_testimonials], which
-                                              // serves real client reviews. The "The Walsh Family, College Hills"
-                                              // quote you see in cb-home9-harness.html is a STAND-IN written into
-                                              // harness/build-harness.php, not shipping content -- see the note on
-                                              // the listings card above. ?>
-                                        <p class="cb9-p">Real reviews from Coldwell Banker Legacy San Angelo clients &mdash; verified via Testimonial Tree.</p>
+                                        <span class="cb9-eyebrow">Stay Connected</span>
+                                        <h2 class="cb9-h2">Follow along.</h2>
+                                        <p class="cb9-p">New listings, open houses and Concho Valley news &mdash; as it happens.</p>
                                     </div>
                                 </div>
                             </div>
                             <div class="cb9-page__body">
-                                <div class="cb9-card cb9-card--frame" data-cb9-card data-cb9-frame <?php echo $cb9_fl(); ?>>
+                                <?php /* Same three accounts the footer links to. Kept in step by
+                                     eye, not by include, because the footer markup is a
+                                     different component -- if a fourth network is added, add it
+                                     in both places. */ ?>
+                                <div class="cb9-card cb9-card--ghost cb9-social" data-cb9-card <?php echo $cb9_fl(); ?>>
                                     <div class="cb9-card__inner">
-                                        <?php echo do_shortcode('[cb_testimonials type="rotator"]'); ?>
+                                        <a href="https://www.facebook.com/ColdwellBankerLegacySanAngelo" target="_blank" rel="noopener" class="cb9-social__link" aria-label="Coldwell Banker Legacy on Facebook"><?php echo cb_get_svg_icon('facebook'); ?><span>Facebook</span></a>
+                                        <a href="https://www.instagram.com/cblegacysanangelotx/" target="_blank" rel="noopener" class="cb9-social__link" aria-label="Coldwell Banker Legacy on Instagram"><?php echo cb_get_svg_icon('instagram'); ?><span>Instagram</span></a>
+                                        <a href="https://www.linkedin.com/company/coldwell-banker-legacy-san-angelo-texas" target="_blank" rel="noopener" class="cb9-social__link" aria-label="Coldwell Banker Legacy on LinkedIn"><?php echo cb_get_svg_icon('linkedin'); ?><span>LinkedIn</span></a>
                                     </div>
                                 </div>
-                                <div class="cb9-card cb9-card--cta-row" data-cb9-card <?php echo $cb9_fl(); ?>>
+
+                                <?php /* Testimonials: shrunk box, carousel, at the bottom.
+                                     "verified via Testimonial Tree" is ACCURATE -- [cb_testimonials]
+                                     serves real client reviews. The "Walsh Family, College Hills"
+                                     quote in cb-home9-harness.html is a STAND-IN written into
+                                     harness/build-harness.php, not shipping content. Do not "correct"
+                                     this line by reading the harness; that mistake has been made
+                                     once already. */ ?>
+                                <div class="cb9-card cb9-card--frame cb9-quotes" data-cb9-card data-cb9-frame <?php echo $cb9_fl(); ?>>
                                     <div class="cb9-card__inner">
-                                        <a href="<?php echo esc_url(home_url('/testimonials/')); ?>" class="cb-btn cb-btn--outline">Read All Reviews</a>
+                                        <span class="cb9-eyebrow">Verified by Testimonial&nbsp;Tree</span>
+                                        <?php echo do_shortcode('[cb_testimonials type="rotator"]'); ?>
+                                        <a href="<?php echo esc_url(home_url('/testimonials/')); ?>" class="cb-btn cb-btn--outline cb9-quotes__all">Read All Reviews</a>
                                     </div>
                                 </div>
 
@@ -487,11 +502,13 @@ $cb9_plate = function ($i) use ($cb9_plates) {
                                      block is gone. That also retires the three placeholder titles
                                      which rendered here whenever the site had no published posts. */ ?>
 
+                                <?php /* Closing mark. The trailing "At home in San Angelo, Texas."
+                                     line was removed on request; spacing between the monogram and
+                                     the tagline is set in cb-home10.css (.cb9-mark__logo). */ ?>
                                 <div class="cb9-card cb9-card--mark" data-cb9-card <?php echo $cb9_fl(); ?>>
                                     <div class="cb9-card__inner">
                                         <img src="<?php echo esc_url(CB_THEME_URI . '/assets/images/logos/monogram-vertical-stacked.svg'); ?>" alt="Coldwell Banker Legacy" class="cb9-mark__logo">
                                         <p class="cb9-mark__tag">Live Well With Coldwell&#8480;</p>
-                                        <p class="cb9-mark__line">At home in San Angelo, Texas.</p>
                                     </div>
                                 </div>
                             </div>

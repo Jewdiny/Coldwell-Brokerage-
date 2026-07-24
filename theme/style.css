@@ -392,17 +392,26 @@ h6 { font-size: 1.25rem; }
   height: 44px;
 }
 
-/* Official logo SVG ships filled white. On non-transparent headers
-   (white background, inner pages, scrolled state) recolor it to CB Blue
-   so it stays visible. On the transparent homepage hero header, leave it
-   pristine white. */
-.cb-header:not(.cb-header--transparent) .cb-header__logo-img,
-.cb-header--scrolled .cb-header__logo-img {
-  filter: brightness(0) saturate(100%) invert(8%) sepia(86%) saturate(4954%) hue-rotate(230deg) brightness(93%) contrast(102%);
-}
-.cb-header--transparent:not(.cb-header--scrolled) .cb-header__logo-img {
-  filter: none;
-}
+/* Official logo SVG ships filled white: right on the transparent hero header,
+   invisible on a white one. Two real files are used rather than a filter.
+
+   THE PURPLE BUG. This was previously a filter chain approximating CB Blue:
+     brightness(0) saturate(100%) invert(8%) sepia(86%) saturate(4954%)
+     hue-rotate(230deg) brightness(93%) contrast(102%)
+   hue-rotate(230deg) at that saturation overshoots blue (~215deg) into violet,
+   so the mark rendered PURPLE on every solid header -- which on mobile is
+   almost all of them. A filter chain can only ever approximate a brand colour;
+   it cannot hit #012169. So the blue mark is now its own file and CSS just
+   picks one. Exact, and it cannot drift. No filter is applied to either. */
+.cb-header__logo-img { filter: none; }
+
+/* Default (solid header): blue mark. */
+.cb-header__logo-img--light { display: none; }
+.cb-header__logo-img--dark  { display: block; }
+
+/* Transparent, unscrolled hero header: the white mark. */
+.cb-header--transparent:not(.cb-header--scrolled) .cb-header__logo-img--light { display: block; }
+.cb-header--transparent:not(.cb-header--scrolled) .cb-header__logo-img--dark  { display: none; }
 
 /* Desktop Nav */
 .cb-nav { display: flex; align-items: center; gap: 0.25rem; }

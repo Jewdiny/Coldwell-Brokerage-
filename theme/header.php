@@ -37,7 +37,22 @@ $cb_transparent_header = is_front_page()
 <header class="cb-header<?php echo $cb_transparent_header ? ' cb-header--transparent' : ''; ?>" id="cb-header">
     <div class="cb-header__inner">
         <a href="<?php echo esc_url(home_url('/')); ?>" class="cb-header__logo" aria-label="Coldwell Banker Legacy &mdash; San Angelo home">
-            <img src="<?php echo esc_url(CB_THEME_URI . '/assets/images/logos/monogram-horizontal-stacked.svg'); ?>" alt="Coldwell Banker Legacy &mdash; San Angelo" class="cb-header__logo-img">
+            <?php /* TWO FILES, NOT A FILTER.
+                 The official SVG ships filled white, which is right on the
+                 transparent hero header and invisible on a white one. That used
+                 to be solved with a filter chain
+                 (brightness/invert/sepia/saturate/hue-rotate) approximating CB
+                 Blue -- and it overshot: hue-rotate(230deg) at that saturation
+                 lands on VIOLET, which is why the logo turned purple as soon as
+                 the header went solid (i.e. on most mobile views).
+
+                 Filter chains cannot hit an exact brand colour; they only
+                 approximate one. So the blue mark is now a real file filled
+                 #012169, and CSS picks which of the two to show. Exact, and it
+                 cannot drift. Only one is ever visible, and the hidden one is
+                 aria-hidden so screen readers do not announce the mark twice. */ ?>
+            <img src="<?php echo esc_url(CB_THEME_URI . '/assets/images/logos/monogram-horizontal-stacked.svg'); ?>" alt="Coldwell Banker Legacy &mdash; San Angelo" class="cb-header__logo-img cb-header__logo-img--light">
+            <img src="<?php echo esc_url(CB_THEME_URI . '/assets/images/logos/monogram-horizontal-stacked-blue.svg'); ?>" alt="" aria-hidden="true" class="cb-header__logo-img cb-header__logo-img--dark">
         </a>
 
         <nav class="cb-nav" role="navigation" aria-label="<?php esc_attr_e('Primary Navigation', 'cb-legacy'); ?>">
