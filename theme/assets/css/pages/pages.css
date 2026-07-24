@@ -421,6 +421,83 @@
 }
 
 /* ==========================================================================
+   HOME VALUE — TWO OPTIONS
+   The choice between the instant CB Estimate and an agent CMA, stated before
+   either one. Whole card is the link, so the target is the card and not just
+   the small text at the bottom of it.
+   ========================================================================== */
+.cb-value-options {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+
+.cb-value-option {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 2rem 1.75rem 1.75rem;
+  border: 1px solid var(--cb-border, rgba(0, 0, 0, 0.1));
+  border-radius: 4px;
+  background: var(--cb-white, #fff);
+  color: inherit;
+  text-decoration: none;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+
+.cb-value-option:hover,
+.cb-value-option:focus-visible {
+  transform: translateY(-4px);
+  border-color: var(--cb-gold);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
+}
+
+/* Option 2 is the one we actually want people to take -- give it the weight. */
+.cb-value-option--accurate {
+  border-color: var(--cb-gold);
+  background: var(--cb-offwhite, #faf9f7);
+}
+
+.cb-value-option__num {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  margin-bottom: 1rem;
+  border-radius: 50%;
+  background: var(--cb-navy, #012169);
+  color: #fff;
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.cb-value-option--accurate .cb-value-option__num {
+  background: var(--cb-gold);
+}
+
+.cb-value-option__title {
+  margin: 0 0 0.6rem;
+  font-size: 1.3125rem;
+  line-height: 1.3;
+}
+
+.cb-value-option__desc {
+  margin: 0 0 1.25rem;
+  flex: 1;
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  color: var(--cb-text-muted);
+}
+
+.cb-value-option__cta {
+  font-size: 0.875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  color: var(--cb-gold);
+}
+
+/* ==========================================================================
    ABOUT / TIMELINE
    ========================================================================== */
 .cb-timeline {
@@ -922,6 +999,7 @@
   .cb-services-grid { grid-template-columns: 1fr; }
   .cb-info-cards { flex-direction: column; }
   .cb-trust-indicators { grid-template-columns: 1fr; }
+  .cb-value-options { grid-template-columns: 1fr; }
   .cb-tabs { flex-wrap: wrap; }
   .cb-agent-detail { grid-template-columns: 1fr; text-align: center; }
   .cb-agent-detail__photo { max-width: 250px; margin: 0 auto; }

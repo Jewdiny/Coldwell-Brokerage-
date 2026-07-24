@@ -6,8 +6,10 @@
  */
 
 cb_set_seo_meta([
-    'title'       => "What Is My Home Worth? Free San Angelo Home Valuation | Coldwell Banker Legacy",
-    'description' => "Get a free, instant home valuation for your San Angelo property. Comparative market analysis based on live SAARMLS data and 25+ years of local expertise.",
+    'title'       => "What Is My Home Worth? San Angelo Home Valuation | Coldwell Banker Legacy",
+    // "25+ years" contradicted the brokerage's own "over 35 years" used on the
+    // office, about and homepage copy. One number, everywhere.
+    'description' => "Two ways to value your San Angelo home: an instant CB Estimate\u{00AE}, or a custom comparative market analysis from a local agent. Serving the Concho Valley for over 35 years.",
     'canonical'   => get_permalink(),
 ]);
 
@@ -20,12 +22,43 @@ get_header();
 <section class="cb-valuation-hero">
     <div class="cb-valuation-hero__bg"></div>
     <div class="cb-valuation-hero__content">
-        <span class="cb-section__subtitle cb-reveal" style="color:var(--cb-gold-light);">Free Home Valuation</span>
+        <span class="cb-section__subtitle cb-reveal" style="color:var(--cb-gold-light);">Home Valuation</span>
         <h1 class="cb-reveal" style="color:var(--cb-white);">What Is Your Home Worth?</h1>
         <div class="cb-section__divider" style="margin:1.5rem auto 0;"></div>
         <p class="cb-reveal" style="max-width:600px;margin:1.5rem auto 0;color:rgba(255,255,255,0.9);font-size:1.25rem;">
-            Discover your home's true market value in today's San Angelo real estate market.
+            Two ways to find out &mdash; start with the instant estimate, then go deeper.
         </p>
+    </div>
+</section>
+
+<!-- Two Ways to Value Your Home -->
+<?php /* The page already ran CB Estimate first and the agent CMA second, but a
+     visitor landing here had no way to know a second, more accurate option
+     existed until they had scrolled past the widget. This states the choice up
+     front and anchors to each, so the CMA is a deliberate step rather than
+     something you find by accident. */ ?>
+<section class="cb-section" style="padding-bottom:0;">
+    <div class="cb-container" style="max-width:900px;">
+        <div class="cb-value-options">
+            <a class="cb-value-option cb-reveal" href="#cb-estimate">
+                <span class="cb-value-option__num">1</span>
+                <h2 class="cb-value-option__title">Instant CB Estimate&reg;</h2>
+                <p class="cb-value-option__desc">
+                    An automated ballpark value from Coldwell Banker&rsquo;s algorithm and public
+                    records. Enter your address, see a number in seconds.
+                </p>
+                <span class="cb-value-option__cta">Start here &darr;</span>
+            </a>
+            <a class="cb-value-option cb-value-option--accurate cb-reveal" href="#cb-valuation-form-section">
+                <span class="cb-value-option__num">2</span>
+                <h2 class="cb-value-option__title">Want a More Accurate Estimate?</h2>
+                <p class="cb-value-option__desc">
+                    A local Coldwell Banker Legacy agent prepares a Comparative Market Analysis
+                    from live MLS comps and what your home actually has. No obligation.
+                </p>
+                <span class="cb-value-option__cta">Request a CMA &darr;</span>
+            </a>
+        </div>
     </div>
 </section>
 
@@ -33,8 +66,8 @@ get_header();
 <section class="cb-section" id="cb-estimate">
     <div class="cb-container">
         <div class="cb-section__header cb-reveal">
-            <span class="cb-section__subtitle">Instant Estimate</span>
-            <h2 class="cb-section__title">Get a Free CB Estimate Now</h2>
+            <span class="cb-section__subtitle">Option 1 &mdash; Instant Estimate</span>
+            <h2 class="cb-section__title">Get Your CB Estimate&reg;</h2>
             <div class="cb-section__divider"></div>
             <p class="cb-section__desc">Powered by Coldwell Banker's proprietary algorithm and aggregated public-records data &mdash; an instant ballpark value for any San Angelo home. Enter your address below to see your estimate in seconds.</p>
         </div>
@@ -42,7 +75,7 @@ get_header();
         <div class="cb-reveal cb-widget-frame cb-widget-frame--estimate">
             <iframe
                 src="https://cbprod.g-co.agency/cb-estimate"
-                title="CB Estimate &mdash; Free Home Valuation"
+                title="CB Estimate &mdash; Instant Home Valuation"
                 loading="lazy"
                 referrerpolicy="no-referrer-when-downgrade"
             ></iframe>
@@ -58,9 +91,10 @@ get_header();
 <section class="cb-section cb-section--offwhite" id="cb-valuation-form-section">
     <div class="cb-container" style="max-width:700px;">
         <div class="cb-valuation-card cb-reveal">
+            <p style="text-align:center;color:var(--cb-gold);font-weight:600;letter-spacing:0.08em;text-transform:uppercase;font-size:0.8125rem;margin-bottom:0.5rem;">Option 2 &mdash; Agent Analysis</p>
             <h2 style="text-align:center;margin-bottom:0.5rem;">Want a More Accurate Estimate?</h2>
             <p style="text-align:center;color:var(--cb-text-muted);margin-bottom:2.5rem;">
-                Have a local agent prepare a custom Comparative Market Analysis based on live MLS comps &mdash; free, no obligation.
+                Have a local agent prepare a custom Comparative Market Analysis based on live MLS comps. No obligation.
             </p>
 
             <!-- Multi-step Form -->
@@ -139,7 +173,7 @@ get_header();
                     <div style="display:flex;gap:1rem;">
                         <button type="button" class="cb-btn cb-btn--navy cb-multistep__prev" style="flex:1;">Back</button>
                         <button type="submit" class="cb-btn cb-btn--primary cb-btn--lg cb-multistep__submit" style="flex:2;">
-                            Get My Free Report
+                            Request My Report
                         </button>
                     </div>
                 </div>
@@ -149,8 +183,8 @@ get_header();
         <!-- Trust Indicators -->
         <div class="cb-trust-indicators cb-reveal">
             <div class="cb-trust-item">
-                <strong>Free & Confidential</strong>
-                <p>No obligation. Your information is secure.</p>
+                <strong>No Obligation</strong>
+                <p>Private and confidential. Your information is secure.</p>
             </div>
             <div class="cb-trust-item">
                 <strong>Expert Analysis</strong>

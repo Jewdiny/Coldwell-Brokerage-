@@ -7,7 +7,7 @@
 
 cb_set_seo_meta([
     'title'       => 'San Angelo Home Buyer & Seller Resources | Coldwell Banker Legacy',
-    'description' => 'Free San Angelo real estate guides — first-time home buyer steps, selling tips, mortgage calculators, and FAQs. Expert advice from Coldwell Banker Legacy.',
+    'description' => 'San Angelo real estate guides — first-time home buyer steps, selling tips, home loan advice, the quarterly market report, and FAQs from Coldwell Banker Legacy.',
     'canonical'   => get_permalink(),
 ]);
 
@@ -24,7 +24,7 @@ add_action('wp_head', function () {
         ],
         [
             'q' => 'How long does it take to sell a home in San Angelo?',
-            'a' => 'San Angelo homes typically sell in 45-90 days when properly priced. Luxury homes ($500K+) can take 60-120 days. Coldwell Banker Legacy provides a free home valuation and market analysis to price your home for the fastest sale.',
+            'a' => 'San Angelo homes typically sell in 45-90 days when properly priced. Luxury homes ($500K+) can take 60-120 days. Coldwell Banker Legacy provides a home valuation and market analysis, with no obligation, to price your home for the fastest sale.',
         ],
         [
             'q' => 'Do you handle property management and rentals?',
@@ -35,8 +35,8 @@ add_action('wp_head', function () {
             'a' => 'We serve all of San Angelo, plus Bentwood, College Hills, Lake Nasworthy, Grape Creek, Christoval, Wall, and the entire Concho Valley region. Each of our agents specializes in specific neighborhoods.',
         ],
         [
-            'q' => 'How do I get a free home valuation?',
-            'a' => 'Visit our home valuation page or call (325) 944-9559. We provide a complimentary comparative market analysis based on recent San Angelo sales, current market conditions, and your home\'s specific features.',
+            'q' => 'How do I find out what my home is worth?',
+            'a' => 'There are two ways. Start with the instant CB Estimate on our home valuation page for an automated ballpark figure. For a more accurate number, request a comparative market analysis and a local agent will price your home against recent San Angelo sales, current market conditions, and your home\'s specific features. Or call (325) 944-9559.',
         ],
     ];
     $items = array_map(function ($f) {
@@ -79,6 +79,7 @@ get_header();
             <button class="cb-tabs__btn" data-tab="sellers">Sellers</button>
             <button class="cb-tabs__btn" data-tab="loans">Home Loans</button>
             <button class="cb-tabs__btn" data-tab="relocation">Relocation</button>
+            <button class="cb-tabs__btn" data-tab="market">Market Report</button>
             <button class="cb-tabs__btn" data-tab="tools">Move Meter</button>
             <div class="cb-tabs__indicator"></div>
         </div>
@@ -144,7 +145,7 @@ get_header();
                         <div class="cb-step__number">1</div>
                         <div class="cb-step__content">
                             <h4>Get a Home Valuation</h4>
-                            <p>Understand your home's current market value with a free Comparative Market Analysis from our team.</p>
+                            <p>Start with the instant <a href="<?php echo esc_url(home_url('/home-value/')); ?>">CB Estimate</a>, then have our team prepare a Comparative Market Analysis for a more accurate figure.</p>
                         </div>
                     </div>
                     <div class="cb-step">
@@ -215,9 +216,12 @@ get_header();
         <!-- Tab: Relocation -->
         <div class="cb-tab-content" id="tab-relocation">
             <div class="cb-reveal">
-                <h2 style="margin-bottom:1rem;">Corporate Relocation</h2>
+                <?php /* Matches the relocation page: this serves anyone moving
+                     here, not only corporate transferees, and carries no school
+                     commentary. */ ?>
+                <h2 style="margin-bottom:1rem;">Relocating to San Angelo</h2>
                 <p style="color:var(--cb-text-muted);font-size:1.125rem;line-height:1.8;margin-bottom:2rem;">
-                    Moving to San Angelo? Our relocation specialists make the transition seamless, whether you're coming from across Texas or across the country.
+                    Moving to San Angelo? Our relocation specialists make the transition seamless &mdash; whether you're transferring with an employer, reporting to Goodfellow, or simply moving here by choice.
                 </p>
 
                 <div class="cb-info-cards">
@@ -225,12 +229,12 @@ get_header();
                         <h4>Relocation Services Include</h4>
                         <ul style="list-style:none;line-height:2.2;margin-top:1rem;">
                             <li>&#10003; Personalized area orientation tours</li>
-                            <li>&#10003; School district information and comparisons</li>
                             <li>&#10003; Neighborhood guides tailored to your lifestyle</li>
                             <li>&#10003; Temporary housing assistance</li>
                             <li>&#10003; Connection with local service providers</li>
                             <li>&#10003; Spouse/partner career assistance resources</li>
                             <li>&#10003; Coordination with your employer's relocation program</li>
+                            <li>&#10003; Rental options through our property management team</li>
                         </ul>
                     </div>
                 </div>
@@ -241,12 +245,48 @@ get_header();
             </div>
         </div>
 
+        <!-- Tab: Quarterly Market Report -->
+        <?php /* Links to /market-report/ rather than embedding [cb_market_stats]
+             here. The shortcode makes a blocking Spark call, and tab panels are
+             all in the DOM whether or not they are opened -- so embedding would
+             put an API round-trip on every Resources page load, and would render
+             its "temporarily unavailable" notice inside a tab labelled Market
+             Report whenever the feed is down. The live numbers stay on the page
+             built for them. */ ?>
+        <div class="cb-tab-content" id="tab-market">
+            <div class="cb-reveal">
+                <h2 style="margin-bottom:1rem;">Quarterly Market Report</h2>
+                <p style="color:var(--cb-text-muted);font-size:1.125rem;line-height:1.8;margin-bottom:2rem;">
+                    Every quarter we publish where the San Angelo and Concho Valley market actually stands &mdash; not national headlines, the numbers from our own MLS.
+                </p>
+
+                <div class="cb-info-cards">
+                    <div class="cb-info-card" style="flex:1;">
+                        <h4>What the Report Covers</h4>
+                        <ul style="list-style:none;line-height:2.2;margin-top:1rem;">
+                            <li>&#10003; Median sale price and how it moved this quarter</li>
+                            <li>&#10003; Average days on market</li>
+                            <li>&#10003; Active inventory and months of supply</li>
+                            <li>&#10003; List-to-sale price ratio</li>
+                            <li>&#10003; Active listing counts by community</li>
+                            <li>&#10003; What it means if you're buying or selling right now</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div style="text-align:center;margin-top:2.5rem;display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+                    <a href="<?php echo esc_url(home_url('/market-report/')); ?>" class="cb-btn cb-btn--primary cb-btn--lg">View the Current Market Report</a>
+                    <a href="<?php echo esc_url(home_url('/home-value/')); ?>" class="cb-btn cb-btn--navy cb-btn--lg">What Is My Home Worth?</a>
+                </div>
+            </div>
+        </div>
+
         <!-- Tab: Move Meter Tool -->
         <div class="cb-tab-content" id="tab-tools">
             <div class="cb-reveal">
                 <h2 style="margin-bottom:1rem;">Compare San Angelo to Anywhere</h2>
                 <p style="color:var(--cb-text-muted);font-size:1.125rem;line-height:1.8;margin-bottom:2rem;">
-                    Thinking of moving to San Angelo &mdash; or just curious how the Concho Valley compares to your current city? Use the official <strong>Coldwell Banker Move Meter</strong> to compare cost of living, schools, weather, commute, and quality-of-life metrics between any two U.S. cities. Free, instant, no signup required.
+                    Thinking of moving to San Angelo &mdash; or just curious how the Concho Valley compares to your current city? Use the official <strong>Coldwell Banker Move Meter</strong> to compare cost of living, schools, weather, commute, and quality-of-life metrics between any two U.S. cities. Instant, no signup required.
                 </p>
 
                 <div class="cb-widget-frame">
