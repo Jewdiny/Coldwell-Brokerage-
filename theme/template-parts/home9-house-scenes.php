@@ -65,7 +65,7 @@ $hero_title    = get_theme_mod('cb_hero_title', 'Discover Texas living.');
 $hero_subtitle = get_theme_mod('cb_hero_subtitle', 'Browse available properties across multiple counties.');
 
 $cb_communities = function_exists('cb_get_communities') ? cb_get_communities() : [];
-$cb_featured    = ['grape-creek', 'bentwood', 'college-hills', 'christoval', 'wall', 'lake-nasworthy'];
+$cb_featured    = ['lake-nasworthy', 'bentwood', 'college-hills', 'christoval', 'wall', 'grape-creek'];
 
 $cb9_nav = [
     0 => 'Arrival', 1 => 'Welcome', 2 => 'Listings', 3 => 'Legacy',
