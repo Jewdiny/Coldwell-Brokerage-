@@ -367,18 +367,34 @@ body.cb-page--home10-preview {
   border-color: var(--cb10-gold);
   transform: translateY(-1px);
 }
-.cb9-social__link svg { width: 18px; height: 18px; flex: 0 0 auto; }
+/* Enlarged on client request: the social accounts are the primary call to
+   action of the closing section, so the icons carry more weight and the pills
+   grew to match. */
+.cb9-social__link { gap: .6rem; padding: .62rem 1.2rem; font-size: .9rem; }
+.cb9-social__link svg { width: 26px; height: 26px; flex: 0 0 auto; }
 
 /* "Shrink the box": the quote frame was the tallest thing in the section.
    Capped and centred so it reads as a supporting carousel under the social
-   row rather than the main event. */
+   row rather than the main event. Reduced further on client request -- the
+   reviews should sit smaller beneath the now-larger social row. */
 .cb10-on .cb9-quotes {
   width: 100%;
-  max-width: min(38rem, 100%);
+  max-width: min(32rem, 100%);
   align-self: center;
 }
-.cb10-on .cb9-quotes .cb9-card__inner { padding: 1.1rem 1.25rem; }
-.cb9-quotes__all { margin-top: .9rem; }
+.cb10-on .cb9-quotes .cb9-card__inner { padding: .9rem 1.05rem; }
+.cb9-quotes__all { margin-top: .8rem; }
+
+/* Testimonial Tree ships its own styles, so these override with scope +
+   !important. Scoped to .cb9-quotes (the homepage closing panel only) so the
+   testimonials page and agent-page rotators keep their own sizing. */
+.cb9-quotes .cb-tt-widget--rotator .testimonial-text {
+  font-size: .88rem !important;
+  line-height: 1.5 !important;
+}
+.cb9-quotes .cb-tt-widget--rotator .widget-container { font-size: .82rem !important; }
+.cb9-quotes .cb-tt-widget--rotator [class*="star"] svg,
+.cb9-quotes .cb-tt-widget--rotator [class*="rating"] svg { width: 14px !important; height: 14px !important; }
 
 /* Breathing room between the monogram and "Live Well With Coldwell". */
 .cb9-mark__logo { margin-bottom: 1.15rem !important; }

@@ -132,6 +132,9 @@ function cb_enqueue_assets() {
     // Save/un-save listing cards (site-wide, no login)
     wp_enqueue_script('cb-favorites', CB_THEME_URI . '/assets/js/modules/cb-favorites.js', [], cb_asset_ver('assets/js/modules/cb-favorites.js'), true);
 
+    // Auto-advance the Testimonial Tree rotator (no-ops where the widget is absent)
+    wp_enqueue_script('cb-testimonial-rotate', CB_THEME_URI . '/assets/js/modules/cb-testimonial-rotate.js', [], cb_asset_ver('assets/js/modules/cb-testimonial-rotate.js'), true);
+
     // Listing detail page lightbox (only on /listing/<slug>-<id>/ pages)
     if (get_query_var('cb_listing_id')) {
         wp_enqueue_script('cb-lightbox', CB_THEME_URI . '/assets/js/modules/lightbox.js', [], cb_asset_ver('assets/js/modules/lightbox.js'), true);
