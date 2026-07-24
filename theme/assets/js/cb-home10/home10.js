@@ -97,9 +97,9 @@
     { id: 'arrival',     still: '01-hall.jpg',    trans: 't0-intro.mp4' },
     { id: 'welcome',     still: '02-living.jpg',  trans: 't1-living.mp4' },
     { id: 'listings',    still: '03-gallery.jpg', trans: 't2-gallery.mp4' },
-    { id: 'legacy',      still: '04-study.jpg',   trans: 't3-study.mp4' },
-    { id: 'door',        still: '05-entry.jpg',   trans: 't4-entry.mp4' },
-    { id: 'communities', still: '06-dining.jpg',  trans: 't5-dining.mp4' },
+    { id: 'communities', still: '04-study.jpg',   trans: 't3-study.mp4' },
+    { id: 'legacy',      still: '05-entry.jpg',   trans: 't4-entry.mp4' },
+    { id: 'door',        still: '06-dining.jpg',  trans: 't5-dining.mp4' },
     { id: 'value',       still: '07-kitchen.jpg', trans: 't6-kitchen.mp4' },
     { id: 'connect',     still: '08-hearth.jpg',  trans: 't7-hearth.mp4' }
   ];

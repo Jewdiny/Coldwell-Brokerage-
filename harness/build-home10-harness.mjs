@@ -79,8 +79,13 @@ function extractStandInCss(html) {
 
 const standInCss = extractStandInCss(src);
 
-const LABELS = ['Arrival', 'Welcome', 'Listings', 'Legacy', 'Front door',
-                'Communities', 'Value', 'Connect'];
+// Section order, and therefore nav-dot order. Communities sits at 3 (client
+// request), pushing Legacy and Front door down. Keep in step with $cb10_nav in
+// theme/template-parts/home10-filmed-scenes.php and with the panel order in
+// home9-house-scenes.php -- the dots index by position, so a mismatch labels
+// every room wrongly rather than failing loudly.
+const LABELS = ['Arrival', 'Welcome', 'Listings', 'Communities',
+                'Legacy', 'Front door', 'Value', 'Connect'];
 
 // The OUTER wrapper drops its cb9-page class and takes cb10-page instead. It
 // cannot keep both: cb-home9.css's flat fallback pins .cb9-page with

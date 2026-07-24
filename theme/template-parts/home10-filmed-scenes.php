@@ -46,10 +46,17 @@
 
 if (!defined('ABSPATH')) { exit; }
 
-/** Nav labels, in section order. Must match home10.js's SECTIONS length (8). */
+/**
+ * Nav labels, in section order. Must match home10.js's SECTIONS length (8) AND
+ * the panel order in home9-house-scenes.php -- these are just labels for dots
+ * that index by position, so if the panels are reordered and this is not, every
+ * dot names the wrong room.
+ *
+ * Communities sits at 3 (client request), pushing Legacy and Front door down.
+ */
 $cb10_nav = [
-    'Arrival', 'Welcome', 'Listings', 'Legacy',
-    'Front door', 'Communities', 'Value', 'Connect',
+    'Arrival', 'Welcome', 'Listings', 'Communities',
+    'Legacy', 'Front door', 'Value', 'Connect',
 ];
 
 ob_start();

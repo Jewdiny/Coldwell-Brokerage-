@@ -293,7 +293,56 @@ $cb9_plate = function ($i) use ($cb9_plates) {
         </section>
 
         <!-- 3 -- LEGACY / STATS ----------------------------------------- -->
-        <section class="cb9-page" data-cb9-page="3" id="cb9-legacy" aria-label="Our track record">
+        <section class="cb9-page" data-cb9-page="3" id="cb9-communities" aria-label="Featured communities">
+            <div class="cb9-page__float">
+                <div class="cb9-page__skin">
+                    <?php $cb9_plate(5); ?>
+                    <div class="cb9-page__scroll" tabindex="0">
+                        <div class="cb9-page__inner">
+                            <div class="cb9-lod">
+                                <div class="cb9-card cb9-card--head" data-cb9-card <?php echo $cb9_fl(); ?>>
+                                    <div class="cb9-card__inner">
+                                        <span class="cb9-eyebrow">Explore the Area</span>
+                                        <h2 class="cb9-h2">From the river to the ranch&nbsp;land.</h2>
+                                        <p class="cb9-p">From downtown San Angelo to the scenic shores of Lake Nasworthy, find the neighborhood that fits your life.</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="cb9-page__body">
+                                <div class="cb9-grid cb9-grid--3">
+                                    <?php foreach ($cb_featured as $slug) :
+                                        if (!isset($cb_communities[$slug])) { continue; }
+                                        $c = $cb_communities[$slug];
+                                        $img_url = function_exists('cb_community_image_url') ? cb_community_image_url($c) : '';
+                                    ?>
+                                        <a href="<?php echo esc_url(home_url('/communities/' . $slug . '/')); ?>"
+                                           class="cb9-card cb9-card--community" data-cb9-card data-cursor="View" <?php echo $cb9_fl(); ?>>
+                                            <div class="cb9-card__inner">
+                                                <?php if ($img_url) : ?>
+                                                    <img src="<?php echo esc_url($img_url); ?>" alt="<?php echo esc_attr($c['name'] . ', San Angelo TX'); ?>" class="cb9-community__img" decoding="async">
+                                                <?php endif; ?>
+                                                <div class="cb9-community__overlay">
+                                                    <h3 class="cb9-h3"><?php echo esc_html($c['name']); ?></h3>
+                                                    <span class="cb9-go">View Listings</span>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    <?php endforeach; ?>
+                                </div>
+                                <div class="cb9-card cb9-card--cta-row" data-cb9-card <?php echo $cb9_fl(); ?>>
+                                    <div class="cb9-card__inner">
+                                        <a href="<?php echo esc_url(home_url('/communities/')); ?>" class="cb-btn cb-btn--outline">Explore All Communities</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 6 -- SELLERS + PROPERTY WATCH ------------------------------- -->
+        <section class="cb9-page" data-cb9-page="4" id="cb9-legacy" aria-label="Our track record">
             <div class="cb9-page__float">
                 <div class="cb9-page__skin">
                     <?php $cb9_plate(3); ?>
@@ -372,7 +421,7 @@ $cb9_plate = function ($i) use ($cb9_plates) {
         </section>
 
         <!-- 4 -- BUYERS ------------------------------------------------- -->
-        <section class="cb9-page" data-cb9-page="4" id="cb9-buy" aria-label="Browse homes">
+        <section class="cb9-page" data-cb9-page="5" id="cb9-buy" aria-label="Browse homes">
             <div class="cb9-page__float">
                 <div class="cb9-page__skin">
                     <?php $cb9_plate(4); ?>
@@ -401,55 +450,6 @@ $cb9_plate = function ($i) use ($cb9_plates) {
         </section>
 
         <!-- 5 -- COMMUNITIES -------------------------------------------- -->
-        <section class="cb9-page" data-cb9-page="5" id="cb9-communities" aria-label="Featured communities">
-            <div class="cb9-page__float">
-                <div class="cb9-page__skin">
-                    <?php $cb9_plate(5); ?>
-                    <div class="cb9-page__scroll" tabindex="0">
-                        <div class="cb9-page__inner">
-                            <div class="cb9-lod">
-                                <div class="cb9-card cb9-card--head" data-cb9-card <?php echo $cb9_fl(); ?>>
-                                    <div class="cb9-card__inner">
-                                        <span class="cb9-eyebrow">Explore the Area</span>
-                                        <h2 class="cb9-h2">From the river to the ranch&nbsp;land.</h2>
-                                        <p class="cb9-p">From downtown San Angelo to the scenic shores of Lake Nasworthy, find the neighborhood that fits your life.</p>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="cb9-page__body">
-                                <div class="cb9-grid cb9-grid--3">
-                                    <?php foreach ($cb_featured as $slug) :
-                                        if (!isset($cb_communities[$slug])) { continue; }
-                                        $c = $cb_communities[$slug];
-                                        $img_url = function_exists('cb_community_image_url') ? cb_community_image_url($c) : '';
-                                    ?>
-                                        <a href="<?php echo esc_url(home_url('/communities/' . $slug . '/')); ?>"
-                                           class="cb9-card cb9-card--community" data-cb9-card data-cursor="View" <?php echo $cb9_fl(); ?>>
-                                            <div class="cb9-card__inner">
-                                                <?php if ($img_url) : ?>
-                                                    <img src="<?php echo esc_url($img_url); ?>" alt="<?php echo esc_attr($c['name'] . ', San Angelo TX'); ?>" class="cb9-community__img" decoding="async">
-                                                <?php endif; ?>
-                                                <div class="cb9-community__overlay">
-                                                    <h3 class="cb9-h3"><?php echo esc_html($c['name']); ?></h3>
-                                                    <span class="cb9-go">View Listings</span>
-                                                </div>
-                                            </div>
-                                        </a>
-                                    <?php endforeach; ?>
-                                </div>
-                                <div class="cb9-card cb9-card--cta-row" data-cb9-card <?php echo $cb9_fl(); ?>>
-                                    <div class="cb9-card__inner">
-                                        <a href="<?php echo esc_url(home_url('/communities/')); ?>" class="cb-btn cb-btn--outline">Explore All Communities</a>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- 6 -- SELLERS + PROPERTY WATCH ------------------------------- -->
         <section class="cb9-page" data-cb9-page="6" id="cb9-sell" aria-label="Sell your home">
             <div class="cb9-page__float">
                 <div class="cb9-page__skin">
