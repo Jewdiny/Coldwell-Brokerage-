@@ -143,7 +143,7 @@ $cb8_plate = function ($i) use ($cb8_plates) {
                             <div class="cb8-lod">
                                 <div class="cb8-card cb8-card--chip" data-cb8-card <?php echo $cb8_fl(); ?>>
                                     <div class="cb8-card__inner">
-                                        <span class="cb8-eyebrow">Live Well With Coldwell&#8480;</span>
+                                        <img class="cb-livewell-mark cb-livewell-mark--eyebrow" src="<?php echo esc_url(CB_THEME_URI . '/assets/images/logos/live-well-with-coldwell-white.png'); ?>" alt="Live Well With Coldwell&#8480;" width="1500" height="132" decoding="async" loading="lazy">
                                         <span class="cb8-coords">31.46&deg;&nbsp;N &middot; 100.44&deg;&nbsp;W &middot; San Angelo, Texas</span>
                                     </div>
                                 </div>
@@ -513,7 +513,7 @@ $cb8_plate = function ($i) use ($cb8_plates) {
                                 <div class="cb8-card cb8-card--mark" data-cb8-card <?php echo $cb8_fl(); ?>>
                                     <div class="cb8-card__inner">
                                         <img src="<?php echo esc_url(CB_THEME_URI . '/assets/images/logos/monogram-vertical-stacked.svg'); ?>" alt="Coldwell Banker Legacy" class="cb8-mark__logo">
-                                        <p class="cb8-mark__tag">Live Well With Coldwell&#8480;</p>
+                                        <img class="cb-livewell-mark cb-livewell-mark--sign" src="<?php echo esc_url(CB_THEME_URI . '/assets/images/logos/live-well-with-coldwell-white.png'); ?>" alt="Live Well With Coldwell" width="1500" height="132" decoding="async" loading="lazy">
                                         <p class="cb8-mark__line">At home in San Angelo, Texas.</p>
                                     </div>
                                 </div>

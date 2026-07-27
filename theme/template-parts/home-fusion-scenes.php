@@ -60,7 +60,7 @@ $cb_fusion_nav = [
             <div class="cb-fusion-section__inner">
                 <div class="cb-fusion-card cb-fusion-card--chip" data-fusion <?php echo $cb_float(); ?>>
                     <div class="cb-fusion-card__inner">
-                        <span class="cb-fusion-eyebrow">Live Well With Coldwell&#8480;</span>
+                        <img class="cb-livewell-mark cb-livewell-mark--eyebrow" src="<?php echo esc_url(CB_THEME_URI . '/assets/images/logos/live-well-with-coldwell-white.png'); ?>" alt="Live Well With Coldwell&#8480;" width="1500" height="132" decoding="async" loading="lazy">
                         <span class="cb-fusion-coords">31.46&deg;&nbsp;N&nbsp; &middot; &nbsp;100.44&deg;&nbsp;W &middot; San Angelo, Texas</span>
                     </div>
                 </div>
@@ -351,7 +351,7 @@ $cb_fusion_nav = [
                 <div class="cb-fusion-card cb-fusion-card--mark" data-fusion <?php echo $cb_float(); ?>>
                     <div class="cb-fusion-card__inner">
                         <img src="<?php echo esc_url(CB_THEME_URI . '/assets/images/logos/monogram-vertical-stacked.svg'); ?>" alt="Coldwell Banker Legacy" class="cb-fusion-mark__logo">
-                        <p class="cb-fusion-mark__tag">Live Well With Coldwell&#8480;</p>
+                        <img class="cb-livewell-mark cb-livewell-mark--sign" src="<?php echo esc_url(CB_THEME_URI . '/assets/images/logos/live-well-with-coldwell-white.png'); ?>" alt="Live Well With Coldwell" width="1500" height="132" decoding="async" loading="lazy">
                         <p class="cb-fusion-mark__line">At home in San Angelo, Texas.</p>
                     </div>
                 </div>

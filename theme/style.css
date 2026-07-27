@@ -3185,3 +3185,19 @@ select:focus,
     height: 18px;
   }
 }
+
+/* -------------------------------------------------------------------------
+   "Live Well With Coldwell" brand wordmark (shared).
+
+   The tagline ships as the official white horizontal lockup image rather than
+   set text wherever it appears. This is the shared sizing for the homepage
+   variants (Home 9/10 carry their own copy of these rules, scoped to their
+   cb9- system). Sized by WIDTH with height auto so the lockup keeps its aspect
+   ratio and never overflows a narrow panel; inline-block so it honours the
+   text alignment of whatever hero / signature block it drops into, exactly as
+   the <span> it replaced did. White artwork -- it reads on the dark card or
+   photograph it sits over.
+   ------------------------------------------------------------------------- */
+.cb-livewell-mark { display: inline-block; height: auto; max-width: 100%; vertical-align: middle; }
+.cb-livewell-mark--eyebrow { width: clamp(190px, 42vw, 240px); margin: 0 0 0.7rem; }
+.cb-livewell-mark--sign { width: clamp(210px, 52vw, 300px); }

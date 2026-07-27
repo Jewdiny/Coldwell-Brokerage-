@@ -152,7 +152,7 @@ $cb_scene_nav = [
             <?php endif; ?>
             <div class="cb-scene__inner">
                 <div class="cb-hero-mark cb-scene__reveal" data-reveal="1">
-                    <span class="cb-eyebrow cb-eyebrow--light">Live Well With Coldwell&#8480;</span>
+                    <img class="cb-livewell-mark cb-livewell-mark--eyebrow" src="<?php echo esc_url(CB_THEME_URI . '/assets/images/logos/live-well-with-coldwell-white.png'); ?>" alt="Live Well With Coldwell&#8480;" width="1500" height="132" decoding="async" loading="lazy">
                     <span class="cb-hero-mark__coords">31.46&deg;&nbsp;N&nbsp; &middot; &nbsp;100.44&deg;&nbsp;W &middot; San Angelo, Texas</span>
                 </div>
                 <h1 class="cb-hero__title cb-scene__reveal" data-reveal="2"><?php echo esc_html($hero_title); ?></h1>
@@ -440,7 +440,7 @@ $cb_scene_nav = [
                 <!-- Brand sign-off -->
                 <div class="cb-close-mark cb-scene__reveal">
                     <img src="<?php echo esc_url(CB_THEME_URI . '/assets/images/logos/monogram-vertical-stacked.svg'); ?>" alt="Coldwell Banker Legacy" class="cb-close-mark__logo">
-                    <p class="cb-close-mark__tag">Live Well With Coldwell&#8480;</p>
+                    <img class="cb-livewell-mark cb-livewell-mark--sign" src="<?php echo esc_url(CB_THEME_URI . '/assets/images/logos/live-well-with-coldwell-white.png'); ?>" alt="Live Well With Coldwell" width="1500" height="132" decoding="async" loading="lazy">
                     <p class="cb-close-mark__line">At home in San Angelo, Texas.</p>
                 </div>
             </div>
