@@ -549,6 +549,17 @@ html.js .cb9-quotes .cb-tt-widget {
 /* Breathing room between the monogram and "Live Well With Coldwell". */
 .cb9-mark__logo { margin-bottom: 1.15rem !important; }
 
+/* "Live Well With Coldwell" now ships as the brand wordmark image (the official
+   white horizontal treatment, self-hosted) rather than set text, per client.
+   Sized by WIDTH with height:auto so the lockup keeps its aspect ratio and never
+   overflows a narrow panel. Two placements, sized to sit where the text did:
+   the opening eyebrow pill (top-left) and the closing signature (centred under
+   the monogram). White artwork -- it reads on the chip's dark fill and on the
+   dark closing card. */
+.cb9-livewell-mark { display: block; height: auto; max-width: 100%; }
+.cb9-livewell-mark--eyebrow { width: clamp(190px, 42vw, 240px); }
+.cb9-livewell-mark--sign { width: clamp(210px, 52vw, 300px); margin: 0 auto; }
+
 /* ---- phones and tablets -------------------------------------------------- */
 /*
    The walk runs on touch devices too, so these are real layout rules, not a

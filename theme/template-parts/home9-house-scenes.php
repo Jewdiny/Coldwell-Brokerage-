@@ -158,7 +158,10 @@ $cb9_plate = function ($i) use ($cb9_plates) {
                             <div class="cb9-lod">
                                 <div class="cb9-card cb9-card--chip" data-cb9-card <?php echo $cb9_fl(); ?>>
                                     <div class="cb9-card__inner">
-                                        <span class="cb9-eyebrow">Live Well With Coldwell&#8480;</span>
+                                        <img class="cb9-livewell-mark cb9-livewell-mark--eyebrow"
+                                             src="<?php echo esc_url(CB_THEME_URI . '/assets/images/logos/live-well-with-coldwell-white.png'); ?>"
+                                             alt="Live Well With Coldwell&#8480;" width="1500" height="132"
+                                             decoding="async" fetchpriority="high">
                                     </div>
                                 </div>
                                 <div class="cb9-card cb9-card--title" data-cb9-card <?php echo $cb9_fl(); ?>>
@@ -546,7 +549,10 @@ $cb9_plate = function ($i) use ($cb9_plates) {
                                 <div class="cb9-card cb9-card--mark" data-cb9-card <?php echo $cb9_fl(); ?>>
                                     <div class="cb9-card__inner">
                                         <img src="<?php echo esc_url(CB_THEME_URI . '/assets/images/logos/monogram-vertical-stacked.svg'); ?>" alt="Coldwell Banker Legacy" class="cb9-mark__logo">
-                                        <p class="cb9-mark__tag">Live Well With Coldwell&#8480;</p>
+                                        <img class="cb9-livewell-mark cb9-livewell-mark--sign"
+                                             src="<?php echo esc_url(CB_THEME_URI . '/assets/images/logos/live-well-with-coldwell-white.png'); ?>"
+                                             alt="Live Well With Coldwell" width="1500" height="132"
+                                             decoding="async" loading="lazy">
                                     </div>
                                 </div>
                             </div>
