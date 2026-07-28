@@ -519,6 +519,32 @@ function cb_testimonials_shortcode($atts) {
 }
 add_shortcode('cb_testimonials', 'cb_testimonials_shortcode');
 
+/**
+ * [cb_lender_button] -- "Get Pre-Approved" button linking to the lender
+ * (Guild Mortgage) set in the cb_lender_url customizer setting.
+ *
+ * One source of truth for the link, used both on the Resources page's Home
+ * Loans tab and on the standalone "Getting a Home Loan" page. Renders nothing
+ * when the setting is blank, so clearing it in the Customizer removes the
+ * button everywhere at once rather than leaving a dead link behind.
+ *
+ * @param array $atts 'label' overrides the button text.
+ */
+function cb_lender_button_shortcode($atts) {
+    $url = get_theme_mod('cb_lender_url', 'https://branches.guildmortgage.com/tx/sanangelo/san-angelo-sherwood-743.html');
+    if (!$url) { return ''; }
+    $atts = shortcode_atts(['label' => 'Get Pre-Approved with Guild Mortgage'], $atts, 'cb_lender_button');
+    return sprintf(
+        '<div class="cb-lender-cta" style="text-align:center;margin-top:2.5rem;">'
+        . '<a href="%s" class="cb-btn cb-btn--primary cb-btn--lg" target="_blank" rel="noopener noreferrer">%s</a>'
+        . '<p style="color:var(--cb-text-muted);font-size:0.9rem;margin-top:0.85rem;">Opens Guild Mortgage&rsquo;s pre-approval site in a new tab.</p>'
+        . '</div>',
+        esc_url($url),
+        esc_html($atts['label'])
+    );
+}
+add_shortcode('cb_lender_button', 'cb_lender_button_shortcode');
+
 /* ==========================================================================
    SITE-WIDE LocalBusiness / RealEstateAgent JSON-LD
    The single most important schema for local SEO. Emits on every page so

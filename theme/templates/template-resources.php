@@ -211,17 +211,10 @@ get_header();
                     </div>
                 </div>
 
-                <?php /* Pre-approval CTA. Links out to the client's mortgage
-                     lender (Guild Mortgage) via the cb_lender_url customizer
-                     setting, which defaults to their San Angelo branch page.
-                     Hidden if that setting is ever cleared. */ ?>
-                <?php $cb_lender_url = get_theme_mod('cb_lender_url', 'https://branches.guildmortgage.com/tx/sanangelo/san-angelo-sherwood-743.html'); ?>
-                <?php if ($cb_lender_url) : ?>
-                <div style="text-align:center;margin-top:2.5rem;">
-                    <a href="<?php echo esc_url($cb_lender_url); ?>" class="cb-btn cb-btn--primary cb-btn--lg" target="_blank" rel="noopener noreferrer">Get Pre-Approved with Guild Mortgage</a>
-                    <p style="color:var(--cb-text-muted);font-size:0.9rem;margin-top:0.85rem;">Opens Guild Mortgage&rsquo;s pre-approval site in a new tab.</p>
-                </div>
-                <?php endif; ?>
+                <?php /* Pre-approval CTA -- shared shortcode so this tab and the
+                     standalone "Getting a Home Loan" page render the same button
+                     from the cb_lender_url customizer setting. */ ?>
+                <?php echo do_shortcode('[cb_lender_button]'); ?>
             </div>
         </div>
 
