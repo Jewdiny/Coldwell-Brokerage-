@@ -91,23 +91,24 @@
   // ---- the walk -----------------------------------------------------------
   // STILL[i] is section i's resting frame. TRANS[i] is the move that ARRIVES at
   // section i -- so TRANS[0] is the intro (coming in the front door and looking
-  // down the hall) and TRANS[7] is kitchen -> hearth. Every TRANS[i] is pinned
+  // down the hall) and TRANS[5] is entry -> dining. Every TRANS[i] is pinned
   // end-to-start against its neighbours; see the header.
-  // EIGHT sections. History: the old "Value" panel became the Property Watch
-  // pop-up; Communities was merged into the Listings panel; the Desk/study room
-  // was re-added and the rooms put back in filmed order (client request), so the
-  // two empty placeholders -- Desk (Study) and Kitchen -- sit in their natural
-  // transition positions rather than at the end. See the note by the list below.
+  // SIX sections. History: the old "Value" panel became the Property Watch
+  // pop-up; Communities was merged into the Listings panel. The walk once had
+  // eight rooms including two empty placeholders (Desk/Study, Kitchen); on
+  // client request the content cascaded one room earlier and the two rooms that
+  // ended up blank were dropped. So the Legacy, Front-door and Connect panels
+  // now rest on the 04-study, 05-entry and 06-dining scenes -- the `id`s below
+  // name the CONTENT at each slot, which is why they no longer read like the
+  // room the scene was shot in.
   //
   // _n is min(SECTIONS, panels). Keep THREE lists equal or rooms silently drop:
   // this array, $cb10_nav in home10-filmed-scenes.php, and the .cb9-page panels
-  // in home9-house-scenes.php. All three are EIGHT.
+  // in home9-house-scenes.php. All three are SIX.
   //
-  // Rooms run in filmed order (client request), so the eight clips play as the
-  // one continuous take they were authored as -- t0..t7 stitch end-to-start
-  // with no cuts. Two rooms are empty placeholders in their natural positions:
-  // Desk (the Study, 04-study / t3-study) at index 3 and Kitchen (07-kitchen /
-  // t6-kitchen) at index 6, both awaiting copy.
+  // The clips still play in filmed order, so they remain the one continuous take
+  // they were authored as -- t0..t5 stitch end-to-start with no cuts (the walk
+  // simply ends two rooms earlier, at the dining room, instead of the hearth).
   // Optional `speed` on a section is the playbackRate for its trans clip
   // (default 1). The hallway intro is played 31.97% faster on client request;
   // arrived() gates the panel on media time, not wall-clock, so a faster rate
@@ -117,11 +118,9 @@
     { id: 'arrival',     still: '01-hall.jpg',    trans: 't0-intro.mp4', speed: 1.3197 },
     { id: 'welcome',     still: '02-living.jpg',  trans: 't1-living.mp4' },
     { id: 'listings',    still: '03-gallery.jpg', trans: 't2-gallery.mp4' },
-    { id: 'desk',        still: '04-study.jpg',   trans: 't3-study.mp4' },
-    { id: 'legacy',      still: '05-entry.jpg',   trans: 't4-entry.mp4' },
-    { id: 'door',        still: '06-dining.jpg',  trans: 't5-dining.mp4' },
-    { id: 'kitchen',     still: '07-kitchen.jpg', trans: 't6-kitchen.mp4' },
-    { id: 'connect',     still: '08-hearth.jpg',  trans: 't7-hearth.mp4' }
+    { id: 'legacy',      still: '04-study.jpg',   trans: 't3-study.mp4' },
+    { id: 'door',        still: '05-entry.jpg',   trans: 't4-entry.mp4' },
+    { id: 'connect',     still: '06-dining.jpg',  trans: 't5-dining.mp4' }
   ];
 
   // How long the panel takes to fade up once the walk has finished, in seconds.

@@ -8,7 +8,7 @@
  *
  * WHY THIS FILE RENDERS HOME 9 AND REWRITES IT
  * --------------------------------------------
- * The eight panels are not retyped here. This partial buffers
+ * The six panels are not retyped here. This partial buffers
  * template-parts/home9-house-scenes.php, lifts its .cb9-pages block, and
  * rewrites the OUTER wrapper of each panel. That is the same thing
  * harness/build-home10-harness.mjs does to the generated harness, and it is
@@ -50,17 +50,17 @@ if (!defined('ABSPATH')) { exit; }
  * Nav labels, in section order. Must match home10.js's SECTIONS length AND the
  * panel order in home9-house-scenes.php -- these are just labels for dots that
  * index by position, so if the panels are reordered and this is not, every dot
- * names the wrong room. All three lists are eight.
+ * names the wrong room. All three lists are six.
  *
  * Communities was merged into the Listings panel (its map, carousel and area
- * cards share slide 3). The rooms run in filmed order (client request), so the
- * two empty placeholders sit in their natural transition spots: Study (the
- * desk, 04-study / t3-study) at slide 4 and Kitchen (07-kitchen / t6-kitchen)
- * at slide 7, both awaiting copy.
+ * cards share slide 3). The walk once had eight rooms with two empty
+ * placeholders (Study, Kitchen); on client request the content cascaded one
+ * room earlier and the two rooms left blank were dropped, so the walk is now
+ * six full rooms and ends on Connect (the socials + reviews finale).
  */
 $cb10_nav = [
-    'Arrival', 'Welcome', 'Listings', 'Study',
-    'Legacy', 'Front door', 'Kitchen', 'Connect',
+    'Arrival', 'Welcome', 'Listings',
+    'Legacy', 'Front door', 'Connect',
 ];
 
 ob_start();
@@ -92,7 +92,7 @@ if ($cb10_pages !== '') {
     $cb10_pages = preg_replace('~<img class="cb9-page__plate"[^>]*>~', '', $cb10_pages);
 }
 
-// 8 panels or nothing. A partial count means the markup moved and the page
+// 6 panels or nothing. A partial count means the markup moved and the page
 // would be missing rooms -- fall back to the Home 9 partial, which is whole.
 if ($cb10_count !== count($cb10_nav)) {
     if (function_exists('error_log')) {
