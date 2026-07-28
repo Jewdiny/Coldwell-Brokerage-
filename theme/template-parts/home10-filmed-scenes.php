@@ -52,14 +52,15 @@ if (!defined('ABSPATH')) { exit; }
  * index by position, so if the panels are reordered and this is not, every dot
  * names the wrong room. All three lists are eight.
  *
- * Communities was merged into the Listings panel (client request): its map, a
- * featured-listings carousel and the area cards share slide 3. Content rooms
- * come first; the last two are empty placeholders awaiting copy -- Desk (the
- * Study, 04-study / t3-study) and Kitchen (07-kitchen / t6-kitchen).
+ * Communities was merged into the Listings panel (its map, carousel and area
+ * cards share slide 3). The rooms run in filmed order (client request), so the
+ * two empty placeholders sit in their natural transition spots: Study (the
+ * desk, 04-study / t3-study) at slide 4 and Kitchen (07-kitchen / t6-kitchen)
+ * at slide 7, both awaiting copy.
  */
 $cb10_nav = [
-    'Arrival', 'Welcome', 'Listings', 'Legacy',
-    'Front door', 'Connect', 'Study', 'Kitchen',
+    'Arrival', 'Welcome', 'Listings', 'Study',
+    'Legacy', 'Front door', 'Kitchen', 'Connect',
 ];
 
 ob_start();

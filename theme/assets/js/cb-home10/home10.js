@@ -95,21 +95,19 @@
   // end-to-start against its neighbours; see the header.
   // EIGHT sections. History: the old "Value" panel became the Property Watch
   // pop-up; Communities was merged into the Listings panel; the Desk/study room
-  // was then re-added (client request) alongside the Kitchen as the two empty
-  // placeholder rooms at the END of the walk, with all the content packed ahead
-  // of them. See the note by the list below.
+  // was re-added and the rooms put back in filmed order (client request), so the
+  // two empty placeholders -- Desk (Study) and Kitchen -- sit in their natural
+  // transition positions rather than at the end. See the note by the list below.
   //
   // _n is min(SECTIONS, panels). Keep THREE lists equal or rooms silently drop:
   // this array, $cb10_nav in home10-filmed-scenes.php, and the .cb9-page panels
   // in home9-house-scenes.php. All three are EIGHT.
   //
-  // The order is content-first: six content rooms, then two empty placeholder
-  // rooms (Desk/04-study, Kitchen/07-kitchen) at the end, awaiting copy. Because
-  // the empties sit out of their filmed order, the clips no longer form the one
-  // continuous take they were authored as -- there are hard cuts at the joins
-  // (gallery -> entry, dining -> hearth, and into the two end rooms). The clips
-  // still play; only the seamless stitching is lost. Restoring it would mean
-  // re-rendering the transitions, which needs the video tool -- out of scope.
+  // Rooms run in filmed order (client request), so the eight clips play as the
+  // one continuous take they were authored as -- t0..t7 stitch end-to-start
+  // with no cuts. Two rooms are empty placeholders in their natural positions:
+  // Desk (the Study, 04-study / t3-study) at index 3 and Kitchen (07-kitchen /
+  // t6-kitchen) at index 6, both awaiting copy.
   // Optional `speed` on a section is the playbackRate for its trans clip
   // (default 1). The hallway intro is played 31.97% faster on client request;
   // arrived() gates the panel on media time, not wall-clock, so a faster rate
@@ -119,11 +117,11 @@
     { id: 'arrival',     still: '01-hall.jpg',    trans: 't0-intro.mp4', speed: 1.3197 },
     { id: 'welcome',     still: '02-living.jpg',  trans: 't1-living.mp4' },
     { id: 'listings',    still: '03-gallery.jpg', trans: 't2-gallery.mp4' },
+    { id: 'desk',        still: '04-study.jpg',   trans: 't3-study.mp4' },
     { id: 'legacy',      still: '05-entry.jpg',   trans: 't4-entry.mp4' },
     { id: 'door',        still: '06-dining.jpg',  trans: 't5-dining.mp4' },
-    { id: 'connect',     still: '08-hearth.jpg',  trans: 't7-hearth.mp4' },
-    { id: 'desk',        still: '04-study.jpg',   trans: 't3-study.mp4' },
-    { id: 'kitchen',     still: '07-kitchen.jpg', trans: 't6-kitchen.mp4' }
+    { id: 'kitchen',     still: '07-kitchen.jpg', trans: 't6-kitchen.mp4' },
+    { id: 'connect',     still: '08-hearth.jpg',  trans: 't7-hearth.mp4' }
   ];
 
   // How long the panel takes to fade up once the walk has finished, in seconds.

@@ -343,8 +343,33 @@ $cb9_plate = function ($i) use ($cb9_plates) {
             </div>
         </section>
 
+        <!-- DESK / STUDY (placeholder, awaiting client copy) ---------- -->
+        <?php /* Re-added on client request as an empty room, like the kitchen.
+             Its scene is 04-study / t3-study and it has a nav dot; the copy is
+             coming from the client. When it lands, flesh out .cb9-card--head and
+             add a .cb9-page__body like the neighbouring panels. Nothing here
+             indexes by content, so adding a body later needs no other change. */ ?>
+        <section class="cb9-page" data-cb9-page="3" id="cb9-desk" aria-label="The study">
+            <div class="cb9-page__float">
+                <div class="cb9-page__skin">
+                    <div class="cb9-page__scroll" tabindex="0">
+                        <div class="cb9-page__inner">
+                            <div class="cb9-lod">
+                                <div class="cb9-card cb9-card--head" data-cb9-card <?php echo $cb9_fl(); ?>>
+                                    <div class="cb9-card__inner">
+                                        <span class="cb9-eyebrow">The Study</span>
+                                        <h2 class="cb9-h2">Coming soon.</h2>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- 6 -- SELLERS + PROPERTY WATCH ------------------------------- -->
-        <section class="cb9-page" data-cb9-page="3" id="cb9-legacy" aria-label="Our track record">
+        <section class="cb9-page" data-cb9-page="4" id="cb9-legacy" aria-label="Our track record">
             <div class="cb9-page__float">
                 <div class="cb9-page__skin">
                     <?php $cb9_plate(3); ?>
@@ -423,7 +448,7 @@ $cb9_plate = function ($i) use ($cb9_plates) {
         </section>
 
         <!-- 4 -- BUYERS ------------------------------------------------- -->
-        <section class="cb9-page" data-cb9-page="4" id="cb9-buy" aria-label="Browse homes">
+        <section class="cb9-page" data-cb9-page="5" id="cb9-buy" aria-label="Browse homes">
             <div class="cb9-page__float">
                 <div class="cb9-page__skin">
                     <?php $cb9_plate(4); ?>
@@ -451,8 +476,36 @@ $cb9_plate = function ($i) use ($cb9_plates) {
             </div>
         </section>
 
+        <!-- 6 -- KITCHEN (placeholder, awaiting client copy) ------------- -->
+        <?php /* Re-added on client request. Deliberately minimal: the room and
+             its scene are wired in for Home 10 (07-kitchen.jpg / t6-kitchen.mp4
+             and a nav dot), and the copy for this panel is coming from the
+             client. When it lands, flesh out .cb9-card--head and add a
+             .cb9-page__body block like the neighbouring panels. Nothing here
+             indexes by content, so adding a body later needs no other change.
+             No $cb9_plate() -- there is no kitchen webgl plate, and Home 10
+             strips plates anyway; the panel just shows the scene behind it. */ ?>
+        <section class="cb9-page" data-cb9-page="6" id="cb9-kitchen" aria-label="The kitchen">
+            <div class="cb9-page__float">
+                <div class="cb9-page__skin">
+                    <div class="cb9-page__scroll" tabindex="0">
+                        <div class="cb9-page__inner">
+                            <div class="cb9-lod">
+                                <div class="cb9-card cb9-card--head" data-cb9-card <?php echo $cb9_fl(); ?>>
+                                    <div class="cb9-card__inner">
+                                        <span class="cb9-eyebrow">The Kitchen</span>
+                                        <h2 class="cb9-h2">Coming soon.</h2>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
         <!-- 7 -- CONNECT -------------------------------------------------- -->
-        <section class="cb9-page" data-cb9-page="5" id="cb9-connect" aria-label="Reviews and stories">
+        <section class="cb9-page" data-cb9-page="7" id="cb9-connect" aria-label="Reviews and stories">
             <div class="cb9-page__float">
                 <div class="cb9-page__skin">
                     <?php $cb9_plate(7); ?>
@@ -514,59 +567,6 @@ $cb9_plate = function ($i) use ($cb9_plates) {
                                              src="<?php echo esc_url(CB_THEME_URI . '/assets/images/logos/live-well-with-coldwell-white.png'); ?>"
                                              alt="Live Well With Coldwell" width="1500" height="132"
                                              decoding="async" loading="lazy">
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- DESK / STUDY (placeholder, awaiting client copy) ---------- -->
-        <?php /* Re-added on client request as an empty room, like the kitchen.
-             Its scene is 04-study / t3-study and it has a nav dot; the copy is
-             coming from the client. When it lands, flesh out .cb9-card--head and
-             add a .cb9-page__body like the neighbouring panels. Nothing here
-             indexes by content, so adding a body later needs no other change. */ ?>
-        <section class="cb9-page" data-cb9-page="6" id="cb9-desk" aria-label="The study">
-            <div class="cb9-page__float">
-                <div class="cb9-page__skin">
-                    <div class="cb9-page__scroll" tabindex="0">
-                        <div class="cb9-page__inner">
-                            <div class="cb9-lod">
-                                <div class="cb9-card cb9-card--head" data-cb9-card <?php echo $cb9_fl(); ?>>
-                                    <div class="cb9-card__inner">
-                                        <span class="cb9-eyebrow">The Study</span>
-                                        <h2 class="cb9-h2">Coming soon.</h2>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- 6 -- KITCHEN (placeholder, awaiting client copy) ------------- -->
-        <?php /* Re-added on client request. Deliberately minimal: the room and
-             its scene are wired in for Home 10 (07-kitchen.jpg / t6-kitchen.mp4
-             and a nav dot), and the copy for this panel is coming from the
-             client. When it lands, flesh out .cb9-card--head and add a
-             .cb9-page__body block like the neighbouring panels. Nothing here
-             indexes by content, so adding a body later needs no other change.
-             No $cb9_plate() -- there is no kitchen webgl plate, and Home 10
-             strips plates anyway; the panel just shows the scene behind it. */ ?>
-        <section class="cb9-page" data-cb9-page="7" id="cb9-kitchen" aria-label="The kitchen">
-            <div class="cb9-page__float">
-                <div class="cb9-page__skin">
-                    <div class="cb9-page__scroll" tabindex="0">
-                        <div class="cb9-page__inner">
-                            <div class="cb9-lod">
-                                <div class="cb9-card cb9-card--head" data-cb9-card <?php echo $cb9_fl(); ?>>
-                                    <div class="cb9-card__inner">
-                                        <span class="cb9-eyebrow">The Kitchen</span>
-                                        <h2 class="cb9-h2">Coming soon.</h2>
                                     </div>
                                 </div>
                             </div>
