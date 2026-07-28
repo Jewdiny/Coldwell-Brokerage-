@@ -105,8 +105,13 @@
   // _n is min(SECTIONS, panels). Keep THREE lists equal or rooms silently drop:
   // this array, $cb10_nav in home10-filmed-scenes.php, and the .cb9-page panels
   // in home9-house-scenes.php. All three are eight.
+  // Optional `speed` on a section is the playbackRate for its trans clip
+  // (default 1). The hallway intro is played 31.97% faster on client request;
+  // arrived() gates the panel on media time, not wall-clock, so a faster rate
+  // only reaches the arrival frame sooner -- it does not move where the panel
+  // appears or cut the clip short.
   var SECTIONS = [
-    { id: 'arrival',     still: '01-hall.jpg',    trans: 't0-intro.mp4' },
+    { id: 'arrival',     still: '01-hall.jpg',    trans: 't0-intro.mp4', speed: 1.3197 },
     { id: 'welcome',     still: '02-living.jpg',  trans: 't1-living.mp4' },
     { id: 'listings',    still: '03-gallery.jpg', trans: 't2-gallery.mp4' },
     { id: 'communities', still: '04-study.jpg',   trans: 't3-study.mp4' },
@@ -382,6 +387,10 @@
     if (!forward || _capture) { park(v); return; }
 
     try { v.currentTime = 0; } catch (e) {}
+    // Per-clip playback speed (default 1). Set every time the section is entered
+    // so a browser that resets rate on a fresh play() still honours it.
+    var rate = (SECTIONS[i] && SECTIONS[i].speed) ? SECTIONS[i].speed : 1;
+    try { v.playbackRate = rate; v.defaultPlaybackRate = rate; } catch (e) {}
     v.__walking = true;
     v.__walkStart = Date.now();
     var p;
