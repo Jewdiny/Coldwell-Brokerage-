@@ -261,6 +261,16 @@ body.cb-page--home10-preview {
   }
 }
 
+/* Open straight on the first screen (client request): no intro walk -- home10.js
+   parks section 0 on load -- and no blur-in here. The arrival cards start sharp
+   with the transition off, so nothing animates as the page comes in. */
+.cb10-nointro .cb10-page[data-cb10-page="0"] .cb9-card {
+  filter: none !important;
+  transform: none !important;
+  opacity: 1 !important;
+  transition: none !important;
+}
+
 /* ---- slide 2: no glass on the heading ------------------------------------
    Client asked for the top box's dark container to go. Only the HEAD card
    loses its fill -- the four action cards below keep theirs, because those are

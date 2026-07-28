@@ -50,17 +50,16 @@ if (!defined('ABSPATH')) { exit; }
  * Nav labels, in section order. Must match home10.js's SECTIONS length AND the
  * panel order in home9-house-scenes.php -- these are just labels for dots that
  * index by position, so if the panels are reordered and this is not, every dot
- * names the wrong room. All three lists are seven.
+ * names the wrong room. All three lists are eight.
  *
  * Communities was merged into the Listings panel (client request): its map, a
- * featured-listings carousel and the area cards now share slide 3, so there is
- * no separate Communities dot.
- * Kitchen sits between Front door and Connect (client request) -- a blank room
- * for now, awaiting copy; its scene is 07-kitchen / t6-kitchen.
+ * featured-listings carousel and the area cards share slide 3. Content rooms
+ * come first; the last two are empty placeholders awaiting copy -- Desk (the
+ * Study, 04-study / t3-study) and Kitchen (07-kitchen / t6-kitchen).
  */
 $cb10_nav = [
-    'Arrival', 'Welcome', 'Listings',
-    'Legacy', 'Front door', 'Kitchen', 'Connect',
+    'Arrival', 'Welcome', 'Listings', 'Legacy',
+    'Front door', 'Connect', 'Study', 'Kitchen',
 ];
 
 ob_start();

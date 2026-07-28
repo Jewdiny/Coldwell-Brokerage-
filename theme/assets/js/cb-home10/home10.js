@@ -93,22 +93,23 @@
   // section i -- so TRANS[0] is the intro (coming in the front door and looking
   // down the hall) and TRANS[7] is kitchen -> hearth. Every TRANS[i] is pinned
   // end-to-start against its neighbours; see the header.
-  // SEVEN sections. History: the old "Value" panel became the Property Watch
-  // pop-up; the kitchen was dropped then re-added (client request) as a blank
-  // room, which also kept camera continuity for t6 (dining -> kitchen) and t7
-  // (kitchen -> hearth). Communities was then merged into the Listings panel
-  // (client request), taking the count from eight to seven -- see the note by
-  // the list below.
+  // EIGHT sections. History: the old "Value" panel became the Property Watch
+  // pop-up; Communities was merged into the Listings panel; the Desk/study room
+  // was then re-added (client request) alongside the Kitchen as the two empty
+  // placeholder rooms at the END of the walk, with all the content packed ahead
+  // of them. See the note by the list below.
   //
   // _n is min(SECTIONS, panels). Keep THREE lists equal or rooms silently drop:
   // this array, $cb10_nav in home10-filmed-scenes.php, and the .cb9-page panels
-  // in home9-house-scenes.php. All three are SEVEN.
+  // in home9-house-scenes.php. All three are EIGHT.
   //
-  // Communities merged into Listings, so its clip (t3-study, 04-study) is gone
-  // and the walk runs t2-gallery -> t4-entry directly. Those two were authored
-  // to meet through the study, so there is a small cut there now rather than a
-  // seamless step. Removing it cleanly would mean re-rendering t4 to start on
-  // the gallery's end frame, which needs the video tool -- out of scope here.
+  // The order is content-first: six content rooms, then two empty placeholder
+  // rooms (Desk/04-study, Kitchen/07-kitchen) at the end, awaiting copy. Because
+  // the empties sit out of their filmed order, the clips no longer form the one
+  // continuous take they were authored as -- there are hard cuts at the joins
+  // (gallery -> entry, dining -> hearth, and into the two end rooms). The clips
+  // still play; only the seamless stitching is lost. Restoring it would mean
+  // re-rendering the transitions, which needs the video tool -- out of scope.
   // Optional `speed` on a section is the playbackRate for its trans clip
   // (default 1). The hallway intro is played 31.97% faster on client request;
   // arrived() gates the panel on media time, not wall-clock, so a faster rate
@@ -120,8 +121,9 @@
     { id: 'listings',    still: '03-gallery.jpg', trans: 't2-gallery.mp4' },
     { id: 'legacy',      still: '05-entry.jpg',   trans: 't4-entry.mp4' },
     { id: 'door',        still: '06-dining.jpg',  trans: 't5-dining.mp4' },
-    { id: 'kitchen',     still: '07-kitchen.jpg', trans: 't6-kitchen.mp4' },
-    { id: 'connect',     still: '08-hearth.jpg',  trans: 't7-hearth.mp4' }
+    { id: 'connect',     still: '08-hearth.jpg',  trans: 't7-hearth.mp4' },
+    { id: 'desk',        still: '04-study.jpg',   trans: 't3-study.mp4' },
+    { id: 'kitchen',     still: '07-kitchen.jpg', trans: 't6-kitchen.mp4' }
   ];
 
   // How long the panel takes to fade up once the walk has finished, in seconds.
@@ -602,6 +604,24 @@
       // be gliding toward it when the screenshot is taken.
       readScroll(); _g = _gRaw;
       document.documentElement.classList.add('cb10-capture');
+    }
+
+    // Straight to the first screen on load: no intro walk, no blur-in (client
+    // request). Guarded to the top of the page -- a refresh or deep link deeper
+    // into the walk still lands where it should. Parking section 0 makes
+    // arrived() true at once so its panel shows immediately; cb10-nointro (CSS)
+    // drops the arrival blur so there is nothing left to animate.
+    if (!_capture) {
+      readScroll();
+      if (Math.floor(clamp(_gRaw, 0, _n - 0.001)) === 0) {
+        document.documentElement.classList.add('cb10-nointro');
+        enterSection(0, false);   // park, sets _active = 0 (no forward walk)
+        _panel = 1;
+        if (pagesEl[0]) {
+          pagesEl[0].classList.add('is-resolved', 'is-read');
+          pagesEl[0].style.opacity = '1';
+        }
+      }
     }
 
     _initialized = true;
