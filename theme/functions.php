@@ -1314,6 +1314,22 @@ function cb_customize_register($wp_customize) {
         'section'     => 'cb_contact',
         'type'        => 'url',
     ]);
+
+    /* Lender / pre-approval link, shown as the "Get Pre-Approved" button on the
+       Resources page's Home Loans tab. Defaults to the client's Guild Mortgage
+       branch page (San Angelo Sherwood, #743) so the button works out of the
+       box, and stays editable here if the branch or loan officer changes.
+       Blank hides the button rather than linking nowhere. */
+    $wp_customize->add_setting('cb_lender_url', [
+        'default'           => 'https://branches.guildmortgage.com/tx/sanangelo/san-angelo-sherwood-743.html',
+        'sanitize_callback' => 'esc_url_raw',
+    ]);
+    $wp_customize->add_control('cb_lender_url', [
+        'label'       => __('Lender / Pre-Approval URL', 'cb-legacy'),
+        'description' => __('Full URL of the mortgage lender pre-approval page linked from the Resources “Home Loans” tab. Leave blank to hide the button.', 'cb-legacy'),
+        'section'     => 'cb_contact',
+        'type'        => 'url',
+    ]);
 }
 add_action('customize_register', 'cb_customize_register');
 
