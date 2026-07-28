@@ -12,6 +12,18 @@ cb_set_seo_meta([
 ]);
 
 get_header();
+
+/* THE APPFOLIO PORTAL.
+   One login (https://cbl.appfolio.com, supplied by the client) serves both
+   audiences: tenants pay rent, submit maintenance requests and view their
+   ledger; owners access documents and make contributions. The portal buttons
+   on this page appear only when this URL is set -- a guessed or dead link on
+   the page where people go to pay their rent is worse than no button, so if it
+   is ever cleared these blocks fall back to the office phone, which always
+   works. Configurable at Customizer > Contact Information > AppFolio Portal URL.
+   Resolved once here because both the owner section and the tenant section
+   below use it. */
+$cb_portal = trim((string) get_theme_mod('cb_tenant_portal_url', 'https://cbl.appfolio.com'));
 ?>
 
 <div style="padding-top:var(--header-height);">
@@ -77,20 +89,24 @@ get_header();
                 </div>
             </div>
         </div>
+
+        <?php /* Existing owners -- as opposed to the prospective owners the cards
+             above are pitched at -- use the same AppFolio portal as tenants to
+             view statements and documents and to make contributions. Only shown
+             when the portal URL is configured. */ ?>
+        <?php if ($cb_portal) : ?>
+        <div class="cb-owner-portal cb-reveal">
+            <div class="cb-owner-portal__text">
+                <h3>Already have your property with us?</h3>
+                <p>Owners access statements and documents and make contributions through the AppFolio owner portal.</p>
+            </div>
+            <a href="<?php echo esc_url($cb_portal); ?>" class="cb-btn cb-btn--navy" target="_blank" rel="noopener">Owner Portal Login</a>
+        </div>
+        <?php endif; ?>
     </div>
 </section>
 
 <!-- Tenant Resources -->
-<?php
-/* PAY RENT.
-   The button appears only when a real tenant portal URL is configured
-   (Customizer > Contact Information > Tenant Portal URL). It is deliberately
-   blank by default. A guessed or dead link on the page where people go to pay
-   their rent is worse than no button: they click it, it fails, and they assume
-   the rent did not go through. Until the real portal address is supplied, this
-   block tells them to call the office, which always works. */
-$cb_portal = trim((string) get_theme_mod('cb_tenant_portal_url', ''));
-?>
 <section class="cb-section cb-section--offwhite" id="cb-tenant-resources">
     <div class="cb-container">
         <div class="cb-section__header cb-reveal">
@@ -104,8 +120,8 @@ $cb_portal = trim((string) get_theme_mod('cb_tenant_portal_url', ''));
                 <div class="cb-action-card__icon"><?php echo cb_get_svg_icon('sell'); ?></div>
                 <h3>Pay Rent</h3>
                 <?php if ($cb_portal) : ?>
-                    <p>Pay online through the tenant portal, any time.</p>
-                    <a href="<?php echo esc_url($cb_portal); ?>" class="cb-btn cb-btn--primary" target="_blank" rel="noopener">Pay Here</a>
+                    <p>Pay rent, view your ledger and manage your account in the resident portal, any time.</p>
+                    <a href="<?php echo esc_url($cb_portal); ?>" class="cb-btn cb-btn--primary" target="_blank" rel="noopener">Log In to Pay</a>
                 <?php else : ?>
                     <p>Call the office during business hours and we&rsquo;ll take your payment or set you up on the portal.</p>
                     <a href="tel:3259449559" class="cb-btn cb-btn--primary">(325) 944-9559</a>
@@ -115,8 +131,13 @@ $cb_portal = trim((string) get_theme_mod('cb_tenant_portal_url', ''));
             <div class="cb-tenant-action cb-reveal">
                 <div class="cb-action-card__icon"><?php echo cb_get_svg_icon('office'); ?></div>
                 <h3>Maintenance Request</h3>
-                <p>Something needs fixing? Tell us what and where and we&rsquo;ll get it scheduled.</p>
-                <a href="#cb-pm-form" class="cb-btn cb-btn--navy">Submit a Request</a>
+                <?php if ($cb_portal) : ?>
+                    <p>Submit a non-urgent maintenance request and track its progress in the resident portal.</p>
+                    <a href="<?php echo esc_url($cb_portal); ?>" class="cb-btn cb-btn--navy" target="_blank" rel="noopener">Submit in Portal</a>
+                <?php else : ?>
+                    <p>Something needs fixing? Tell us what and where and we&rsquo;ll get it scheduled.</p>
+                    <a href="#cb-pm-form" class="cb-btn cb-btn--navy">Submit a Request</a>
+                <?php endif; ?>
             </div>
 
             <div class="cb-tenant-action cb-reveal">

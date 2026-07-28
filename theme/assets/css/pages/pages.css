@@ -776,6 +776,42 @@
   color: var(--cb-text-muted);
 }
 
+/* Existing-owner portal strip on the Property Owners section (white background,
+   so the strip is tinted to read as a distinct panel). Text and button sit on
+   one line and wrap to a stack on narrow screens. */
+.cb-owner-portal {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1.25rem 2rem;
+  margin-top: 2.5rem;
+  padding: 1.75rem 2rem;
+  border: 1px solid var(--cb-border, rgba(0, 0, 0, 0.1));
+  border-radius: 4px;
+  background: var(--cb-off-white, #faf9f7);
+}
+
+.cb-owner-portal__text {
+  flex: 1 1 20rem;
+}
+
+.cb-owner-portal__text h3 {
+  margin: 0 0 0.35rem;
+  font-size: 1.1875rem;
+}
+
+.cb-owner-portal__text p {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.7;
+  color: var(--cb-text-muted);
+}
+
+.cb-owner-portal .cb-btn {
+  flex: 0 0 auto;
+}
+
 /* ==========================================================================
    HOME VALUE — TWO OPTIONS
    The choice between the instant CB Estimate and an agent CMA, stated before

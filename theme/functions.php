@@ -1329,18 +1329,19 @@ function cb_customize_register($wp_customize) {
         'type'        => 'email',
     ]);
 
-    /* Tenant payment portal. Deliberately EMPTY by default: the rentals page
-       shows the Pay Rent button only when a real URL is set here. A dead or
-       guessed link on a page where people go to pay their rent is worse than
-       no button at all -- so until this is filled in, that block tells them to
-       call the office instead. */
+    /* AppFolio portal. One login serves both audiences: tenants pay rent, submit
+       maintenance requests and view their ledger; owners access documents and
+       make contributions. The client supplied https://cbl.appfolio.com, so it is
+       the default here and the rentals page shows the portal buttons. Left blank,
+       those buttons fall back to "call the office" -- a dead or guessed link on
+       the page where people pay their rent is worse than no button at all. */
     $wp_customize->add_setting('cb_tenant_portal_url', [
-        'default'           => '',
+        'default'           => 'https://cbl.appfolio.com',
         'sanitize_callback' => 'esc_url_raw',
     ]);
     $wp_customize->add_control('cb_tenant_portal_url', [
-        'label'       => __('Tenant Portal URL (Pay Rent)', 'cb-legacy'),
-        'description' => __('Full URL of the online rent payment / tenant portal. Leave blank to hide the Pay Rent button.', 'cb-legacy'),
+        'label'       => __('AppFolio Portal URL (Tenants & Owners)', 'cb-legacy'),
+        'description' => __('Full URL of the AppFolio portal used by tenants (pay rent, maintenance, ledger) and owners (documents, contributions). Leave blank to hide the portal buttons and show the office phone number instead.', 'cb-legacy'),
         'section'     => 'cb_contact',
         'type'        => 'url',
     ]);
