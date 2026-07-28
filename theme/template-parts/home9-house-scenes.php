@@ -246,7 +246,7 @@ $cb9_plate = function ($i) use ($cb9_plates) {
         </section>
 
         <!-- 2 -- FEATURED LISTINGS (live MLS) --------------------------- -->
-        <section class="cb9-page" data-cb9-page="2" id="cb9-listings" aria-label="Featured listings">
+        <section class="cb9-page" data-cb9-page="2" id="cb9-listings" aria-label="Featured listings and communities">
             <div class="cb9-page__float">
                 <div class="cb9-page__skin">
                     <?php $cb9_plate(2); ?>
@@ -272,6 +272,14 @@ $cb9_plate = function ($i) use ($cb9_plates) {
                                 </div>
                             </div>
                             <div class="cb9-page__body">
+                                <?php /* MAP (top): a static San Angelo area map linking to the live Find-a-Home
+                                     map. A picture, not an embedded map -- no page weight, and it never
+                                     fights the walk's scroll. */ ?>
+                                <a class="cb9-map" href="<?php echo esc_url(add_query_arg('view', 'map', home_url('/find-a-home/'))); ?>">
+                                    <img class="cb9-map__img" src="<?php echo esc_url(CB_THEME_URI . '/assets/images/home10/sanangelo-area-map.jpg'); ?>" alt="Map of San Angelo and the Concho Valley" width="1480" height="600" loading="lazy" decoding="async">
+                                    <span class="cb9-map__label">See Every Home on the Map</span>
+                                    <span class="cb9-map__attr">Map data &copy; OpenStreetMap contributors</span>
+                                </a>
                                 <div class="cb9-card cb9-card--frame" data-cb9-card data-cb9-frame <?php echo $cb9_fl(); ?>>
                                     <div class="cb9-card__inner">
                                         <?php // Six listings, 2 across x 3 down. Was columns="3", which laid the
@@ -279,7 +287,11 @@ $cb9_plate = function ($i) use ($cb9_plates) {
                                               // the page is a fixed reading panel roughly 60rem wide, so at three
                                               // across each card was narrow enough that the price, address and
                                               // bed/bath line all had to compete for the same short measure. ?>
-                                        <?php echo do_shortcode('[cb_listings filter="featured" count="6" columns="2"]'); ?>
+                                        <div class="cb9-carousel" data-cb9-carousel>
+                                            <button class="cb9-carousel__nav cb9-carousel__nav--prev" type="button" aria-label="Previous properties" data-cb9-carousel-prev>&#8249;</button>
+                                            <?php echo do_shortcode('[cb_listings filter="featured" count="8" columns="4" class="cb9-carousel__grid"]'); ?>
+                                            <button class="cb9-carousel__nav cb9-carousel__nav--next" type="button" aria-label="Next properties" data-cb9-carousel-next>&#8250;</button>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="cb9-card cb9-card--cta-row" data-cb9-card <?php echo $cb9_fl(); ?>>
@@ -287,43 +299,24 @@ $cb9_plate = function ($i) use ($cb9_plates) {
                                         <a href="<?php echo esc_url(home_url('/find-a-home/')); ?>" class="cb-btn cb-btn--primary">View All Properties</a>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
 
-        <!-- 3 -- LEGACY / STATS ----------------------------------------- -->
-        <section class="cb9-page" data-cb9-page="3" id="cb9-communities" aria-label="Featured communities">
-            <div class="cb9-page__float">
-                <div class="cb9-page__skin">
-                    <?php $cb9_plate(5); ?>
-                    <div class="cb9-page__scroll" tabindex="0">
-                        <div class="cb9-page__inner">
-                            <div class="cb9-lod">
-                                <div class="cb9-card cb9-card--head" data-cb9-card <?php echo $cb9_fl(); ?>>
+                                <?php /* AREAS (bottom): the former Communities panel, merged in on
+                                     client request. Its heading and area cards -- each opening the map
+                                     filtered to that neighbourhood -- plus the route to the written
+                                     community guides. */ ?>
+                                <div class="cb9-card cb9-card--head cb9-subhead" data-cb9-card <?php echo $cb9_fl(); ?>>
                                     <div class="cb9-card__inner">
                                         <span class="cb9-eyebrow">Explore the Area</span>
                                         <h2 class="cb9-h2">From the river to the ranch&nbsp;land.</h2>
                                         <p class="cb9-p">From downtown San Angelo to the scenic shores of Lake Nasworthy, find the neighborhood that fits your life.</p>
                                     </div>
                                 </div>
-                            </div>
-                            <div class="cb9-page__body">
                                 <div class="cb9-grid cb9-grid--3">
                                     <?php foreach ($cb_featured as $slug) :
                                         if (!isset($cb_communities[$slug])) { continue; }
                                         $c = $cb_communities[$slug];
                                         $img_url = function_exists('cb_community_image_url') ? cb_community_image_url($c) : '';
                                     ?>
-                                        <?php /* "View Listings" now goes to the map, filtered to this
-                                             area, rather than to the community's own page. The label
-                                             promised listings and delivered an article about the
-                                             neighbourhood; this takes you to the homes on a map, which
-                                             is what the words say and what the brief asked for. The
-                                             community page is still reachable from the Communities
-                                             index and the site nav. */ ?>
                                         <a href="<?php echo esc_url(add_query_arg(['neighborhood' => $slug, 'view' => 'map'], home_url('/find-a-home/'))); ?>"
                                            class="cb9-card cb9-card--community" data-cb9-card data-cursor="Map" <?php echo $cb9_fl(); ?>>
                                             <div class="cb9-card__inner">
@@ -340,10 +333,6 @@ $cb9_plate = function ($i) use ($cb9_plates) {
                                 </div>
                                 <div class="cb9-card cb9-card--cta-row" data-cb9-card <?php echo $cb9_fl(); ?>>
                                     <div class="cb9-card__inner">
-                                        <?php /* The map view for the whole area, and the written guides.
-                                             Two different questions -- "where are the homes" and "what is
-                                             this neighbourhood like" -- so both routes stay. */ ?>
-                                        <a href="<?php echo esc_url(add_query_arg('view', 'map', home_url('/find-a-home/'))); ?>" class="cb-btn cb-btn--primary">See Every Home on the Map</a>
                                         <a href="<?php echo esc_url(home_url('/communities/')); ?>" class="cb-btn cb-btn--outline">Explore All Communities</a>
                                     </div>
                                 </div>
@@ -355,7 +344,7 @@ $cb9_plate = function ($i) use ($cb9_plates) {
         </section>
 
         <!-- 6 -- SELLERS + PROPERTY WATCH ------------------------------- -->
-        <section class="cb9-page" data-cb9-page="4" id="cb9-legacy" aria-label="Our track record">
+        <section class="cb9-page" data-cb9-page="3" id="cb9-legacy" aria-label="Our track record">
             <div class="cb9-page__float">
                 <div class="cb9-page__skin">
                     <?php $cb9_plate(3); ?>
@@ -434,7 +423,7 @@ $cb9_plate = function ($i) use ($cb9_plates) {
         </section>
 
         <!-- 4 -- BUYERS ------------------------------------------------- -->
-        <section class="cb9-page" data-cb9-page="5" id="cb9-buy" aria-label="Browse homes">
+        <section class="cb9-page" data-cb9-page="4" id="cb9-buy" aria-label="Browse homes">
             <div class="cb9-page__float">
                 <div class="cb9-page__skin">
                     <?php $cb9_plate(4); ?>
@@ -471,7 +460,7 @@ $cb9_plate = function ($i) use ($cb9_plates) {
              indexes by content, so adding a body later needs no other change.
              No $cb9_plate() -- there is no kitchen webgl plate, and Home 10
              strips plates anyway; the panel just shows the scene behind it. */ ?>
-        <section class="cb9-page" data-cb9-page="6" id="cb9-kitchen" aria-label="The kitchen">
+        <section class="cb9-page" data-cb9-page="5" id="cb9-kitchen" aria-label="The kitchen">
             <div class="cb9-page__float">
                 <div class="cb9-page__skin">
                     <div class="cb9-page__scroll" tabindex="0">
@@ -491,7 +480,7 @@ $cb9_plate = function ($i) use ($cb9_plates) {
         </section>
 
         <!-- 7 -- CONNECT -------------------------------------------------- -->
-        <section class="cb9-page" data-cb9-page="7" id="cb9-connect" aria-label="Reviews and stories">
+        <section class="cb9-page" data-cb9-page="6" id="cb9-connect" aria-label="Reviews and stories">
             <div class="cb9-page__float">
                 <div class="cb9-page__skin">
                     <?php $cb9_plate(7); ?>

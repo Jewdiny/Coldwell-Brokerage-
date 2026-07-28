@@ -135,6 +135,10 @@ function cb_enqueue_assets() {
     // Auto-advance the Testimonial Tree rotator (no-ops where the widget is absent)
     wp_enqueue_script('cb-testimonial-rotate', CB_THEME_URI . '/assets/js/modules/cb-testimonial-rotate.js', [], cb_asset_ver('assets/js/modules/cb-testimonial-rotate.js'), true);
 
+    // Arrow controls for the featured-listings carousel on the Home 10 walk
+    // (no-ops where .cb9-carousel is absent).
+    wp_enqueue_script('cb-listings-carousel', CB_THEME_URI . '/assets/js/modules/cb-listings-carousel.js', [], cb_asset_ver('assets/js/modules/cb-listings-carousel.js'), true);
+
     // Listing detail page lightbox (only on /listing/<slug>-<id>/ pages)
     if (get_query_var('cb_listing_id')) {
         wp_enqueue_script('cb-lightbox', CB_THEME_URI . '/assets/js/modules/lightbox.js', [], cb_asset_ver('assets/js/modules/lightbox.js'), true);

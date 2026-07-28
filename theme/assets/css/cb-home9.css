@@ -668,3 +668,67 @@ body.cb-page--home9-preview .cb-header:not(.cb-header--scrolled) .cb-header__log
 html.cb9-on .cb-header { z-index: 20; }
 
 
+
+
+/* -------------------------------------------------------------------------
+   Merged Listings + Communities panel (Home 10 page 3).
+   Layout top-to-bottom: static area MAP -> featured-listings CAROUSEL ->
+   community AREA cards. See template-parts/home9-house-scenes.php.
+   ------------------------------------------------------------------------- */
+
+/* MAP: a picture that links to the live Find-a-Home map. */
+.cb9-map {
+  display: block; position: relative; width: 100%;
+  border-radius: 14px; overflow: hidden; text-decoration: none;
+  border: 1px solid rgba(201, 168, 76, .22);
+  box-shadow: 0 20px 50px rgba(12, 6, 2, .45);
+  margin-bottom: 1.15rem;
+}
+.cb9-map__img { display: block; width: 100%; height: clamp(150px, 22vh, 230px); object-fit: cover; transition: transform .8s ease; }
+.cb9-map:hover .cb9-map__img, .cb9-map:focus-visible .cb9-map__img { transform: scale(1.04); }
+.cb9-map__label {
+  position: absolute; left: 0; right: 0; bottom: 0; padding: 1.6rem 1.1rem .85rem;
+  font-family: var(--font-subheader, sans-serif); font-weight: 600; letter-spacing: .04em;
+  color: #fff; font-size: 1rem;
+  background: linear-gradient(to top, rgba(10, 14, 20, .85), rgba(10, 14, 20, 0));
+}
+.cb9-map__label::after { content: " \2192"; }
+.cb9-map__attr {
+  position: absolute; top: 6px; right: 6px; font-size: .62rem; color: rgba(255, 255, 255, .8);
+  background: rgba(0, 0, 0, .4); padding: 1px 6px; border-radius: 4px; letter-spacing: .01em;
+}
+
+/* CAROUSEL: the class rides on the [cb_listings] .cb-property-grid; turn that
+   2-D grid into a horizontal scroll-snap row (the two-class selector out-
+   specifies the base .cb-property-grid and its --cols-* rules). */
+.cb9-carousel { position: relative; }
+.cb9-carousel__grid.cb-property-grid {
+  display: flex; gap: 1rem; grid-template-columns: none;
+  overflow-x: auto; overflow-y: hidden;
+  scroll-snap-type: x mandatory; scroll-behavior: smooth; -webkit-overflow-scrolling: touch;
+  margin: 0; padding: 2px 2px 12px;
+  scrollbar-width: thin; scrollbar-color: rgba(201, 168, 76, .5) transparent;
+}
+.cb9-carousel__grid.cb-property-grid > * { flex: 0 0 auto; width: min(80%, 280px); scroll-snap-align: start; }
+.cb9-carousel__grid.cb-property-grid::-webkit-scrollbar { height: 8px; }
+.cb9-carousel__grid.cb-property-grid::-webkit-scrollbar-thumb { background: rgba(201, 168, 76, .5); border-radius: 4px; }
+.cb9-carousel__nav {
+  position: absolute; top: 50%; transform: translateY(-50%); z-index: 4;
+  width: 42px; height: 42px; border-radius: 50%; border: none; cursor: pointer;
+  background: rgba(20, 26, 36, .9); color: #fff; font-size: 1.5rem; line-height: 1;
+  display: grid; place-items: center; box-shadow: 0 4px 14px rgba(0, 0, 0, .4);
+  transition: background .2s ease, opacity .2s ease;
+}
+.cb9-carousel__nav:hover { background: rgba(201, 168, 76, .95); color: #14202b; }
+.cb9-carousel__nav--prev { left: -6px; }
+.cb9-carousel__nav--next { right: -6px; }
+.cb9-carousel__nav[disabled] { opacity: .25; cursor: default; }
+.cb9-carousel__nav[disabled]:hover { background: rgba(20, 26, 36, .9); color: #fff; }
+
+/* Sub-heading that introduces the AREAS block below the listings. */
+.cb9-subhead { margin-top: 1.75rem; }
+
+@media (max-width: 640px) {
+  .cb9-carousel__nav { display: none; } /* swipe on touch */
+  .cb9-carousel__grid.cb-property-grid > * { width: 82%; }
+}
