@@ -16,7 +16,10 @@
     var grid = root.querySelector('.cb9-carousel__grid');
     var prev = root.querySelector('[data-cb9-carousel-prev]');
     var next = root.querySelector('[data-cb9-carousel-next]');
-    if (!grid || !prev || !next) { return; }
+    if (!prev || !next) { return; }
+    // No grid means the MLS feed rendered a notice instead of cards -- hide the
+    // arrows rather than leaving two controls with nothing to scroll.
+    if (!grid) { prev.style.display = next.style.display = 'none'; return; }
 
     function step() {
       var first = grid.children[0];
