@@ -621,6 +621,16 @@
           pagesEl[0].classList.add('is-resolved', 'is-read');
           pagesEl[0].style.opacity = '1';
         }
+        // park() lands on the arrival (END) frame only once the clip duration is
+        // known; at init it usually is not, so the video would otherwise sit on
+        // its first frame -- the dark approach to the door -- instead of the
+        // resolved room the intro used to end on. Re-park on loadedmetadata.
+        var _v0 = vids[0];
+        if (_v0 && !_v0.__dur) {
+          _v0.addEventListener('loadedmetadata', function () {
+            if (_active === 0 && !_v0.__walking) { park(_v0); }
+          }, { once: true });
+        }
       }
     }
 
