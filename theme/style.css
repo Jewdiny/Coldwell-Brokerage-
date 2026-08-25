@@ -1412,7 +1412,7 @@ h6 { font-size: 1.25rem; }
 }
 
 .cb-footer__heading {
-  font-family: var(--font-body);
+  font-family: var(--font-subheader);   /* footer column titles = brand Section-header tier (Josefin Sans) */
   font-size: 0.875rem;
   font-weight: 600;
   text-transform: uppercase;
