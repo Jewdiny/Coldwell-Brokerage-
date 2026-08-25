@@ -267,29 +267,38 @@ $cb9_plate = function ($i) use ($cb9_plates) {
                                               // harness. Auditing the generated harness instead of this file is
                                               // exactly how this line got wrongly flagged as a false claim once
                                               // already. ?>
-                                        <p class="cb9-p">A hand-picked look at premier San Angelo homes, updated live from the MLS.</p>
+                                        <p class="cb9-p">The newest homes on the San Angelo market, updated live from the MLS.</p>
                                     </div>
                                 </div>
                             </div>
                             <div class="cb9-page__body">
-                                <?php /* MAP (top): a static San Angelo area map linking to the live Find-a-Home
-                                     map. A picture, not an embedded map -- no page weight, and it never
-                                     fights the walk's scroll. */ ?>
-                                <a class="cb9-map" href="<?php echo esc_url(add_query_arg('view', 'map', home_url('/find-a-home/'))); ?>">
-                                    <img class="cb9-map__img" src="<?php echo esc_url(CB_THEME_URI . '/assets/images/home10/sanangelo-area-map.jpg'); ?>" alt="Map of San Angelo and the Concho Valley" width="1480" height="600" loading="lazy" decoding="async">
-                                    <span class="cb9-map__label">See Every Home on the Map</span>
-                                    <span class="cb9-map__attr">Map data &copy; OpenStreetMap contributors</span>
-                                </a>
+                                <?php /* MAP (top): a LIVE map of the newest listings. Each property card in
+                                     the carousel below carries its own data-lat/data-lng (emitted by
+                                     [cb_listings]); cb-listings-map.js reads those, drops a pin per home
+                                     and lights up the pin for whichever property the carousel is
+                                     presenting. Leaflet runs "tamed" -- every pan/zoom/scroll handler is
+                                     off -- so it shows the pins but never steals the walk's scroll; the
+                                     full interactive map is one click away on Find-a-Home. The former
+                                     static area map is set as the container's background, so if Leaflet or
+                                     its tiles fail to load a recognisable San Angelo map still shows. */ ?>
+                                <div class="cb9-map" data-cb9-map
+                                     data-cb9-map-center="31.44,-100.45"
+                                     data-cb9-map-zoom="12"
+                                     style="--cb9-map-fallback:url('<?php echo esc_url(CB_THEME_URI . '/assets/images/home10/sanangelo-area-map.jpg'); ?>');">
+                                    <div class="cb9-map__canvas" id="cb9-listings-map" aria-hidden="true"></div>
+                                    <a class="cb9-map__cta" href="<?php echo esc_url(add_query_arg('view', 'map', home_url('/find-a-home/'))); ?>">See Every Home on the Map</a>
+                                    <span class="cb9-map__attr">&copy; OpenStreetMap contributors</span>
+                                </div>
                                 <div class="cb9-card cb9-card--frame" data-cb9-card data-cb9-frame <?php echo $cb9_fl(); ?>>
                                     <div class="cb9-card__inner">
-                                        <?php // Six listings, 2 across x 3 down. Was columns="3", which laid the
-                                              // same six out 3x2. Two columns suits this panel better anyway:
-                                              // the page is a fixed reading panel roughly 60rem wide, so at three
-                                              // across each card was narrow enough that the price, address and
-                                              // bed/bath line all had to compete for the same short measure. ?>
+                                        <?php // The newest 12 active San Angelo homes, ordered most-recently-
+                                              // listed first (OnMarketDate desc), laid out by CSS as a
+                                              // horizontal scroll-snap row that auto-advances. Each card carries
+                                              // data-lat/data-lng, which is what lets the map above pin and
+                                              // highlight the home the carousel is currently showing. ?>
                                         <div class="cb9-carousel" data-cb9-carousel>
                                             <button class="cb9-carousel__nav cb9-carousel__nav--prev" type="button" aria-label="Previous properties" data-cb9-carousel-prev>&#8249;</button>
-                                            <?php echo do_shortcode('[cb_listings filter="featured" count="8" columns="4" class="cb9-carousel__grid"]'); ?>
+                                            <?php echo do_shortcode('[cb_listings filter="all" orderby="OnMarketDate desc" count="12" columns="4" class="cb9-carousel__grid"]'); ?>
                                             <button class="cb9-carousel__nav cb9-carousel__nav--next" type="button" aria-label="Next properties" data-cb9-carousel-next>&#8250;</button>
                                         </div>
                                     </div>

@@ -677,26 +677,68 @@ html.cb9-on .cb-header { z-index: 20; }
    ------------------------------------------------------------------------- */
 
 /* MAP: a picture that links to the live Find-a-Home map. */
+/* MAP: a tamed Leaflet map of the newest listings, taller than the old static
+   strip. The former area-map image is passed in as --cb9-map-fallback and sits
+   behind the Leaflet tiles, so a recognisable San Angelo map still shows if
+   Leaflet or its tiles never load. */
 .cb9-map {
-  display: block; position: relative; width: 100%;
-  border-radius: 14px; overflow: hidden; text-decoration: none;
+  position: relative; width: 100%;
+  border-radius: 14px; overflow: hidden;
   border: 1px solid rgba(201, 168, 76, .22);
   box-shadow: 0 20px 50px rgba(12, 6, 2, .45);
   margin-bottom: 1.15rem;
 }
-.cb9-map__img { display: block; width: 100%; height: clamp(150px, 22vh, 230px); object-fit: cover; transition: transform .8s ease; }
-.cb9-map:hover .cb9-map__img, .cb9-map:focus-visible .cb9-map__img { transform: scale(1.04); }
-.cb9-map__label {
-  position: absolute; left: 0; right: 0; bottom: 0; padding: 1.6rem 1.1rem .85rem;
+.cb9-map__canvas {
+  width: 100%; height: clamp(300px, 44vh, 520px);
+  background: var(--cb9-map-fallback) center / cover no-repeat, #0c1016;
+  touch-action: pan-y;   /* vertical scroll passes through to the walk */
+}
+/* Leaflet paints its tiles over the fallback; keep its own chrome quiet. */
+.cb9-map .leaflet-container { background: transparent; font: inherit; }
+.cb9-map .leaflet-control-attribution { display: none; }
+.cb9-map__cta {
+  position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); z-index: 500;
+  display: inline-flex; align-items: center;
+  padding: .6rem 1.15rem; border-radius: 999px;
   font-family: var(--font-subheader, sans-serif); font-weight: 600; letter-spacing: .04em;
-  color: #fff; font-size: 1rem;
-  background: linear-gradient(to top, rgba(10, 14, 20, .85), rgba(10, 14, 20, 0));
+  font-size: .82rem; text-decoration: none; white-space: nowrap;
+  color: #14202b; background: rgba(201, 168, 76, .96);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, .45);
+  transition: background .2s ease, transform .2s ease;
 }
-.cb9-map__label::after { content: " \2192"; }
+.cb9-map__cta::after { content: " \2192"; margin-left: .35rem; }
+.cb9-map__cta:hover, .cb9-map__cta:focus-visible { background: #fff; transform: translateX(-50%) translateY(-2px); }
 .cb9-map__attr {
-  position: absolute; top: 6px; right: 6px; font-size: .62rem; color: rgba(255, 255, 255, .8);
-  background: rgba(0, 0, 0, .4); padding: 1px 6px; border-radius: 4px; letter-spacing: .01em;
+  position: absolute; top: 6px; right: 6px; z-index: 500; font-size: .62rem; color: rgba(255, 255, 255, .8);
+  background: rgba(0, 0, 0, .4); padding: 1px 6px; border-radius: 4px; letter-spacing: .01em; pointer-events: none;
 }
+
+/* PINS: divIcon markers (no external Leaflet marker images). A muted gold dot
+   per home; the one the carousel is presenting scales up, turns solid gold and
+   lifts, showing its price on a small tag. The positioning transform Leaflet
+   puts on the marker ROOT must be left alone, so every animated transform here
+   targets the child .cb9-pin / .cb9-pin__price, never .cb9-pin-marker. */
+.cb9-pin-marker { cursor: pointer; }
+.cb9-pin {
+  width: 16px; height: 16px; border-radius: 50%;
+  background: rgba(201, 168, 76, .55); border: 2px solid #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .5);
+  transition: transform .25s ease, background .25s ease;
+}
+.cb9-pin__price {
+  position: absolute; left: 8px; bottom: calc(100% + 6px); transform: translateX(-50%) scale(.85);
+  padding: 2px 7px; border-radius: 6px; white-space: nowrap;
+  font-family: var(--font-subheader, sans-serif); font-weight: 700; font-size: .72rem;
+  color: #14202b; background: #c9a84c; box-shadow: 0 4px 12px rgba(0, 0, 0, .5);
+  opacity: 0; pointer-events: none; transition: opacity .2s ease, transform .2s ease;
+}
+.cb9-pin__price::after {
+  content: ""; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
+  border: 5px solid transparent; border-top-color: #c9a84c;
+}
+.cb9-pin-marker.is-active { z-index: 1000 !important; }
+.cb9-pin-marker.is-active .cb9-pin { background: #c9a84c; transform: scale(1.5); }
+.cb9-pin-marker.is-active .cb9-pin__price { opacity: 1; transform: translateX(-50%) scale(1); }
 
 /* CAROUSEL: the class rides on the [cb_listings] .cb-property-grid; turn that
    2-D grid into a horizontal scroll-snap row (the two-class selector out-

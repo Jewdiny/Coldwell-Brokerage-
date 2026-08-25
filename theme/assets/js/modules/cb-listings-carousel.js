@@ -47,6 +47,45 @@
     update();
     window.setTimeout(update, 300);
     window.setTimeout(update, 1200);
+
+    // --- auto-advance -----------------------------------------------------
+    // The row drifts one card at a time and loops back at the end, so the map
+    // above keeps cycling through the newest homes on its own. It holds still
+    // while the reader is hovering, focused, mid-swipe or on a hidden tab, and
+    // stays off entirely for reduced-motion users.
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var timer = null, idle = null;
+    var INTERVAL = 4500;
+
+    function overflowing() { return grid.scrollWidth > grid.clientWidth + 4; }
+    function atEnd() { return grid.scrollLeft >= grid.scrollWidth - grid.clientWidth - 4; }
+    function advance() {
+      if (!overflowing()) { return; }
+      if (atEnd()) { grid.scrollTo({ left: 0, behavior: 'smooth' }); }
+      else { grid.scrollBy({ left: step(), behavior: 'smooth' }); }
+    }
+    function start() { if (!reduce && !timer) { timer = window.setInterval(advance, INTERVAL); } }
+    function stop() { if (timer) { window.clearInterval(timer); timer = null; } }
+    function nudge() {           // interaction: hold, then resume once idle
+      stop();
+      if (idle) { window.clearTimeout(idle); }
+      idle = window.setTimeout(start, 2500);
+    }
+
+    root.addEventListener('pointerenter', stop);
+    root.addEventListener('pointerleave', start);
+    root.addEventListener('focusin', stop);
+    root.addEventListener('focusout', start);
+    root.addEventListener('pointerdown', nudge);
+    root.addEventListener('keydown', nudge);
+    grid.addEventListener('wheel', nudge, { passive: true });
+    prev.addEventListener('click', nudge);
+    next.addEventListener('click', nudge);
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden) { stop(); } else { start(); }
+    });
+
+    start();
   }
 
   function boot() {

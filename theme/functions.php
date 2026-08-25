@@ -187,6 +187,23 @@ function cb_enqueue_assets() {
         );
     }
 
+    // Home 10 walk: a tamed Leaflet map of the newest listings on the Listings
+    // panel, its pins synced to the auto-advancing carousel (cb-listings-map.js).
+    // Same Leaflet as Find-a-Home, gated to the Home 10 target (front page or the
+    // Home 10 template) via the mu-plugin helper. cb-listings-carousel.js, which
+    // owns the auto-advance, is already enqueued site-wide above.
+    if (function_exists('cb_home10_is_target') && cb_home10_is_target()) {
+        wp_enqueue_style('leaflet', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css', [], '1.9.4');
+        wp_enqueue_script('leaflet', 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js', [], '1.9.4', true);
+        wp_enqueue_script(
+            'cb-listings-map',
+            CB_THEME_URI . '/assets/js/modules/cb-listings-map.js',
+            ['leaflet'],
+            cb_asset_ver('assets/js/modules/cb-listings-map.js'),
+            true
+        );
+    }
+
     // Localize for AJAX
     wp_localize_script('cb-gsap-init', 'cbLegacy', [
         'ajaxUrl'  => admin_url('admin-ajax.php'),
