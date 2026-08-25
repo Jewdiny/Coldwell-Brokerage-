@@ -15,22 +15,36 @@
 
     var buttons = tabContainer.querySelectorAll('.cb-tabs__btn');
 
-    buttons.forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        var tabId = btn.getAttribute('data-tab');
-
-        // Update buttons
-        buttons.forEach(function (b) { b.classList.remove('cb-tabs__btn--active'); });
-        btn.classList.add('cb-tabs__btn--active');
-
-        // Update content
-        document.querySelectorAll('.cb-tab-content').forEach(function (panel) {
-          panel.classList.remove('cb-tab-content--active');
-        });
-        var target = document.getElementById('tab-' + tabId);
-        if (target) target.classList.add('cb-tab-content--active');
+    function activate(tabId) {
+      var btn = tabContainer.querySelector('.cb-tabs__btn[data-tab="' + tabId + '"]');
+      if (!btn) return false;
+      buttons.forEach(function (b) { b.classList.remove('cb-tabs__btn--active'); });
+      btn.classList.add('cb-tabs__btn--active');
+      document.querySelectorAll('.cb-tab-content').forEach(function (panel) {
+        panel.classList.remove('cb-tab-content--active');
       });
+      var target = document.getElementById('tab-' + tabId);
+      if (target) target.classList.add('cb-tab-content--active');
+      return true;
+    }
+
+    buttons.forEach(function (btn) {
+      btn.addEventListener('click', function () { activate(btn.getAttribute('data-tab')); });
     });
+
+    // Deep-link: /buyer-seller-resources/#move-meter (or #<tab-id>) opens that
+    // tab directly. 'move-meter' is a friendly alias for the internal 'tools'
+    // tab so the nav can link straight to the Move Meter.
+    function fromHash() {
+      var h = (window.location.hash || '').replace('#', '');
+      if (!h) return;
+      if (h === 'move-meter') { h = 'tools'; }
+      if (activate(h) && tabContainer.scrollIntoView) {
+        tabContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+    fromHash();
+    window.addEventListener('hashchange', fromHash);
   }
 
   /**
