@@ -106,6 +106,9 @@
 
     function centerCard(card) {
       if (!grid) { return; }
+      // Prefer the carousel's own eased tween so a pin click glides like every
+      // other move; fall back to native smooth scroll if it isn't wired up yet.
+      if (typeof grid.__cbCenter === 'function') { grid.__cbCenter(card); return; }
       var gr = grid.getBoundingClientRect();
       var cr = card.getBoundingClientRect();
       var target = grid.scrollLeft + (cr.left - gr.left) - (grid.clientWidth - cr.width) / 2;

@@ -721,7 +721,7 @@ html.cb9-on .cb-header { z-index: 20; }
 .cb9-pin-marker { cursor: pointer; }
 .cb9-pin {
   width: 16px; height: 16px; border-radius: 50%;
-  background: rgba(201, 168, 76, .55); border: 2px solid #fff;
+  background: rgba(31, 105, 255, .6); border: 2px solid #fff;   /* CB Bright Blue */
   box-shadow: 0 2px 6px rgba(0, 0, 0, .5);
   transition: transform .25s ease, background .25s ease;
 }
@@ -729,29 +729,43 @@ html.cb9-on .cb-header { z-index: 20; }
   position: absolute; left: 8px; bottom: calc(100% + 6px); transform: translateX(-50%) scale(.85);
   padding: 2px 7px; border-radius: 6px; white-space: nowrap;
   font-family: var(--font-subheader, sans-serif); font-weight: 700; font-size: .72rem;
-  color: #14202b; background: #c9a84c; box-shadow: 0 4px 12px rgba(0, 0, 0, .5);
+  color: #fff; background: var(--cb-blue, #012169); box-shadow: 0 4px 12px rgba(0, 0, 0, .5);
   opacity: 0; pointer-events: none; transition: opacity .2s ease, transform .2s ease;
 }
 .cb9-pin__price::after {
   content: ""; position: absolute; top: 100%; left: 50%; transform: translateX(-50%);
-  border: 5px solid transparent; border-top-color: #c9a84c;
+  border: 5px solid transparent; border-top-color: var(--cb-blue, #012169);
 }
 .cb9-pin-marker.is-active { z-index: 1000 !important; }
-.cb9-pin-marker.is-active .cb9-pin { background: #c9a84c; transform: scale(1.5); }
+.cb9-pin-marker.is-active .cb9-pin { background: var(--cb-bright-blue, #1F69FF); transform: scale(1.5); }
 .cb9-pin-marker.is-active .cb9-pin__price { opacity: 1; transform: translateX(-50%) scale(1); }
 
 /* CAROUSEL: the class rides on the [cb_listings] .cb-property-grid; turn that
    2-D grid into a horizontal scroll-snap row (the two-class selector out-
    specifies the base .cb-property-grid and its --cols-* rules). */
 .cb9-carousel { position: relative; }
+/* Centre mode: the presented card sits dead centre with its neighbours peeking
+   in about halfway on each side. --cb9-card-w is the card's share of the track;
+   the ::before/::after spacers are exactly the leftover half on each side (minus
+   a half-gap), which is what lets the FIRST and LAST cards reach the centre too.
+   scroll-behavior is intentionally NOT smooth here -- cb-listings-carousel.js
+   animates the scroll itself with an easing curve, so the browser's own smooth
+   scroll must stay out of its way. */
 .cb9-carousel__grid.cb-property-grid {
+  --cb9-card-w: 50%;
   display: flex; gap: 1rem; grid-template-columns: none;
   overflow-x: auto; overflow-y: hidden;
-  scroll-snap-type: x mandatory; scroll-behavior: smooth; -webkit-overflow-scrolling: touch;
-  margin: 0; padding: 2px 2px 12px;
+  scroll-snap-type: x mandatory; -webkit-overflow-scrolling: touch;
+  margin: 0; padding: 2px 0 12px;
   scrollbar-width: thin; scrollbar-color: rgba(201, 168, 76, .5) transparent;
 }
-.cb9-carousel__grid.cb-property-grid > * { flex: 0 0 auto; width: min(80%, 280px); scroll-snap-align: start; }
+.cb9-carousel__grid.cb-property-grid > * {
+  flex: 0 0 var(--cb9-card-w); scroll-snap-align: center; scroll-snap-stop: always;
+}
+.cb9-carousel__grid.cb-property-grid::before,
+.cb9-carousel__grid.cb-property-grid::after {
+  content: ""; flex: 0 0 calc((100% - var(--cb9-card-w)) / 2 - 0.5rem);
+}
 .cb9-carousel__grid.cb-property-grid::-webkit-scrollbar { height: 8px; }
 .cb9-carousel__grid.cb-property-grid::-webkit-scrollbar-thumb { background: rgba(201, 168, 76, .5); border-radius: 4px; }
 .cb9-carousel__nav {
@@ -772,5 +786,7 @@ html.cb9-on .cb-header { z-index: 20; }
 
 @media (max-width: 640px) {
   .cb9-carousel__nav { display: none; } /* swipe on touch */
-  .cb9-carousel__grid.cb-property-grid > * { width: 82%; }
+  /* Wider cards on a phone (a 50% card would be too narrow to read); the peek
+     stays but is gentler. The spacers track this via the same variable. */
+  .cb9-carousel__grid.cb-property-grid { --cb9-card-w: 76%; }
 }
