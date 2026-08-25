@@ -95,6 +95,7 @@ $cb_transparent_header = is_front_page()
                     <a href="<?php echo esc_url(home_url('/market-report/')); ?>" class="cb-nav__dropdown-link">Market Report</a>
                     <a href="<?php echo esc_url(home_url('/buyer-seller-resources/#move-meter')); ?>" class="cb-nav__dropdown-link">Move Meter</a>
                     <a href="https://www.calameo.com/read/006624028a9345c0f1f35" target="_blank" rel="noopener" class="cb-nav__dropdown-link">Legacy Living Magazine</a>
+                    <a href="<?php echo esc_url(home_url('/brand-media/')); ?>" class="cb-nav__dropdown-link">Brand &amp; Media</a>
                 </div>
             </div>
             <div class="cb-nav__item">
@@ -143,6 +144,7 @@ $cb_transparent_header = is_front_page()
     <a href="<?php echo esc_url(home_url('/corporate-relocation/')); ?>" class="cb-mobile-menu__link">Relocating to San Angelo</a>
     <a href="<?php echo esc_url(home_url('/buyer-seller-resources/#move-meter')); ?>" class="cb-mobile-menu__link">Move Meter</a>
     <a href="https://www.calameo.com/read/006624028a9345c0f1f35" target="_blank" rel="noopener" class="cb-mobile-menu__link">Legacy Living Magazine</a>
+    <a href="<?php echo esc_url(home_url('/brand-media/')); ?>" class="cb-mobile-menu__link">Brand &amp; Media</a>
     <a href="<?php echo esc_url(home_url('/rentals/')); ?>" class="cb-mobile-menu__link">Rentals</a>
     <a href="<?php echo esc_url(home_url('/about/')); ?>" class="cb-mobile-menu__link">About</a>
     <a href="<?php echo esc_url(home_url('/blog/')); ?>" class="cb-mobile-menu__link">Blog</a>

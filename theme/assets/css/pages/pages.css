@@ -813,6 +813,50 @@
 }
 
 /* ==========================================================================
+   BRAND & MEDIA — brand-book download cards
+   ========================================================================== */
+.cb-brand-docs {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1.5rem;
+}
+.cb-brand-doc {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 2.25rem 2rem;
+  border: 1px solid var(--cb-border, rgba(0, 0, 0, 0.1));
+  border-radius: 8px;
+  background: var(--cb-white, #fff);
+}
+.cb-brand-doc__icon {
+  width: 44px;
+  height: 44px;
+  color: var(--cb-bright-blue);
+  margin-bottom: 1rem;
+}
+.cb-brand-doc__icon svg { width: 100%; height: 100%; display: block; }
+.cb-brand-doc__title { margin: 0 0 0.35rem; font-size: 1.5rem; }
+.cb-brand-doc__meta {
+  margin: 0 0 1rem;
+  font-family: var(--font-subheader);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.72rem;
+  color: var(--cb-text-muted);
+}
+.cb-brand-doc__desc {
+  flex: 1;
+  margin: 0 0 1.5rem;
+  color: var(--cb-text-muted);
+  line-height: 1.7;
+  font-size: 0.9375rem;
+}
+@media (max-width: 640px) {
+  .cb-brand-docs { grid-template-columns: 1fr; }
+}
+
+/* ==========================================================================
    HOME VALUE — TWO OPTIONS
    The choice between the instant CB Estimate and an agent CMA, stated before
    either one. Whole card is the link, so the target is the card and not just
