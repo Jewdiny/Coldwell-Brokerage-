@@ -16,7 +16,7 @@ Text Domain: cb-legacy
 /* ==========================================================================
    FONT FACES — Bauziet (Coldwell Banker brand font, proprietary)
    Drop the font files into theme/assets/fonts/ to activate. If absent,
-   --font-heading falls through to EB Garamond automatically.
+   --font-heading falls through to Familjen Grotesk automatically.
    ========================================================================== */
 @font-face {
   font-family: 'Bauziet';
@@ -76,11 +76,11 @@ Text Domain: cb-legacy
   --cb-text:        #1A1A2E;
   --cb-text-muted:  var(--cb-smoky);
 
-  /* === Typography (official CB stack: Familjen Grotesk + Roboto + EB Garamond) === */
+  /* === Typography (brand kit: Familjen Grotesk = Title/Heading, Josefin Sans = Subheading/Section-header, Roboto = body) === */
   --font-heading:    'Familjen Grotesk', 'Bauziet', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-subheader:  'Josefin Sans', 'Familjen Grotesk', sans-serif;
   --font-body:       'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', sans-serif;
-  --font-accent:     'EB Garamond', 'Garamond', Georgia, serif;
+  --font-accent:     'Josefin Sans', 'Familjen Grotesk', sans-serif;  /* decorative tagline/"signature" lines — kept within the 3 brand fonts (was EB Garamond, not in the brand kit) */
 
   /* === Bubble / depth design tokens === */
   --radius-pill:    999px;     /* fully rounded */
@@ -154,11 +154,14 @@ a:hover { color: var(--cb-gold); }
 }
 
 h1, h2, h3, h4, h5, h6 {
-  font-family: var(--font-heading);
   color: var(--cb-navy);
   line-height: 1.2;
   font-weight: 700;
 }
+/* Brand kit tiers: h1–h3 are Titles/Headings in the hero font (Familjen
+   Grotesk); h4–h6 drop to the Subheading/Section-header font (Josefin Sans). */
+h1, h2, h3 { font-family: var(--font-heading); }
+h4, h5, h6 { font-family: var(--font-subheader); }
 
 h1 { font-size: clamp(2.5rem, 5vw, 4.5rem); }
 h2 { font-size: clamp(2rem, 4vw, 3rem); }
@@ -3064,12 +3067,13 @@ select:focus,
   background: linear-gradient(90deg, transparent 0%, var(--cb-bright-blue) 30%, var(--cb-bright-blue) 70%, transparent 100%);
 }
 
-/* --- Subtitles in serif accent --- */
+/* --- Section eyebrow: brand Subheading tier (Josefin Sans, upright, uppercase),
+       replacing the old EB Garamond serif italic which isn't in the brand kit. --- */
 .cb-section__subtitle {
-  font-family: var(--font-accent);
-  font-style: italic;
-  text-transform: none;
-  letter-spacing: 0.01em;
+  font-family: var(--font-subheader);
+  font-style: normal;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
   color: var(--cb-bright-blue);
 }
 
