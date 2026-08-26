@@ -736,7 +736,7 @@ function cb_get_communities() {
             // listings were missing from the site entirely.
             'expr'        => "HighSchool Eq 'Grape Creek'",
             'description' => "Grape Creek is a peaceful unincorporated rural community located just north of San Angelo along US Highway 87, offering the perfect balance of country living and city convenience. Property in Grape Creek typically sits on larger lots — often half-acre to multi-acre tracts — with rural-style homes, room for animals, gardens, workshops, and the kind of breathing room you simply can't find inside city limits. The area is served by Grape Creek ISD. Property taxes are typically lower than in the city, and the commute to San Angelo, Goodfellow AFB, or Angelo State University is an easy 15-minute drive. Buyers love Grape Creek for its affordability, slower pace, and authentic small-town Texas atmosphere — all while remaining a short trip from everything San Angelo has to offer.",
-            'image'       => '',
+            'image'       => 'assets/images/communities/grape-creek.jpg',
         ],
     ];
 }
