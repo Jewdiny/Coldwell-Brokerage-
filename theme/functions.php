@@ -701,28 +701,40 @@ function cb_get_communities() {
         'lake-nasworthy' => [
             'name'        => 'Lake Nasworthy',
             'tagline'     => 'Waterfront luxury homes',
-            'expr'        => "(SubdivisionName Eq 'Lake Nasworthy Group 1' Or SubdivisionName Eq 'Lake Nasworthy Group 2')",
+            // MLS area 'N' is the Lake Nasworthy area. The old subdivision pair
+            // ('Lake Nasworthy Group 1/2') matched only 3 homes; the real lake
+            // inventory (Fishermans, Estates, etc.) all sits in area N (~44).
+            'expr'        => "MLSAreaMajor Eq 'N'",
             'description' => "Lake Nasworthy is San Angelo's premier waterfront community — a 1,600-acre lake on the city's south side offering year-round boating, fishing, water sports, and luxury lakefront living. Homes around Lake Nasworthy range from charming weekend cabins to multi-million-dollar custom estates with private docks, boathouses, panoramic water views, and direct deep-water access. The lake itself is unique to the region: warm-water inflow from a nearby power plant keeps Nasworthy ice-free year-round, making it the only Texas lake where boating, swimming, and skiing are practical even in mid-winter. Residents enjoy proximity to Mary E. Lee Park, scenic Knickerbocker Road, and an active community of fellow lake-lovers. For buyers seeking a true waterfront lifestyle without leaving the city limits, Lake Nasworthy is unmatched in San Angelo and the broader Concho Valley.",
             'image'       => 'assets/images/communities/lake-nasworthy.webp',
         ],
         'christoval' => [
             'name'        => 'Christoval',
             'tagline'     => 'Hill country charm',
-            'expr'        => "City Eq 'Christoval'",
+            // Christoval-ISD listings: this MLS files most outlying towns under
+            // City "San Angelo", so HighSchool is the reliable key (City match
+            // alone misses homes filed to the San Angelo city bucket).
+            'expr'        => "HighSchool Eq 'Christoval'",
             'description' => "Christoval is a small, picturesque town located just 20 minutes south of San Angelo along the South Concho River, where the Concho Valley starts blending into the Texas Hill Country. Christoval's defining features are the spring-fed South Concho River that runs through the heart of town, dramatic cedar-and-oak-covered hills, rolling pastureland, and the kind of star-filled night skies that draw photographers and astronomers from across Texas. Real estate in Christoval skews toward large-acreage country properties, river-frontage homes, ranchettes, and custom-built family homes, with most properties sitting on 1 to 20+ acres. The area is served by Christoval ISD, the community is famously friendly, and the draw is space, privacy, hunting and fishing access, and a true rural Texas lifestyle within easy reach of San Angelo's full city amenities.",
             'image'       => 'assets/images/communities/christoval.webp',
         ],
         'wall' => [
             'name'        => 'Wall',
             'tagline'     => 'Small-town pace, minutes from the city',
-            'expr'        => "City Eq 'Wall'",
+            // City "Wall" matches only 4 homes; the MLS files Wall-ISD inventory
+            // (75+) under City "San Angelo", so HighSchool is the reliable key.
+            'expr'        => "HighSchool Eq 'Wall'",
             'description' => "Wall is a thriving small community located just east of San Angelo, served by Wall ISD. Real estate in Wall ranges from new construction on small acreage to established family homes in mature neighborhoods like Windsor Estates, plus larger agricultural and ranch properties on the city's outskirts. The town has a tight-knit, friendly atmosphere with strong community traditions and a steady identity rooted in agriculture. Wall offers the rare combination of small-town quality of life with an easy 15-minute commute to San Angelo for work, shopping, and entertainment.",
             'image'       => 'assets/images/communities/wall.webp',
         ],
         'grape-creek' => [
             'name'        => 'Grape Creek',
             'tagline'     => 'Quiet country living',
-            'expr'        => "City Eq 'Grape Creek'",
+            // CRITICAL: City "Grape Creek" returns ZERO — the MLS files Grape
+            // Creek (an unincorporated community) under City "San Angelo" with
+            // HighSchool "Grape Creek" (~95 active). This is why Grape Creek
+            // listings were missing from the site entirely.
+            'expr'        => "HighSchool Eq 'Grape Creek'",
             'description' => "Grape Creek is a peaceful unincorporated rural community located just north of San Angelo along US Highway 87, offering the perfect balance of country living and city convenience. Property in Grape Creek typically sits on larger lots — often half-acre to multi-acre tracts — with rural-style homes, room for animals, gardens, workshops, and the kind of breathing room you simply can't find inside city limits. The area is served by Grape Creek ISD. Property taxes are typically lower than in the city, and the commute to San Angelo, Goodfellow AFB, or Angelo State University is an easy 15-minute drive. Buyers love Grape Creek for its affordability, slower pace, and authentic small-town Texas atmosphere — all while remaining a short trip from everything San Angelo has to offer.",
             'image'       => '',
         ],
@@ -1063,8 +1075,263 @@ function cb_register_rest_routes() {
         'callback'            => 'cb_get_stats',
         'permission_callback' => '__return_true',
     ]);
+
+    // Every active listing matching the current search, as lightweight map
+    // markers. The Spark feed caps _limit at 50, so the map cannot get all
+    // ~1,300 pins from the 50 rendered cards -- this pages the whole result set
+    // server-side and caches it. See cb_build_markers().
+    register_rest_route('cb/v1', '/markers', [
+        'methods'             => 'GET',
+        'callback'            => 'cb_rest_markers',
+        'permission_callback' => '__return_true',
+    ]);
 }
 add_action('rest_api_init', 'cb_register_rest_routes');
+
+/* ==========================================================================
+   MLS MAP DATA — all-listings markers + open houses
+   ========================================================================== */
+
+/**
+ * Concho Valley bounding box. Markers outside it are dropped so a stray
+ * out-of-region listing in the feed can't blow out the map's auto-fit.
+ */
+function cb_cv_bbox() {
+    return ['lat_min' => 30.4, 'lat_max' => 32.6, 'lng_min' => -101.8, 'lng_max' => -99.2];
+}
+
+/**
+ * Build a Spark _filter from whitelisted find-a-home query params. Shared by
+ * the Find-a-Home template AND the /markers endpoint so the list and the map
+ * always describe the SAME search. Only fixed community expressions, integer
+ * casts and an allow-listed PropertyType ever reach the filter string, so no
+ * arbitrary client input is interpolated into SparkQL.
+ *
+ * Default (no neighborhood) applies no city clause: the SAARMLS feed this key
+ * sees IS the Concho Valley, so "all areas" = the whole active feed (~1,300).
+ * That is deliberate — the old hand-typed city list missed Grape Creek, Wall
+ * and Christoval, which the MLS files under City "San Angelo".
+ */
+function cb_build_find_filter($q) {
+    $communities = function_exists('cb_get_communities') ? cb_get_communities() : [];
+    $parts = ["StandardStatus Eq 'Active'"];
+
+    $neighborhood = isset($q['neighborhood']) ? sanitize_key($q['neighborhood']) : '';
+    if ($neighborhood && isset($communities[$neighborhood]) && !empty($communities[$neighborhood]['expr'])) {
+        $parts[] = '(' . $communities[$neighborhood]['expr'] . ')';
+    }
+
+    $min   = isset($q['min'])   ? intval($q['min'])   : 0;
+    $max   = isset($q['max'])   ? intval($q['max'])   : 0;
+    $beds  = isset($q['beds'])  ? intval($q['beds'])  : 0;
+    $baths = isset($q['baths']) ? intval($q['baths']) : 0;
+    if ($min > 0)   { $parts[] = 'ListPrice Ge ' . $min; }
+    if ($max > 0)   { $parts[] = 'ListPrice Le ' . $max; }
+    if ($beds > 0)  { $parts[] = 'BedsTotal Ge ' . $beds; }
+    if ($baths > 0) { $parts[] = 'BathsTotal Ge ' . $baths; }
+
+    $type = isset($q['type']) ? sanitize_text_field($q['type']) : '';
+    $allowed_types = ['Residential', 'Land', 'Farm', 'Commercial Sale', 'Residential Income'];
+    if ($type && in_array($type, $allowed_types, true)) {
+        $parts[] = "PropertyType Eq '" . str_replace("'", "''", $type) . "'";
+    }
+
+    return implode(' And ', $parts);
+}
+
+/**
+ * Fetch EVERY listing matching $expr as lightweight map markers, paging the
+ * Spark API (which caps _limit at 50 per request). Returns
+ * ['total' => int, 'markers' => [ ['id','lat','lng','price','beds','baths','addr','url'], ... ]].
+ * Bounded to a safety cap; caller is responsible for caching.
+ */
+function cb_build_markers($expr) {
+    if (!class_exists('CB_Spark_Client')) { return ['total' => 0, 'markers' => []]; }
+    $client  = new CB_Spark_Client();
+    $bbox    = cb_cv_bbox();
+    $markers = [];
+    $per     = 50;
+    $max_pages = 45; // ~2,250 listing ceiling
+    $total   = 0;
+
+    for ($page = 1; $page <= $max_pages; $page++) {
+        $data = $client->get('listings', [
+            '_filter'  => $expr,
+            '_select'  => 'ListingId,ListPrice,UnparsedAddress,BedsTotal,BathsTotal,Latitude,Longitude',
+            '_orderby' => 'ListPrice desc',
+            '_limit'   => $per,
+            '_page'    => $page,
+            '_pagination' => 1,
+        ]);
+        if (is_wp_error($data)) { break; }
+        if ($page === 1) { $total = (int) ($data['Pagination']['TotalRows'] ?? 0); }
+        $rows = $data['Results'] ?? [];
+        if (!$rows) { break; }
+
+        foreach ($rows as $row) {
+            $f   = $row['StandardFields'] ?? [];
+            $lat = (float) ($f['Latitude'] ?? 0);
+            $lng = (float) ($f['Longitude'] ?? 0);
+            if (!$lat || !$lng) { continue; }
+            if ($lat < $bbox['lat_min'] || $lat > $bbox['lat_max']
+                || $lng < $bbox['lng_min'] || $lng > $bbox['lng_max']) { continue; }
+            $addr    = $f['UnparsedAddress'] ?? '';
+            $long_id = $row['Id'] ?? '';
+            $markers[] = [
+                'id'    => $f['ListingId'] ?? $long_id,
+                'lat'   => round($lat, 6),
+                'lng'   => round($lng, 6),
+                'price' => (int) ($f['ListPrice'] ?? 0),
+                'beds'  => (string) ($f['BedsTotal'] ?? ''),
+                'baths' => (string) ($f['BathsTotal'] ?? ''),
+                'addr'  => $addr,
+                'url'   => CB_Spark_Client::detail_url(['Id' => $long_id, 'UnparsedAddress' => $addr]),
+            ];
+        }
+
+        if ($total && $page * $per >= $total) { break; }
+        if (count($rows) < $per) { break; }
+    }
+
+    return ['total' => $total ?: count($markers), 'markers' => $markers];
+}
+
+/**
+ * /markers REST callback. Rebuilds the same filter the list used from the
+ * whitelisted query params, then returns the cached full marker set (30-min
+ * transient). open_house=1 returns Coldwell open-house markers instead.
+ */
+function cb_rest_markers($request) {
+    if (!empty($request->get_param('open_house'))) {
+        $ohs = cb_get_open_houses();
+        $bbox = cb_cv_bbox();
+        $markers = [];
+        foreach ($ohs as $l) {
+            $lat = (float) ($l['Latitude'] ?? 0);
+            $lng = (float) ($l['Longitude'] ?? 0);
+            if (!$lat || !$lng) { continue; }
+            if ($lat < $bbox['lat_min'] || $lat > $bbox['lat_max']
+                || $lng < $bbox['lng_min'] || $lng > $bbox['lng_max']) { continue; }
+            $addr = $l['UnparsedAddress'] ?? '';
+            $markers[] = [
+                'id'    => $l['ListingId'] ?? ($l['Id'] ?? ''),
+                'lat'   => round($lat, 6),
+                'lng'   => round($lng, 6),
+                'price' => (int) ($l['ListPrice'] ?? 0),
+                'beds'  => (string) ($l['BedsTotal'] ?? ''),
+                'baths' => (string) ($l['BathsTotal'] ?? ''),
+                'addr'  => $addr,
+                'url'   => CB_Spark_Client::detail_url($l),
+            ];
+        }
+        return rest_ensure_response(['total' => count($markers), 'count' => count($markers), 'markers' => $markers]);
+    }
+
+    $expr = cb_build_find_filter([
+        'neighborhood' => $request->get_param('neighborhood'),
+        'min'          => $request->get_param('min'),
+        'max'          => $request->get_param('max'),
+        'beds'         => $request->get_param('beds'),
+        'baths'        => $request->get_param('baths'),
+        'type'         => $request->get_param('type'),
+    ]);
+
+    $key    = 'cb_markers_' . md5($expr);
+    $cached = get_transient($key);
+    if ($cached === false) {
+        if (function_exists('set_time_limit')) { @set_time_limit(0); }
+        $built  = cb_build_markers($expr);
+        $cached = [
+            'total'     => $built['total'],
+            'count'     => count($built['markers']),
+            'markers'   => $built['markers'],
+            'generated' => current_time('mysql'),
+        ];
+        set_transient($key, $cached, 30 * MINUTE_IN_SECONDS);
+    }
+    return rest_ensure_response($cached);
+}
+
+/**
+ * Keep the default (all-active) marker set warm so the common case never makes
+ * a visitor wait for ~27 paged API calls. Filtered subsets build on demand.
+ */
+add_action('cb_warm_markers', 'cb_do_warm_markers');
+function cb_do_warm_markers() {
+    if (function_exists('set_time_limit')) { @set_time_limit(0); }
+    $expr  = cb_build_find_filter([]);
+    $built = cb_build_markers($expr);
+    set_transient('cb_markers_' . md5($expr), [
+        'total'     => $built['total'],
+        'count'     => count($built['markers']),
+        'markers'   => $built['markers'],
+        'generated' => current_time('mysql'),
+    ], 45 * MINUTE_IN_SECONDS);
+}
+add_action('init', function () {
+    if (!wp_next_scheduled('cb_warm_markers')) {
+        wp_schedule_event(time() + 120, 'hourly', 'cb_warm_markers');
+    }
+});
+
+/**
+ * Coldwell Banker Legacy San Angelo (office o13) upcoming open houses.
+ *
+ * The feed rejects an "OpenHouses Any" listing filter and silently ignores
+ * ListOffice* filters, so this pulls the /openhouses resource directly (capped
+ * at 25 per page), resolves each to its listing to (a) confirm office o13 and
+ * (b) get address/price/geo/photo, and keeps only upcoming ones. Cached 15 min.
+ * Automatic: as agents post open houses to the MLS they appear here with no
+ * manual editing. Returns listing arrays with an added '_openhouse' block.
+ */
+function cb_get_open_houses($limit = 60) {
+    $key    = 'cb_open_houses_o13';
+    $cached = get_transient($key);
+    if ($cached !== false) { return $cached; }
+    if (!class_exists('CB_Spark_Client')) { return []; }
+
+    $client = new CB_Spark_Client();
+    if (is_wp_error($client->get_token())) { return []; }
+
+    $now  = time();
+    $seen = [];
+    $out  = [];
+    for ($page = 1; $page <= 8; $page++) {
+        $data = $client->get('openhouses', ['_limit' => 25, '_page' => $page, '_pagination' => 1]);
+        if (is_wp_error($data)) { break; }
+        $rows = $data['Results'] ?? [];
+        if (!$rows) { break; }
+        foreach ($rows as $row) {
+            $f  = $row['StandardFields'] ?? $row;
+            $lk = $f['ListingKey'] ?? '';
+            if (!$lk || isset($seen[$lk])) { continue; }
+            $end = !empty($f['OpenHouseEndTimestamp']) ? strtotime($f['OpenHouseEndTimestamp']) : 0;
+            if ($end && $end < $now) { continue; } // already over
+            $seen[$lk] = 1;
+
+            $listing = $client->get_listing_detail($lk);
+            if (is_wp_error($listing)) { continue; }
+            if (($listing['ListOfficeMlsId'] ?? '') !== 'o13') { continue; } // Coldwell only
+
+            $listing['_openhouse'] = [
+                'date'  => $f['Date'] ?? '',
+                'start' => $f['StartTime'] ?? '',
+                'end'   => $f['EndTime'] ?? '',
+                'ts'    => $f['OpenHouseStartTimestamp'] ?? '',
+            ];
+            $out[] = $listing;
+            if (count($out) >= $limit) { break 2; }
+        }
+        $total = (int) ($data['Pagination']['TotalRows'] ?? 0);
+        if ($total && $page * 25 >= $total) { break; }
+    }
+
+    usort($out, function ($a, $b) {
+        return strcmp($a['_openhouse']['ts'] ?? '', $b['_openhouse']['ts'] ?? '');
+    });
+    set_transient($key, $out, 15 * MINUTE_IN_SECONDS);
+    return $out;
+}
 
 function cb_get_agents($request) {
     $args = [

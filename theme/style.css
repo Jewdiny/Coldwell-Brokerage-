@@ -786,6 +786,42 @@ h6 { font-size: 1.25rem; }
   display: inline-block;
 }
 
+/* Open-house ribbon: shown in place of the status badge on the Open Houses
+   view, where every card is a scheduled Coldwell Banker Legacy open house. */
+.cb-property-card__openhouse {
+  position: absolute;
+  top: 1rem; left: 1rem; right: 1rem;
+  background: var(--cb-bright-blue, #1F69FF);
+  color: #fff;
+  padding: 0.4rem 0.75rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  box-shadow: 0 2px 10px rgba(1,33,105,0.28);
+}
+.cb-property-card__openhouse::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  background: #fff;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  animation: cb-oh-pulse 1.8s ease-in-out infinite;
+}
+@keyframes cb-oh-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .cb-property-card__openhouse::before { animation: none; }
+}
+
 .cb-property-card__price {
   position: absolute;
   bottom: 1rem;

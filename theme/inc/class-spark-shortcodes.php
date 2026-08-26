@@ -217,9 +217,21 @@ class CB_Spark_Shortcodes {
             return '<p class="cb-spark-empty" style="text-align:center;padding:3rem;color:var(--cb-text-muted);">No listings match these criteria right now. Check back soon.</p>';
         }
 
-        $cols  = max(1, min(4, intval($atts['columns'])));
-        $extra = $atts['class'] ? ' ' . esc_attr($atts['class']) : '';
+        return self::render_grid($listings, intval($atts['columns']), $atts['class']);
+    }
 
+    /**
+     * Render an already-fetched array of listing arrays into the standard
+     * property-card grid. Public so non-shortcode callers (e.g. the Open Houses
+     * view, which resolves its listings from the /openhouses resource) can reuse
+     * the exact same card markup, geo data-attributes and attribution line.
+     */
+    public static function render_grid($listings, $columns = 3, $class = '') {
+        if (empty($listings)) {
+            return '<p class="cb-spark-empty" style="text-align:center;padding:3rem;color:var(--cb-text-muted);">No listings to display right now. Check back soon.</p>';
+        }
+        $cols  = max(1, min(4, intval($columns)));
+        $extra = $class ? ' ' . esc_attr($class) : '';
         ob_start(); ?>
         <div class="cb-property-grid cb-property-grid--cols-<?php echo $cols; ?><?php echo $extra; ?>" data-cb-spark>
             <?php foreach ($listings as $listing) : self::render_card($listing); endforeach; ?>
@@ -295,12 +307,27 @@ class CB_Spark_Shortcodes {
             esc_attr($baths)
         );
         ?>
-        <a href="<?php echo esc_url($url); ?>" class="cb-property-card cb-property-card--spark"<?php echo $geo_attrs . $map_attrs; ?>>
+        <?php
+        // Open-house ribbon: present only when this listing arrived via
+        // cb_get_open_houses(), which attaches the scheduled date/time.
+        $oh_label = '';
+        if (!empty($l['_openhouse']) && !empty($l['_openhouse']['ts'])) {
+            $ts = strtotime($l['_openhouse']['ts']);
+            $day   = $ts ? date('D, M j', $ts) : ($l['_openhouse']['date'] ?? '');
+            $start = trim((string) ($l['_openhouse']['start'] ?? ''));
+            $end   = trim((string) ($l['_openhouse']['end'] ?? ''));
+            $time  = $start && $end ? "$start&ndash;$end" : ($start ?: '');
+            $oh_label = trim($day . ($time ? ' &middot; ' . $time : ''));
+        }
+        ?>
+        <a href="<?php echo esc_url($url); ?>" class="cb-property-card cb-property-card--spark<?php echo $oh_label ? ' cb-property-card--openhouse' : ''; ?>"<?php echo $geo_attrs . $map_attrs; ?>>
             <div class="cb-property-card__image">
                 <?php if ($photo) : ?>
                     <img src="<?php echo esc_url($photo); ?>" alt="<?php echo esc_attr($address); ?>" loading="lazy">
                 <?php endif; ?>
-                <?php if ($status) : ?>
+                <?php if ($oh_label) : ?>
+                    <span class="cb-property-card__openhouse"><?php echo wp_kses($oh_label, ['br' => []]); ?></span>
+                <?php elseif ($status) : ?>
                     <span class="cb-property-card__badge"><?php echo esc_html($status); ?></span>
                 <?php endif; ?>
                 <?php if ($listing_id) : ?>

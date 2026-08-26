@@ -33,46 +33,39 @@ $f_openhouse    = !empty($_GET['open_house']);
    there in the first paint rather than appearing after JS runs. */
 $f_mapview      = (isset($_GET['view']) && $_GET['view'] === 'map');
 
-$parts = ["StandardStatus Eq 'Active'"];
-
+/*
+ * Open Houses is a DIFFERENT data source. This IDX feed has no valid "has an
+ * open house" listing filter (an "OpenHouses Any" clause is rejected) and it
+ * silently ignores ListOffice* filters, so restricting to Coldwell Banker
+ * Legacy's own open houses can't be expressed as a Spark _filter. Instead
+ * cb_get_open_houses() reads the /openhouses resource, resolves each to its
+ * listing, keeps only office o13 (Coldwell Banker Legacy San Angelo) and only
+ * upcoming dates, and caches the result. It updates itself from the MLS.
+ *
+ * Every other search is a normal Spark query built from the whitelisted query
+ * params by cb_build_find_filter() -- the SAME function the /markers endpoint
+ * uses, so the list and the map always describe one identical search.
+ */
+$openhouse_listings = [];
 if ($f_openhouse) {
-    /*
-     * Spark exposes scheduled open houses as a related resource, and the
-     * documented way to restrict listings to those that have one is a
-     * subquery on OpenHouses. Kept as a single clause so it composes with
-     * every other filter (price, beds, neighbourhood) rather than replacing
-     * them -- an Open Houses view still has to honour the search the visitor
-     * came in with.
-     *
-     * NOTE: cannot be verified against live data while the Spark key is
-     * disabled (HTTP 401 / API 1010). The expression follows Spark's
-     * documented syntax, but confirm the count is non-zero once the key is
-     * restored -- an unsupported field would come back as simply "no results",
-     * which looks identical to "no open houses this week".
-     */
-    $parts[] = 'OpenHouses Any';
-}
-
-if ($f_neighborhood && isset($communities[$f_neighborhood])) {
-    $parts[] = '(' . $communities[$f_neighborhood]['expr'] . ')';
+    $openhouse_listings = function_exists('cb_get_open_houses') ? cb_get_open_houses() : [];
+    $expr = '';
 } else {
-    // Default scope: San Angelo + Concho Valley cities so the map stays centered.
-    $parts[] = "(City Eq 'San Angelo' Or City Eq 'Grape Creek' Or City Eq 'Christoval' Or City Eq 'Wall' Or City Eq 'Mertzon' Or City Eq 'Carlsbad' Or City Eq 'Eola' Or City Eq 'Mereta' Or City Eq 'Rowena' Or City Eq 'Veribest' Or City Eq 'Water Valley')";
+    $expr = cb_build_find_filter($_GET);
 }
 
-if ($f_min > 0) { $parts[] = 'ListPrice Ge ' . $f_min; }
-if ($f_max > 0) { $parts[] = 'ListPrice Le ' . $f_max; }
-if ($f_beds > 0) { $parts[] = 'BedsTotal Ge ' . $f_beds; }
-if ($f_baths > 0) { $parts[] = 'BathsTotal Ge ' . $f_baths; }
-
-if ($f_type) {
-    $allowed_types = ['Residential', 'Land', 'Farm', 'Commercial Sale', 'Residential Income'];
-    if (in_array($f_type, $allowed_types, true)) {
-        $parts[] = "PropertyType Eq '" . str_replace("'", "''", $f_type) . "'";
-    }
-}
-
-$expr = implode(' And ', $parts);
+/* The map's own data source: every matching active listing as lightweight
+   markers, paged server-side past the feed's 50-per-request cap. Mirrors the
+   current search so the pins match the list. */
+$markers_url = add_query_arg(array_filter([
+    'neighborhood' => $f_neighborhood ?: null,
+    'min'          => $f_min ?: null,
+    'max'          => $f_max ?: null,
+    'beds'         => $f_beds ?: null,
+    'baths'        => $f_baths ?: null,
+    'type'         => $f_type ?: null,
+    'open_house'   => $f_openhouse ? 1 : null,
+]), rest_url('cb/v1/markers'));
 
 $orderby_map = [
     'newest'     => 'ModificationTimestamp desc',
@@ -84,7 +77,7 @@ $orderby = $orderby_map[$f_sort] ?? $orderby_map['newest'];
 
 // Heading copy reflects current filter so the page is keyword-targeted per state.
 $page_h1 = 'San Angelo Homes for Sale';
-if ($f_openhouse) { $page_h1 = 'San Angelo Open Houses'; }
+if ($f_openhouse) { $page_h1 = 'Coldwell Banker Legacy Open Houses'; }
 if ($f_neighborhood && isset($communities[$f_neighborhood])) {
     $page_h1 = $communities[$f_neighborhood]['name'] . ' Homes for Sale';
 }
@@ -219,7 +212,7 @@ get_header();
 <section class="cb-search-split<?php echo $f_mapview ? ' cb-search-split--map-visible' : ''; ?>" id="cb-search-split">
     <div class="cb-search-split__container">
         <div class="cb-search-split__map-col">
-            <div class="cb-search-split__map" id="cb-map" data-default-lat="31.4377" data-default-lng="-100.4503" data-default-zoom="11">
+            <div class="cb-search-split__map" id="cb-map" data-default-lat="31.4377" data-default-lng="-100.4503" data-default-zoom="11" data-markers-url="<?php echo esc_url($markers_url); ?>">
                 <div class="cb-search-split__map-loading">Loading map&hellip;</div>
             </div>
         </div>
@@ -244,13 +237,21 @@ get_header();
                 </a>
             </div>
             <?php
-            echo CB_Spark_Shortcodes::render_listings([
-                'expr'    => $expr,
-                'count'   => 50,
-                'columns' => 2,
-                'orderby' => $orderby,
-                'class'   => 'cb-property-grid--split',
-            ]);
+            if ($f_openhouse) {
+                if (!empty($openhouse_listings)) {
+                    echo CB_Spark_Shortcodes::render_grid($openhouse_listings, 2, 'cb-property-grid--split');
+                } else {
+                    echo '<p class="cb-spark-empty" style="text-align:center;padding:3rem;color:var(--cb-text-muted);">No Coldwell Banker Legacy open houses are scheduled right now. Check back soon &mdash; new open houses post here automatically as our agents add them.</p>';
+                }
+            } else {
+                echo CB_Spark_Shortcodes::render_listings([
+                    'expr'    => $expr,
+                    'count'   => 50,
+                    'columns' => 2,
+                    'orderby' => $orderby,
+                    'class'   => 'cb-property-grid--split',
+                ]);
+            }
             ?>
         </div>
     </div>
