@@ -370,7 +370,7 @@ $cb9_plate = function ($i) use ($cb9_plates) {
                                               // rather than a specific year, because the sources disagree on the
                                               // year (1980 / "over 35" / "over 30") but all agree it is well
                                               // before 2000. See cblegacysanangelo.com office page. ?>
-                                        <span class="cb9-eyebrow">Serving the Concho Valley for over 35 years</span>
+                                        <span class="cb9-eyebrow">Serving the Concho Valley for over 40 years</span>
                                         <h2 class="cb9-h2">A legacy of results in the Concho&nbsp;Valley.</h2>
                                     </div>
                                 </div>

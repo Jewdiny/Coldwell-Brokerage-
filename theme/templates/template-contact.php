@@ -7,7 +7,7 @@
 
 $phone   = get_theme_mod('cb_phone', '(325) 944-9559');
 $address = get_theme_mod('cb_address', '3017 Knickerbocker, San Angelo, TX 76904');
-$email   = get_theme_mod('cb_email', 'info@homes-sanangelo.com');
+$email   = get_theme_mod('cb_email', 'info@cbltexas.com');
 
 cb_set_seo_meta([
     'title'       => 'Contact Coldwell Banker Legacy San Angelo | ' . $phone,

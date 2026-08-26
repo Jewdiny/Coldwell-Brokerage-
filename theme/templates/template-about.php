@@ -37,7 +37,7 @@ get_header();
             <div class="cb-about-intro__text cb-reveal">
                 <h2>Your Trusted Real Estate Partner</h2>
                 <p style="font-size:1.125rem;line-height:1.8;color:var(--cb-text-muted);margin-top:1.5rem;">
-                    For over 35 years, Coldwell Banker Legacy has been a leading real estate brokerage in the San Angelo and Concho Valley area. Our deep roots in the community, combined with the global reach of the Coldwell Banker brand, provide our clients with unmatched service and market expertise.
+                    For over 40 years, Coldwell Banker Legacy has been a leading real estate brokerage in the San Angelo and Concho Valley area. Our deep roots in the community, combined with the global reach of the Coldwell Banker brand, provide our clients with unmatched service and market expertise.
                 </p>
                 <p style="font-size:1.125rem;line-height:1.8;color:var(--cb-text-muted);margin-top:1rem;">
                     Our team of over 30 dedicated agents brings diverse specializations — from first-time homebuyers to luxury estates, commercial properties to ranch land. We are more than a real estate office; we are your neighbors, committed to the growth and prosperity of San Angelo.

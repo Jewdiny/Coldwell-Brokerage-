@@ -268,7 +268,7 @@ $cb8_plate = function ($i) use ($cb8_plates) {
                             <div class="cb8-lod">
                                 <div class="cb8-card cb8-card--head" data-cb8-card <?php echo $cb8_fl(); ?>>
                                     <div class="cb8-card__inner">
-                                        <span class="cb8-eyebrow">Serving the Concho Valley for over 35 years</span>
+                                        <span class="cb8-eyebrow">Serving the Concho Valley for over 40 years</span>
                                         <h2 class="cb8-h2">A legacy of results in the Concho&nbsp;Valley.</h2>
                                     </div>
                                 </div>

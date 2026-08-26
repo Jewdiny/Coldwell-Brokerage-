@@ -156,7 +156,7 @@ $cb_fusion_nav = [
             <div class="cb-fusion-section__inner">
                 <div class="cb-fusion-card cb-fusion-card--head" data-fusion <?php echo $cb_float(); ?>>
                     <div class="cb-fusion-card__inner">
-                        <span class="cb-fusion-eyebrow">Serving the Concho Valley for over 35 years</span>
+                        <span class="cb-fusion-eyebrow">Serving the Concho Valley for over 40 years</span>
                         <h2 class="cb-fusion-h2">A legacy of results in the Concho&nbsp;Valley.</h2>
                     </div>
                 </div>

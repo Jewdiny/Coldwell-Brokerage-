@@ -42,7 +42,7 @@ cb_set_seo_meta([
     // "since 2000" was wrong here too, and this string is the description Google
     // shows under the result. Their own office page says "For over 35 years";
     // third-party listings give 1980. Matches the Legacy section's eyebrow.
-    'description' => 'Search live San Angelo MLS listings, luxury homes, and Concho Valley real estate. Coldwell Banker Legacy — serving the Concho Valley for over 35 years. (325) 944-9559.',
+    'description' => 'Search live San Angelo MLS listings, luxury homes, and Concho Valley real estate. Coldwell Banker Legacy — serving the Concho Valley for over 40 years. (325) 944-9559.',
     'canonical'   => home_url('/'),
     'og_image'    => CB_THEME_URI . '/assets/images/home10/01-hall.jpg',
 ]);

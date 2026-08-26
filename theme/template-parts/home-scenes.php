@@ -232,7 +232,7 @@ $cb_scene_nav = [
         <section class="cb-scene cb-scene--legacy cb-scene--dark" data-scene="3" id="scene-legacy" aria-label="Our track record">
             <div class="cb-scene__inner cb-container">
                 <div class="cb-scene__head">
-                    <span class="cb-eyebrow cb-eyebrow--light cb-scene__reveal">Serving the Concho Valley for over 35 years</span>
+                    <span class="cb-eyebrow cb-eyebrow--light cb-scene__reveal">Serving the Concho Valley for over 40 years</span>
                     <h2 class="cb-scene__title cb-scene__title--light cb-scene__reveal">A legacy of results in the Concho&nbsp;Valley.</h2>
                 </div>
 

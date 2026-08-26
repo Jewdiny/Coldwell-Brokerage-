@@ -200,7 +200,7 @@ $cb_dust_nav = [
             <div class="cb-dust-section__inner">
                 <div class="cb-dust-card cb-dust-card--head" data-dust <?php echo $cb_float(); ?>>
                     <div class="cb-dust-card__inner">
-                        <span class="cb-dust-eyebrow">Serving the Concho Valley for over 35 years</span>
+                        <span class="cb-dust-eyebrow">Serving the Concho Valley for over 40 years</span>
                         <h2 class="cb-dust-h2">A legacy of results in the Concho&nbsp;Valley.</h2>
                     </div>
                 </div>

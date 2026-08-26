@@ -165,7 +165,7 @@ $cb_corridor_nav = [
             <div class="cb-corridor-section__inner">
                 <div class="cb-corridor-card cb-corridor-card--head" data-corridor <?php echo $cb_float(); ?>>
                     <div class="cb-corridor-card__inner">
-                        <span class="cb-corridor-eyebrow">Serving the Concho Valley for over 35 years</span>
+                        <span class="cb-corridor-eyebrow">Serving the Concho Valley for over 40 years</span>
                         <h2 class="cb-corridor-h2">A legacy of results in the Concho&nbsp;Valley.</h2>
                     </div>
                 </div>

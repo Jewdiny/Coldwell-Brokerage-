@@ -9,7 +9,7 @@ cb_set_seo_meta([
     'title'       => "What Is My Home Worth? San Angelo Home Valuation | Coldwell Banker Legacy",
     // "25+ years" contradicted the brokerage's own "over 35 years" used on the
     // office, about and homepage copy. One number, everywhere.
-    'description' => "Two ways to value your San Angelo home: an instant CB Estimate\u{00AE}, or a custom comparative market analysis from a local agent. Serving the Concho Valley for over 35 years.",
+    'description' => "Two ways to value your San Angelo home: an instant CB Estimate\u{00AE}, or a custom comparative market analysis from a local agent. Serving the Concho Valley for over 40 years.",
     'canonical'   => get_permalink(),
 ]);
 
