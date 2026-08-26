@@ -1333,6 +1333,20 @@ function cb_get_open_houses($limit = 60) {
     return $out;
 }
 
+/**
+ * Clean, shareable Open Houses URL for Facebook ads:
+ *   https://homes-sanangelo.com/open-houses/  ->  Coldwell open-house view.
+ * A 301 to the Find-a-Home Open Houses view keeps one source of truth for the
+ * listing grid + map while giving marketing a tidy link to point ads at.
+ */
+add_action('template_redirect', function () {
+    $path = trim((string) parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH), '/');
+    if ($path === 'open-houses' || $path === 'open-house') {
+        wp_safe_redirect(add_query_arg('open_house', '1', home_url('/find-a-home/')), 301);
+        exit;
+    }
+});
+
 function cb_get_agents($request) {
     $args = [
         'post_type'      => 'cb_agent',
