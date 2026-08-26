@@ -1397,9 +1397,49 @@ function cb_get_quarterly_report($city = 'San Angelo') {
     $months_supply = $monthly > 0 ? round($active / $monthly, 1) : null;
     $yoy           = $sold_qtd_ly > 0 ? round(100 * ($sold_qtd - $sold_qtd_ly) / $sold_qtd_ly, 1) : null;
 
-    // Active list-price stats are NOT masked -- reuse the cached market snapshot.
+    // Active price BANDS (counts) come from the cached market snapshot -- these
+    // are TotalRows counts, so they're reliable.
     $ms = $client->get_market_stats($cf);
     if (is_wp_error($ms)) { $ms = []; }
+
+    // Real MEDIAN HOME list price. get_market_stats' median samples only the 50
+    // cheapest listings (orderby ListPrice asc, limit 50) -> skews to ~$1k land.
+    // Instead, over Active RESIDENTIAL only, fetch the single listing sitting at
+    // the median position (the feed caps _limit at 50, so page to it). Also
+    // derive a representative $/sqft from that mid-market page.
+    $res_filter = "StandardStatus Eq 'Active' And $cf And PropertyType Eq 'A'";
+    $active_res = $count($res_filter);
+    $median_list = 0;
+    $ppsf = 0;
+    if ($active_res > 0) {
+        $pos  = intdiv($active_res, 2);
+        $page = intdiv($pos, 50) + 1;
+        $off  = $pos % 50;
+        $d = $client->get('listings', [
+            '_filter'  => $res_filter,
+            '_select'  => 'ListPrice,BuildingAreaTotal',
+            '_orderby' => 'ListPrice',
+            '_limit'   => 50,
+            '_page'    => $page,
+        ]);
+        if (!is_wp_error($d)) {
+            $rows = $d['Results'] ?? [];
+            if (isset($rows[$off]['StandardFields']['ListPrice'])) {
+                $median_list = (int) $rows[$off]['StandardFields']['ListPrice'];
+            } elseif ($rows) {
+                $last = end($rows);
+                $median_list = (int) ($last['StandardFields']['ListPrice'] ?? 0);
+            }
+            $psf = [];
+            foreach ($rows as $row) {
+                $f  = $row['StandardFields'] ?? [];
+                $lp = (float) ($f['ListPrice'] ?? 0);
+                $sf = (float) ($f['BuildingAreaTotal'] ?? 0);
+                if ($lp > 0 && $sf > 100) { $psf[] = $lp / $sf; }
+            }
+            if ($psf) { sort($psf); $ppsf = (int) round($psf[intdiv(count($psf), 2)]); }
+        }
+    }
 
     $report = [
         'city'          => $city,
@@ -1413,8 +1453,8 @@ function cb_get_quarterly_report($city = 'San Angelo') {
         'active'        => $active,
         'pending'       => $pending,
         'months_supply' => $months_supply,
-        'median_list'   => (int) ($ms['median_price'] ?? 0),
-        'ppsf'          => (int) ($ms['avg_price_per_sqft'] ?? 0),
+        'median_list'   => $median_list,
+        'ppsf'          => $ppsf,
         'band_u300'     => (int) ($ms['under_300k'] ?? 0),
         'band_300_500'  => (int) ($ms['mid_300_500k'] ?? 0),
         'band_500_1m'   => (int) ($ms['luxury_500k_1m'] ?? 0),

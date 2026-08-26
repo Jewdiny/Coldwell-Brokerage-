@@ -82,8 +82,8 @@ class CB_Spark_Shortcodes {
 
             <div class="cb-quarterly__row">
                 <div class="cb-quarterly__mini"><span><?php echo number_format($r['pending']); ?></span><label>Pending Sales</label></div>
-                <div class="cb-quarterly__mini"><span><?php echo $r['median_list'] ? CB_Spark_Client::format_price($r['median_list']) : '—'; ?></span><label>Median List Price (Active)</label></div>
-                <div class="cb-quarterly__mini"><span>$<?php echo number_format($r['ppsf']); ?></span><label>Avg List $ / Sq Ft</label></div>
+                <div class="cb-quarterly__mini"><span><?php echo $r['median_list'] ? CB_Spark_Client::format_price($r['median_list']) : '—'; ?></span><label>Median Home List Price</label></div>
+                <div class="cb-quarterly__mini"><span><?php echo $r['ppsf'] ? '$' . number_format($r['ppsf']) : '—'; ?></span><label>Median List $ / Sq Ft</label></div>
             </div>
 
             <?php if ($r['band_u300'] + $r['band_300_500'] + $r['band_500_1m'] + $r['band_1m'] > 0) : ?>
