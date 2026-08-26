@@ -30,12 +30,27 @@ get_header();
     </div>
 </section>
 
+<!-- Quarterly Market Report (leads the page) -->
+<section class="cb-section" id="cb-quarterly-report">
+    <div class="cb-container" style="max-width:1000px;">
+        <div class="cb-section__header cb-reveal">
+            <span class="cb-section__subtitle">This Quarter</span>
+            <h2 class="cb-section__title">San Angelo Quarterly Market Report</h2>
+            <div class="cb-section__divider"></div>
+            <p class="cb-section__desc">Where the San Angelo market stands this quarter &mdash; sales pace, new inventory, and how it compares to a year ago.</p>
+        </div>
+        <div class="cb-reveal">
+            <?php echo do_shortcode('[cb_quarterly_report city="San Angelo"]'); ?>
+        </div>
+    </div>
+</section>
+
 <!-- Live Market Snapshot -->
-<section class="cb-section">
+<section class="cb-section cb-section--offwhite">
     <div class="cb-container">
         <div class="cb-section__header cb-reveal">
-            <span class="cb-section__subtitle">Live Data</span>
-            <h2 class="cb-section__title">San Angelo Real Estate Market Snapshot</h2>
+            <span class="cb-section__subtitle">Live &middot; Updated Continuously</span>
+            <h2 class="cb-section__title">Today's Market Snapshot</h2>
             <div class="cb-section__divider"></div>
             <p class="cb-section__desc">Real-time data pulled directly from the San Angelo Association of REALTORS&reg; MLS. No estimates — these are the actual current numbers.</p>
         </div>
@@ -47,7 +62,7 @@ get_header();
 </section>
 
 <!-- About the Market (keyword-rich evergreen content) -->
-<section class="cb-section cb-section--offwhite">
+<section class="cb-section">
     <div class="cb-container" style="max-width:880px;">
         <div class="cb-section__header cb-reveal">
             <span class="cb-section__subtitle">Market Overview</span>

@@ -13,9 +13,101 @@ if (!defined('ABSPATH')) { exit; }
 class CB_Spark_Shortcodes {
 
     public static function register() {
-        add_shortcode('cb_listings',      [__CLASS__, 'render_listings']);
-        add_shortcode('cb_market_stats',  [__CLASS__, 'render_market_stats']);
-        add_shortcode('cb_sold_listings', [__CLASS__, 'render_sold_listings']);
+        add_shortcode('cb_listings',          [__CLASS__, 'render_listings']);
+        add_shortcode('cb_market_stats',      [__CLASS__, 'render_market_stats']);
+        add_shortcode('cb_sold_listings',     [__CLASS__, 'render_sold_listings']);
+        add_shortcode('cb_quarterly_report',  [__CLASS__, 'render_quarterly_report']);
+    }
+
+    /**
+     * [cb_quarterly_report city="San Angelo"]
+     * The current quarter's market report, computed live from the MLS and cached
+     * 12 hours. Leads with sales volume + inventory + list prices; closed SALE
+     * prices are masked by this MLS over IDX, so they are never shown.
+     */
+    public static function render_quarterly_report($atts) {
+        $atts = shortcode_atts(['city' => 'San Angelo'], $atts, 'cb_quarterly_report');
+
+        if (!function_exists('cb_get_quarterly_report')) {
+            return '<p class="cb-spark-error">Quarterly report unavailable.</p>';
+        }
+        $r = cb_get_quarterly_report($atts['city']);
+        if (empty($r)) {
+            return '<p class="cb-spark-error">Quarterly market data is temporarily unavailable.</p>';
+        }
+
+        // Market-condition read from months of supply: <3 seller's, 3-6 balanced, >6 buyer's.
+        $ms = $r['months_supply'];
+        if ($ms === null)      { $cond = ''; $cond_note = ''; }
+        elseif ($ms < 3)       { $cond = "Seller's market";  $cond_note = 'Tight inventory favors sellers.'; }
+        elseif ($ms <= 6)      { $cond = 'Balanced market';  $cond_note = 'Supply and demand are roughly even.'; }
+        else                   { $cond = "Buyer's market";   $cond_note = 'Ample inventory favors buyers.'; }
+
+        $yoy = $r['yoy'];
+        $yoy_dir = ($yoy === null) ? '' : ($yoy > 0 ? 'up' : ($yoy < 0 ? 'down' : 'flat'));
+        $arrow = ['up' => '&#9650;', 'down' => '&#9660;', 'flat' => '&#8212;', '' => ''];
+
+        ob_start(); ?>
+        <div class="cb-quarterly">
+            <div class="cb-quarterly__head">
+                <span class="cb-quarterly__eyebrow">Quarterly Market Report &middot; <?php echo esc_html($r['quarter_short']); ?></span>
+                <h3 class="cb-quarterly__title"><?php echo esc_html($r['city']); ?> Real Estate &mdash; <?php echo esc_html($r['quarter_label']); ?></h3>
+                <p class="cb-quarterly__sub">Quarter to date, through <?php echo esc_html($r['through']); ?>. Pulled live from the San Angelo Association of REALTORS&reg; MLS.</p>
+            </div>
+
+            <div class="cb-quarterly__grid">
+                <div class="cb-quarterly__stat cb-quarterly__stat--hero">
+                    <div class="cb-quarterly__num"><?php echo number_format($r['sold_qtd']); ?></div>
+                    <div class="cb-quarterly__label">Homes Sold This Quarter</div>
+                    <?php if ($yoy !== null) : ?>
+                        <div class="cb-quarterly__yoy cb-quarterly__yoy--<?php echo esc_attr($yoy_dir); ?>">
+                            <?php echo $arrow[$yoy_dir]; // phpcs:ignore ?> <?php echo esc_html(($yoy > 0 ? '+' : '') . $yoy); ?>% vs. same period last year
+                        </div>
+                    <?php endif; ?>
+                </div>
+                <div class="cb-quarterly__stat">
+                    <div class="cb-quarterly__num"><?php echo number_format($r['new_qtd']); ?></div>
+                    <div class="cb-quarterly__label">New Listings This Quarter</div>
+                </div>
+                <div class="cb-quarterly__stat">
+                    <div class="cb-quarterly__num"><?php echo number_format($r['active']); ?></div>
+                    <div class="cb-quarterly__label">Active Listings Now</div>
+                </div>
+                <div class="cb-quarterly__stat">
+                    <div class="cb-quarterly__num"><?php echo $r['months_supply'] !== null ? esc_html($r['months_supply']) : '&mdash;'; ?></div>
+                    <div class="cb-quarterly__label">Months of Supply</div>
+                    <?php if ($cond) : ?><div class="cb-quarterly__tag"><?php echo esc_html($cond); ?></div><?php endif; ?>
+                </div>
+            </div>
+
+            <div class="cb-quarterly__row">
+                <div class="cb-quarterly__mini"><span><?php echo number_format($r['pending']); ?></span><label>Pending Sales</label></div>
+                <div class="cb-quarterly__mini"><span><?php echo $r['median_list'] ? CB_Spark_Client::format_price($r['median_list']) : '—'; ?></span><label>Median List Price (Active)</label></div>
+                <div class="cb-quarterly__mini"><span>$<?php echo number_format($r['ppsf']); ?></span><label>Avg List $ / Sq Ft</label></div>
+            </div>
+
+            <?php if ($r['band_u300'] + $r['band_300_500'] + $r['band_500_1m'] + $r['band_1m'] > 0) : ?>
+            <div class="cb-quarterly__bands">
+                <h4 class="cb-quarterly__bands-title">Active Inventory by Price</h4>
+                <div class="cb-quarterly__bands-grid">
+                    <div class="cb-quarterly__band"><span><?php echo number_format($r['band_u300']); ?></span><label>Under $300K</label></div>
+                    <div class="cb-quarterly__band"><span><?php echo number_format($r['band_300_500']); ?></span><label>$300K &ndash; $500K</label></div>
+                    <div class="cb-quarterly__band"><span><?php echo number_format($r['band_500_1m']); ?></span><label>$500K &ndash; $1M</label></div>
+                    <div class="cb-quarterly__band"><span><?php echo number_format($r['band_1m']); ?></span><label>$1M+</label></div>
+                </div>
+            </div>
+            <?php endif; ?>
+
+            <?php if ($cond_note) : ?>
+                <p class="cb-quarterly__read"><strong><?php echo esc_html($cond); ?>.</strong> <?php echo esc_html($cond_note); ?> With <?php echo number_format($r['active']); ?> homes active and roughly <?php echo number_format(max(1, (int) round($r['sold_qtd']))); ?> sold so far this quarter, buyers and sellers can gauge how quickly homes are moving in <?php echo esc_html($r['city']); ?>.</p>
+            <?php endif; ?>
+
+            <p class="cb-quarterly__foot">
+                Sales counts, inventory and list prices are pulled live from the SAARMLS and cached for 12 hours (last updated <?php echo esc_html($r['generated_at']); ?>). Closed sale prices are not published over public IDX per MLS rules &mdash; contact a Coldwell&nbsp;Banker&nbsp;Legacy agent for a full comparative market analysis with sold prices.
+            </p>
+        </div>
+        <?php
+        return ob_get_clean();
     }
 
     /**

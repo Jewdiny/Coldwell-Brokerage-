@@ -1347,6 +1347,84 @@ add_action('template_redirect', function () {
     }
 });
 
+/**
+ * Quarterly market report for a city, computed live from the MLS.
+ *
+ * The quarter is derived from the current date, so this rolls over on its own
+ * (Q3 -> Q4 -> Q1...). It reports the CURRENT quarter to date and compares to
+ * the SAME period a year earlier (apples-to-apples, since the current quarter
+ * is usually mid-flight).
+ *
+ * IMPORTANT DATA LIMIT: this MLS masks closed SALE prices / days-on-market over
+ * IDX (a standard SAARMLS rule), so ClosePrice comes back as 0. The report
+ * therefore leads with what IS public -- sales VOLUME, new listings, active
+ * inventory, months of supply, and active LIST prices -- and never prints a
+ * sold price. Cached 12h.
+ */
+function cb_get_quarterly_report($city = 'San Angelo') {
+    $key    = 'cb_quarterly_' . md5($city);
+    $cached = get_transient($key);
+    if ($cached !== false) { return $cached; }
+    if (!class_exists('CB_Spark_Client')) { return null; }
+
+    $client = new CB_Spark_Client();
+    if (is_wp_error($client->get_token())) { return null; }
+    $cf = "City Eq '" . str_replace("'", "''", $city) . "'";
+
+    $count = function ($filter) use ($client) {
+        $d = $client->get('listings', ['_filter' => $filter, '_select' => 'Id', '_limit' => 1, '_pagination' => 1]);
+        return is_wp_error($d) ? 0 : (int) ($d['Pagination']['TotalRows'] ?? 0);
+    };
+
+    $now   = current_time('timestamp');
+    $year  = (int) date('Y', $now);
+    $month = (int) date('n', $now);
+    $q     = intdiv($month - 1, 3) + 1;               // 1..4
+    $q_start_month = ($q - 1) * 3 + 1;
+    $q_start    = sprintf('%04d-%02d-01', $year, $q_start_month);
+    $q_start_ly = sprintf('%04d-%02d-01', $year - 1, $q_start_month);
+    $today_ly   = date('Y-m-d', strtotime('-1 year', $now));
+    $q_names    = [1 => 'First', 2 => 'Second', 3 => 'Third', 4 => 'Fourth'];
+
+    $sold_qtd    = $count("StandardStatus Eq 'Closed' And $cf And CloseDate Ge $q_start");
+    $sold_qtd_ly = $count("StandardStatus Eq 'Closed' And $cf And CloseDate Ge $q_start_ly And CloseDate Le $today_ly");
+    $new_qtd     = $count("$cf And OnMarketDate Ge $q_start");
+    $active      = $count("StandardStatus Eq 'Active' And $cf");
+    $pending     = $count("StandardStatus Eq 'Pending' And $cf");
+    $sold_90     = $count("StandardStatus Eq 'Closed' And $cf And CloseDate Ge days(-90)");
+
+    $monthly       = $sold_90 / 3;
+    $months_supply = $monthly > 0 ? round($active / $monthly, 1) : null;
+    $yoy           = $sold_qtd_ly > 0 ? round(100 * ($sold_qtd - $sold_qtd_ly) / $sold_qtd_ly, 1) : null;
+
+    // Active list-price stats are NOT masked -- reuse the cached market snapshot.
+    $ms = $client->get_market_stats($cf);
+    if (is_wp_error($ms)) { $ms = []; }
+
+    $report = [
+        'city'          => $city,
+        'quarter_label' => $q_names[$q] . ' Quarter ' . $year,
+        'quarter_short' => 'Q' . $q . ' ' . $year,
+        'through'       => date('F j, Y', $now),
+        'sold_qtd'      => $sold_qtd,
+        'sold_qtd_ly'   => $sold_qtd_ly,
+        'yoy'           => $yoy,
+        'new_qtd'       => $new_qtd,
+        'active'        => $active,
+        'pending'       => $pending,
+        'months_supply' => $months_supply,
+        'median_list'   => (int) ($ms['median_price'] ?? 0),
+        'ppsf'          => (int) ($ms['avg_price_per_sqft'] ?? 0),
+        'band_u300'     => (int) ($ms['under_300k'] ?? 0),
+        'band_300_500'  => (int) ($ms['mid_300_500k'] ?? 0),
+        'band_500_1m'   => (int) ($ms['luxury_500k_1m'] ?? 0),
+        'band_1m'       => (int) ($ms['over_1m'] ?? 0),
+        'generated_at'  => current_time('mysql'),
+    ];
+    set_transient($key, $report, 12 * HOUR_IN_SECONDS);
+    return $report;
+}
+
 function cb_get_agents($request) {
     $args = [
         'post_type'      => 'cb_agent',
