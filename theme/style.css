@@ -1440,6 +1440,19 @@ h6 { font-size: 1.25rem; }
   border-bottom: 1px solid rgba(255,255,255,0.1);
 }
 
+/* Footer brand logo. the_custom_logo() nests an <a> inside our own
+   .cb-footer__logo <a>; browsers flatten nested anchors, so the .custom-logo
+   image becomes a SIBLING and never matches ".cb-footer__logo img". Size both
+   the custom logo and the fallback <img> here so the white "Coldwell Banker
+   Legacy" lockup stays a controlled height on every breakpoint instead of
+   rendering at its natural ~108px. */
+.cb-footer__logo img,
+.cb-footer .custom-logo {
+  height: 64px;
+  width: auto;
+  max-width: 100%;
+}
+
 .cb-footer__brand-desc {
   font-size: 0.9375rem;
   line-height: 1.7;
