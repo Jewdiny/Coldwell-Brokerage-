@@ -107,6 +107,17 @@
             <p class="cb-footer__disclaimer-solicit">
                 Not intended as a solicitation if your property is already listed by another broker.
             </p>
+
+            <?php /* TREC-required consumer notices. Texas real estate license
+                 holders must link the Information About Brokerage Services (IABS)
+                 and the Consumer Protection Notice. The link text is verbatim per
+                 the brokerage's request, and the font is set to 12pt (>= the
+                 "at least 12-point" requirement). The PDFs are the brokerage's own
+                 filed forms, hosted at /wp-content/uploads/trec/. */ ?>
+            <p class="cb-footer__trec" style="margin-top:1.25rem;line-height:2;">
+                <a href="<?php echo esc_url(content_url('/uploads/trec/office-iabs.pdf')); ?>" target="_blank" rel="noopener" style="display:block;font-size:12pt;color:inherit;text-decoration:underline;">Texas Real Estate Commission Information About Brokerage Services</a>
+                <a href="<?php echo esc_url(content_url('/uploads/trec/consumer-protection-notice.pdf')); ?>" target="_blank" rel="noopener" style="display:block;font-size:12pt;color:inherit;text-decoration:underline;">Texas Real Estate Commission Consumer Protection Notice</a>
+            </p>
         </div>
 
         <div class="cb-footer__bottom">
