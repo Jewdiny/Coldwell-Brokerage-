@@ -654,11 +654,19 @@ html.js .cb9-quotes .cb-tt-widget {
 /* The walk's stage and panels are position:fixed (z-index 0 and 2), so the real
    site footer -- which follows in normal flow after the spacer -- rendered
    BEHIND them and could not be reached on the homepage, even though it loaded
-   (you could see the disclaimer text faintly through the last panel). home10.js
-   clamps the scroll to the final scene once you pass the spacer, so lifting the
-   footer above the walk layers lets it scroll up into view at the very end of
-   the walk. The footer already carries a solid --cb-navy-dark background and the
-   TREC IABS / Consumer Protection notices, so this gives the homepage a real,
+   (you could see the disclaimer text faintly through the last panel). Lifting it
+   above the walk layers lets it scroll up into view.
+
+   BUT z-index alone made it appear too early: the walk is only ~1.7 screens of
+   scroll, so the footer's top edge entered the bottom of the viewport -- and
+   painted over the walk -- while the reader was only a few sections in. The fix
+   lives in home10.js layout(): the spacer is made one full viewport taller than
+   the clock length, so the footer sits a whole screen BELOW the walk's clamped
+   end and cannot appear until the final scene is fully arrived. It then rises
+   over the parked last panel as a deliberate end-of-walk reveal.
+
+   The footer already carries a solid --cb-navy-dark background and the TREC
+   IABS / Consumer Protection notices, so this gives the homepage a real,
    complete footer with those required links, matching every other page.
    Scoped to html.cb10-on so it only applies when the fixed walk is running;
    the flat/reduced-motion fallback already shows the footer normally. */

@@ -316,8 +316,22 @@
     // scrolling on a very short viewport does not skip a room outright.
     _secH = Math.max(140, Math.round(h * 0.283));
     _total = _secH * _n;
+
+    // TRAILING ROOM FOR THE FOOTER. The real site footer follows the spacer in
+    // normal flow and is lifted above the fixed walk (cb-home10.css, z-index 30)
+    // so it can be reached at the end. But the walk is short -- six sections at
+    // 0.283 viewports is only ~1.7 screens of scroll -- so the footer's top edge
+    // (at y = _total) would enter the BOTTOM of the viewport while the reader is
+    // still only a section or two in, and paint over the middle of the walk.
+    //
+    // Push the footer a full viewport BELOW the walk's clamped end by making the
+    // spacer one screen taller than the clock length. readScroll() still clamps
+    // y/_secH to the last section, so this extra screen is pure "the walk is
+    // over, footer rising" room: the footer cannot appear until scroll passes
+    // _total, which is exactly when the final scene is fully arrived. It then
+    // scrolls up over the parked last panel as a deliberate end-of-walk reveal.
     var sp = document.getElementById('cb10-spacer');
-    if (sp) { sp.style.height = _total + 'px'; }
+    if (sp) { sp.style.height = (_total + h) + 'px'; }
   }
 
   /** Force a re-measure regardless of width -- for orientationchange, where the
