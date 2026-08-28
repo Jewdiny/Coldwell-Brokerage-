@@ -649,3 +649,30 @@ html.js .cb9-quotes .cb-tt-widget {
 @media (prefers-reduced-motion: reduce) {
   .cb10-frame { transition: none; }
 }
+
+/* ---- site footer on the filmed homepage ---------------------------------- */
+/* The walk's stage and panels are position:fixed (z-index 0 and 2), so the real
+   site footer -- which follows in normal flow after the spacer -- rendered
+   BEHIND them and could not be reached on the homepage, even though it loaded
+   (you could see the disclaimer text faintly through the last panel). home10.js
+   clamps the scroll to the final scene once you pass the spacer, so lifting the
+   footer above the walk layers lets it scroll up into view at the very end of
+   the walk. The footer already carries a solid --cb-navy-dark background and the
+   TREC IABS / Consumer Protection notices, so this gives the homepage a real,
+   complete footer with those required links, matching every other page.
+   Scoped to html.cb10-on so it only applies when the fixed walk is running;
+   the flat/reduced-motion fallback already shows the footer normally. */
+html.cb10-on .cb-footer {
+  position: relative;
+  z-index: 30;
+}
+/* A hairline so the footer reads as a deliberate end to the walk, not a panel
+   that slid too far. */
+html.cb10-on .cb-footer::before {
+  content: "";
+  display: block;
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(31,105,255,0.55), transparent);
+}
