@@ -51,8 +51,8 @@ $cb_transparent_header = is_front_page()
                  #012169, and CSS picks which of the two to show. Exact, and it
                  cannot drift. Only one is ever visible, and the hidden one is
                  aria-hidden so screen readers do not announce the mark twice. */ ?>
-            <img src="<?php echo esc_url(CB_THEME_URI . '/assets/images/logos/monogram-horizontal-stacked.svg'); ?>" alt="Coldwell Banker Legacy &mdash; San Angelo" class="cb-header__logo-img cb-header__logo-img--light">
-            <img src="<?php echo esc_url(CB_THEME_URI . '/assets/images/logos/monogram-horizontal-stacked-blue.svg'); ?>" alt="" aria-hidden="true" class="cb-header__logo-img cb-header__logo-img--dark">
+            <img src="<?php echo esc_url(CB_THEME_URI . '/assets/images/logos/monogram-horizontal-stacked.svg?v=' . cb_asset_ver('assets/images/logos/monogram-horizontal-stacked.svg')); ?>" alt="Coldwell Banker Legacy &mdash; San Angelo" class="cb-header__logo-img cb-header__logo-img--light">
+            <img src="<?php echo esc_url(CB_THEME_URI . '/assets/images/logos/monogram-horizontal-stacked-blue.svg?v=' . cb_asset_ver('assets/images/logos/monogram-horizontal-stacked-blue.svg')); ?>" alt="" aria-hidden="true" class="cb-header__logo-img cb-header__logo-img--dark">
         </a>
 
         <nav class="cb-nav" role="navigation" aria-label="<?php esc_attr_e('Primary Navigation', 'cb-legacy'); ?>">

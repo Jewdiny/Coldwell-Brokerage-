@@ -518,7 +518,7 @@ $cb9_plate = function ($i) use ($cb9_plates) {
                                      the tagline is set in cb-home10.css (.cb9-mark__logo). */ ?>
                                 <div class="cb9-card cb9-card--mark" data-cb9-card <?php echo $cb9_fl(); ?>>
                                     <div class="cb9-card__inner">
-                                        <img src="<?php echo esc_url(CB_THEME_URI . '/assets/images/logos/monogram-vertical-stacked.svg'); ?>" alt="Coldwell Banker Legacy" class="cb9-mark__logo">
+                                        <img src="<?php echo esc_url(CB_THEME_URI . '/assets/images/logos/monogram-vertical-stacked.svg?v=' . cb_asset_ver('assets/images/logos/monogram-vertical-stacked.svg')); ?>" alt="Coldwell Banker Legacy" class="cb9-mark__logo">
                                         <img class="cb9-livewell-mark cb9-livewell-mark--sign"
                                              src="<?php echo esc_url(CB_THEME_URI . '/assets/images/logos/live-well-with-coldwell-white.png'); ?>"
                                              alt="Live Well With Coldwell" width="1500" height="132"
