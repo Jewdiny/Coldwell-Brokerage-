@@ -1267,10 +1267,23 @@ function cb_do_warm_markers() {
         'markers'   => $built['markers'],
         'generated' => current_time('mysql'),
     ], 45 * MINUTE_IN_SECONDS);
+
+    // Refresh the Coldwell (o13) open houses in the SAME hourly pass, so the
+    // Open Houses page rebuilds on the same top-of-hour cadence as the map
+    // instead of lazily on the first visit after its short cache expires.
+    if (function_exists('cb_get_open_houses')) {
+        delete_transient('cb_open_houses_o13');
+        cb_get_open_houses(60);
+    }
 }
 add_action('init', function () {
     if (!wp_next_scheduled('cb_warm_markers')) {
-        wp_schedule_event(time() + 120, 'hourly', 'cb_warm_markers');
+        // Align the first run to the next TOP OF THE HOUR so the MLS map + open
+        // houses refresh on a clean :00 cadence. A real server cron triggers
+        // this hook at :00 every hour (see deploy notes); this scheduling keeps
+        // WP's own bookkeeping on the same grid and self-heals if unscheduled.
+        $next_top_of_hour = (floor(time() / HOUR_IN_SECONDS) + 1) * HOUR_IN_SECONDS;
+        wp_schedule_event($next_top_of_hour, 'hourly', 'cb_warm_markers');
     }
 });
 

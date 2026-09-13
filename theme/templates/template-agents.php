@@ -129,13 +129,13 @@ get_header();
                 // does on the live agent titles: it is a collective membership mark
                 // and NAR requires the ® wherever the term appears.
                 $placeholder_agents = [
-                    ['name' => 'Kenneth Wright', 'title' => 'Kenneth and Mandy Team'],
-                    ['name' => 'Lance Powell', 'title' => 'Global Luxury Specialist'],
-                    ['name' => 'Kriste Chiacchia', 'title' => 'GRI, New Door Team'],
+                    ['name' => 'Kenneth Wright', 'title' => 'REALTOR®'],
+                    ['name' => 'Lance Powell', 'title' => 'REALTOR®'],
+                    ['name' => 'Kriste Chiacchia', 'title' => 'REALTOR®'],
                     ['name' => 'Jerry Delgado', 'title' => 'REALTOR®'],
-                    ['name' => 'Jim Mundell', 'title' => 'Mundell Team'],
-                    ['name' => 'Tammy Koonce', 'title' => 'Expect the Max Team'],
-                    ['name' => 'Lacy B. Ellison', 'title' => 'New Door Team'],
+                    ['name' => 'Jim Mundell', 'title' => 'REALTOR®'],
+                    ['name' => 'Tammy Koonce', 'title' => 'REALTOR®'],
+                    ['name' => 'Lacy B. Ellison', 'title' => 'REALTOR®'],
                 ];
                 foreach ($placeholder_agents as $agent) :
             ?>
