@@ -16,7 +16,7 @@
  * reporting success. The fallback now belongs to the business.
  */
 if (!defined('CB_LEAD_EMAIL_FALLBACK')) {
-    define('CB_LEAD_EMAIL_FALLBACK', 'info@cbltexas.com');
+    define('CB_LEAD_EMAIL_FALLBACK', 'information@cbltexas.com');
 }
 
 /**

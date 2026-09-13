@@ -16,7 +16,7 @@
                     Your trusted real estate partner in San Angelo and the Concho Valley. Coldwell Banker Legacy is committed to helping you find your perfect home.
                 </p>
                 <div class="cb-footer__social">
-                    <a href="https://www.facebook.com/ColdwellBankerLegacySanAngelo" target="_blank" rel="noopener" aria-label="Facebook"><?php echo cb_get_svg_icon('facebook'); ?></a>
+                    <a href="https://www.facebook.com/ColdwellBankerLegacySanAngeloTX" target="_blank" rel="noopener" aria-label="Facebook"><?php echo cb_get_svg_icon('facebook'); ?></a>
                     <a href="https://www.instagram.com/cblegacysanangelotx/" target="_blank" rel="noopener" aria-label="Instagram"><?php echo cb_get_svg_icon('instagram'); ?></a>
                     <a href="https://www.linkedin.com/company/coldwell-banker-legacy-san-angelo-texas" target="_blank" rel="noopener" aria-label="LinkedIn"><?php echo cb_get_svg_icon('linkedin'); ?></a>
                     <a href="https://www.youtube.com/channel/UCLIHEWnmYxheqaIfoj2fe4w" target="_blank" rel="noopener" aria-label="YouTube"><?php echo cb_get_svg_icon('youtube'); ?></a>
@@ -90,8 +90,8 @@
                 </div>
                 <div class="cb-footer__contact-item">
                     <span class="cb-footer__contact-icon"><?php echo cb_get_svg_icon('email'); ?></span>
-                    <a href="mailto:<?php echo esc_attr(get_theme_mod('cb_email', 'info@cbltexas.com')); ?>" style="color:inherit;">
-                        <?php echo esc_html(get_theme_mod('cb_email', 'info@cbltexas.com')); ?>
+                    <a href="mailto:<?php echo esc_attr(get_theme_mod('cb_email', 'information@cbltexas.com')); ?>" style="color:inherit;">
+                        <?php echo esc_html(get_theme_mod('cb_email', 'information@cbltexas.com')); ?>
                     </a>
                 </div>
             </div>

@@ -576,7 +576,7 @@ function cb_brokerage_schema() {
     // so this schema mirrors whatever's shown publicly — keeping NAP consistent.
     $name    = 'Coldwell Banker Legacy';
     $phone   = get_theme_mod('cb_phone', '(325) 944-9559');
-    $email   = get_theme_mod('cb_email', 'info@cbltexas.com');
+    $email   = get_theme_mod('cb_email', 'information@cbltexas.com');
     $address = get_theme_mod('cb_address', '3017 Knickerbocker, San Angelo, TX 76904');
 
     // Parse the address (very loose — works for "<street>, <city>, <state> <zip>" patterns).
@@ -631,7 +631,7 @@ function cb_brokerage_schema() {
             ],
         ],
         'sameAs' => [
-            'https://www.facebook.com/ColdwellBankerLegacySanAngelo',
+            'https://www.facebook.com/ColdwellBankerLegacySanAngeloTX',
             'https://www.instagram.com/cblegacysanangelotx/',
             'https://www.linkedin.com/company/coldwell-banker-legacy-san-angelo-texas',
         ],
@@ -1722,7 +1722,7 @@ function cb_customize_register($wp_customize) {
     ]);
 
     $wp_customize->add_setting('cb_email', [
-        'default'           => 'info@cbltexas.com',
+        'default'           => 'information@cbltexas.com',
         'sanitize_callback' => 'sanitize_email',
     ]);
 

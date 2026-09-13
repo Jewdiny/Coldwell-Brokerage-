@@ -487,7 +487,7 @@ $cb9_plate = function ($i) use ($cb9_plates) {
                                      in both places. */ ?>
                                 <div class="cb9-card cb9-card--ghost cb9-social" data-cb9-card <?php echo $cb9_fl(); ?>>
                                     <div class="cb9-card__inner">
-                                        <a href="https://www.facebook.com/ColdwellBankerLegacySanAngelo" target="_blank" rel="noopener" class="cb9-social__link" aria-label="Coldwell Banker Legacy on Facebook"><?php echo cb_get_svg_icon('facebook'); ?><span>Facebook</span></a>
+                                        <a href="https://www.facebook.com/ColdwellBankerLegacySanAngeloTX" target="_blank" rel="noopener" class="cb9-social__link" aria-label="Coldwell Banker Legacy on Facebook"><?php echo cb_get_svg_icon('facebook'); ?><span>Facebook</span></a>
                                         <a href="https://www.instagram.com/cblegacysanangelotx/" target="_blank" rel="noopener" class="cb9-social__link" aria-label="Coldwell Banker Legacy on Instagram"><?php echo cb_get_svg_icon('instagram'); ?><span>Instagram</span></a>
                                         <a href="https://www.linkedin.com/company/coldwell-banker-legacy-san-angelo-texas" target="_blank" rel="noopener" class="cb9-social__link" aria-label="Coldwell Banker Legacy on LinkedIn"><?php echo cb_get_svg_icon('linkedin'); ?><span>LinkedIn</span></a>
                                     </div>
