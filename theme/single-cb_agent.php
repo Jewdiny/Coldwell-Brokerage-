@@ -154,6 +154,39 @@ while (have_posts()) : the_post();
     </div>
 </section>
 
+<!-- Agent video introduction (migrated from the previous site; agent_video meta
+     holds a YouTube URL or bare id). Placed before the bio so the sections keep
+     alternating backgrounds (hero -> video offwhite -> bio -> listings). -->
+<?php
+$agent_video = get_post_meta(get_the_ID(), 'agent_video', true);
+$cb_video_id = '';
+if ($agent_video) {
+    if (preg_match('~(?:youtube\.com/(?:watch\?v=|embed/)|youtu\.be/)([A-Za-z0-9_-]{6,})~i', $agent_video, $vm)) {
+        $cb_video_id = $vm[1];
+    } elseif (preg_match('/^[A-Za-z0-9_-]{6,}$/', $agent_video)) {
+        $cb_video_id = $agent_video;
+    }
+}
+if ($cb_video_id) : ?>
+<section class="cb-section cb-section--offwhite" id="agent-video" style="padding:4rem 0;">
+    <div class="cb-container" style="max-width:900px;">
+        <div class="cb-section__header cb-reveal">
+            <span class="cb-section__subtitle">Meet <?php echo esc_html(explode(' ', get_the_title())[0]); ?></span>
+            <h2 class="cb-section__title">Video Introduction</h2>
+            <div class="cb-section__divider"></div>
+        </div>
+        <div class="cb-reveal" style="position:relative;width:100%;aspect-ratio:16/9;border-radius:12px;overflow:hidden;box-shadow:0 12px 40px rgba(10,23,48,.18);">
+            <iframe src="https://www.youtube-nocookie.com/embed/<?php echo esc_attr($cb_video_id); ?>?rel=0"
+                    title="<?php echo esc_attr(get_the_title()); ?> &mdash; video introduction"
+                    style="position:absolute;inset:0;width:100%;height:100%;border:0;"
+                    loading="lazy"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen></iframe>
+        </div>
+    </div>
+</section>
+<?php endif; ?>
+
 <!-- Agent Bio -->
 <section class="cb-section">
     <div class="cb-container" style="max-width:800px;">
