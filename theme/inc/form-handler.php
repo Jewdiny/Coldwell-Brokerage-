@@ -276,6 +276,20 @@ function cb_event_modules() {
 }
 
 /**
+ * Best-effort client IP for per-visitor rate limiting. Prefers REMOTE_ADDR (the
+ * real TCP peer, which cannot be spoofed); only falls back to the first
+ * X-Forwarded-For hop when REMOTE_ADDR is loopback (i.e. a same-box proxy).
+ */
+function cb_client_ip() {
+    $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+    if (in_array($ip, ['127.0.0.1', '::1'], true) && !empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+        $first = trim(explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0]);
+        if (filter_var($first, FILTER_VALIDATE_IP)) { $ip = $first; }
+    }
+    return $ip;
+}
+
+/**
  * Event registration form ("Plant a Legacy" landing at /events/).
  *
  * Routes the notification to the events inbox (servicedirector@cbltexas.com by
@@ -295,9 +309,9 @@ function cb_handle_event_registration() {
         wp_send_json_success(['message' => 'Thank you! Your registration is confirmed.']);
     }
 
-    $name  = sanitize_text_field($_POST['full_name'] ?? '');
-    $email = sanitize_email($_POST['email'] ?? '');
-    $phone = sanitize_text_field($_POST['phone'] ?? '');
+    $name  = sanitize_text_field(wp_unslash($_POST['full_name'] ?? ''));
+    $email = sanitize_email(wp_unslash($_POST['email'] ?? ''));
+    $phone = sanitize_text_field(wp_unslash($_POST['phone'] ?? ''));
     $picked = (isset($_POST['modules']) && is_array($_POST['modules']))
         ? array_map('sanitize_text_field', wp_unslash($_POST['modules'])) : [];
 
@@ -306,29 +320,56 @@ function cb_handle_event_registration() {
 
     $catalog = cb_event_modules();
     $chosen  = [];
+    $keys    = [];
     foreach ($picked as $key) {
         if (isset($catalog[$key])) {
-            $m = $catalog[$key];
+            $keys[]   = $key;
+            $m        = $catalog[$key];
             $chosen[] = sprintf('Module %d — %s (%s %s, %s @ %s)',
                 $m['n'], $m['title'], $m['day'], $m['date'], $m['time'], $m['address']);
         }
     }
     if (empty($chosen)) { wp_send_json_error(['message' => 'Please choose at least one workshop to attend.']); }
 
+    // --- Abuse controls (public, unauthenticated endpoint) -------------------
+    // The wp_rest nonce is a shared, ~24h-lived constant for logged-out visitors,
+    // so it is not flood protection on its own. Collapse duplicate resubmits,
+    // throttle per client IP, and cap total stored rows — so a scripted flood can
+    // neither bomb an inbox (each accepted request sends two emails) nor grow
+    // wp_posts/wp_postmeta without bound.
+    sort($keys);
+    $dedup_key = 'cb_evt_dup_' . md5(strtolower($email) . '|' . implode(',', $keys));
+    if (get_transient($dedup_key)) {
+        wp_send_json_success(['message' => 'You&rsquo;re already registered — a confirmation is on its way. See you there!']);
+    }
+    $rl_key = 'cb_evt_rl_' . md5(cb_client_ip());
+    $hits   = (int) get_transient($rl_key);
+    if ($hits >= 8) {
+        wp_send_json_error(['message' => 'Too many registrations from this connection right now. Please try again shortly, or call (325) 944-9559.']);
+    }
+    set_transient($rl_key, $hits + 1, HOUR_IN_SECONDS);
+    set_transient($dedup_key, 1, 10 * MINUTE_IN_SECONDS);
+
     $when = current_time('mysql');
 
-    // 1) Durable admin record first — this is what "success" is judged on.
-    $post_id = wp_insert_post([
-        'post_type'   => 'cb_registration',
-        'post_status' => 'publish',
-        'post_title'  => $name . ' — ' . count($chosen) . ' module(s) — ' . $when,
-    ], true);
-    if ($post_id && !is_wp_error($post_id)) {
-        update_post_meta($post_id, 'reg_name', $name);
-        update_post_meta($post_id, 'reg_email', $email);
-        update_post_meta($post_id, 'reg_phone', $phone);
-        update_post_meta($post_id, 'reg_modules', $chosen);
-        update_post_meta($post_id, 'reg_date', $when);
+    // 1) Durable admin record. Capped so a flood cannot grow the table without
+    //    bound; past the cap we still notify the office but stop inserting rows.
+    $stored  = false;
+    $post_id = 0;
+    if ((int) wp_count_posts('cb_registration')->publish < 20000) {
+        $post_id = wp_insert_post([
+            'post_type'   => 'cb_registration',
+            'post_status' => 'publish',
+            'post_title'  => $name . ' — ' . count($chosen) . ' module(s) — ' . $when,
+        ], true);
+        if ($post_id && !is_wp_error($post_id)) {
+            $stored = true;
+            update_post_meta($post_id, 'reg_name', $name);
+            update_post_meta($post_id, 'reg_email', $email);
+            update_post_meta($post_id, 'reg_phone', $phone);
+            update_post_meta($post_id, 'reg_modules', $chosen);
+            update_post_meta($post_id, 'reg_date', $when);
+        }
     }
 
     // 2) Notify the events inbox.
@@ -340,12 +381,18 @@ function cb_handle_event_registration() {
              . "Phone: " . ($phone ?: '(not provided)') . "\n\n"
              . "Registered for:\n  - " . implode("\n  - ", $chosen) . "\n\n"
              . "Submitted: {$when}\n"
-             . (($post_id && !is_wp_error($post_id)) ? "Admin record: " . admin_url("post.php?post={$post_id}&action=edit") . "\n" : "");
+             . ($stored ? "Admin record: " . admin_url("post.php?post={$post_id}&action=edit") . "\n" : "");
     $headers = [
         'Content-Type: text/plain; charset=UTF-8',
         'Reply-To: ' . $name . ' <' . $email . '>',
     ];
-    wp_mail($to, $subject, $body, $headers);
+    $notified = wp_mail($to, $subject, $body, $headers);
+
+    // A registration that neither saved a record NOR reached the office must not
+    // report success — that would silently lose a real person's request.
+    if (!$stored && !$notified) {
+        wp_send_json_error(['message' => 'Sorry — we could not complete your registration just now. Please call us at (325) 944-9559.']);
+    }
 
     // 3) Best-effort confirmation to the registrant — never blocks success.
     $confirm = "Hi {$name},\n\n"

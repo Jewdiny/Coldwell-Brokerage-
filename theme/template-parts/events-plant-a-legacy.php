@@ -82,7 +82,7 @@ $pal_donate = trim((string) get_theme_mod('cb_grace_donate_url', ''));
 .pal-sec{padding:clamp(2.6rem,6vw,4.5rem) 0;}
 .pal-sec--tint{background:#fff;}
 .pal-head{text-align:center;max-width:640px;margin:0 auto clamp(1.8rem,4vw,2.8rem);}
-.pal-head__eyebrow{letter-spacing:.22em;text-transform:uppercase;font-size:.72rem;font-weight:700;color:var(--pal-gold);}
+.pal-head__eyebrow{letter-spacing:.22em;text-transform:uppercase;font-size:.72rem;font-weight:700;color:#6b520f;}
 .pal-head h2{font-size:clamp(1.8rem,4.5vw,2.6rem);margin:.4rem 0 .6rem;color:var(--pal-green);font-weight:700;}
 .pal-head p{color:#5c5f52;margin:0;font-size:1.05rem;}
 
@@ -97,20 +97,24 @@ $pal_donate = trim((string) get_theme_mod('cb_grace_donate_url', ''));
 .pal-card__meta b{color:var(--pal-green);}
 .pal-card__row{display:flex;gap:.5rem;align-items:flex-start;}
 .pal-card__row svg{flex:none;margin-top:.15rem;color:var(--pal-gold);}
-.pal-card__take{font-size:.82rem;color:#7a7d6d;margin:0;}
+.pal-card__take{font-size:.82rem;color:#5c5f52;margin:0;}
 
 /* instructor */
 .pal-inst{display:grid;grid-template-columns:minmax(0,1fr);gap:1.5rem;align-items:start;max-width:820px;margin:0 auto;}
 .pal-inst__card{background:#fff;border:1px solid #e7e3d6;border-radius:18px;padding:clamp(1.4rem,3.5vw,2.2rem);box-shadow:0 8px 26px rgba(30,49,31,.07);}
 .pal-inst__eyebrow{display:inline-block;background:var(--pal-green);color:#fff;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;padding:.35rem .9rem;border-radius:999px;}
 .pal-inst h3{font-size:clamp(1.6rem,4vw,2.1rem);color:var(--pal-green);margin:.8rem 0 .1rem;font-weight:700;}
-.pal-inst__role{font-style:italic;color:#7a7d6d;margin:0 0 1rem;font-size:1.05rem;}
+.pal-inst__role{font-style:italic;color:#5c5f52;margin:0 0 1rem;font-size:1.05rem;}
 .pal-inst p{margin:0 0 .9rem;color:#41453a;}
 
 /* registration form */
 .pal-reg{background:var(--pal-green);color:#fff;}
+.pal-reg .pal-head__eyebrow{color:var(--pal-gold);}
 .pal-reg .pal-head h2{color:#fff;}
 .pal-reg .pal-head p{color:rgba(255,255,255,.8);}
+.pal-event fieldset{border:0;margin:0;padding:0;min-width:0;}
+.pal-event legend{display:block;padding:0;font-weight:600;font-size:.9rem;margin-bottom:.4rem;letter-spacing:.02em;}
+.pal-event legend .pal-legend__note{font-weight:400;opacity:.75;}
 .pal-form{max-width:680px;margin:0 auto;background:rgba(255,255,255,.04);border:1px solid var(--pal-line);border-radius:18px;padding:clamp(1.3rem,4vw,2.2rem);}
 .pal-field{margin-bottom:1.1rem;}
 .pal-field label{display:block;font-weight:600;font-size:.9rem;margin-bottom:.4rem;letter-spacing:.02em;}
@@ -254,8 +258,8 @@ $pal_donate = trim((string) get_theme_mod('cb_grace_donate_url', ''));
                         <input type="tel" id="pal-phone" name="phone" autocomplete="tel">
                     </div>
                 </div>
-                <div class="pal-field">
-                    <label>Which workshops will you attend? <span style="font-weight:400;opacity:.75;">(check all that apply)</span></label>
+                <fieldset class="pal-field">
+                    <legend>Which workshops will you attend? <span class="pal-legend__note">(check all that apply)</span></legend>
                     <div class="pal-checks">
                         <?php foreach ($pal_modules as $key => $m) : ?>
                             <label class="pal-check">
@@ -267,7 +271,7 @@ $pal_donate = trim((string) get_theme_mod('cb_grace_donate_url', ''));
                             </label>
                         <?php endforeach; ?>
                     </div>
-                </div>
+                </fieldset>
                 <div class="pal-hp" aria-hidden="true">
                     <label>Company<input type="text" name="company" tabindex="-1" autocomplete="off"></label>
                 </div>
