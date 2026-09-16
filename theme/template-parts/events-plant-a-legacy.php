@@ -100,6 +100,18 @@ $pal_donate = trim((string) get_theme_mod('cb_grace_donate_url', ''));
 .pal-card__row svg{flex:none;margin-top:.15rem;color:var(--pal-gold);}
 .pal-card__take{font-size:.82rem;color:#5c5f52;margin:0;}
 
+/* pricing breakdown under the module cards */
+.pal-breakdown{max-width:780px;margin:2.2rem auto 0;background:var(--pal-green);border-radius:16px;padding:clamp(1.2rem,3vw,1.6rem);box-shadow:0 10px 26px rgba(30,49,31,.12);}
+.pal-breakdown__title{text-align:center;color:#fff;font-weight:700;font-size:clamp(1rem,2.6vw,1.15rem);margin:0 0 1.1rem;}
+.pal-breakdown__title b{color:var(--pal-gold);}
+.pal-breakdown__grid{display:grid;grid-template-columns:repeat(4,1fr);gap:.7rem;}
+.pal-tier{background:rgba(255,255,255,.06);border:1px solid var(--pal-line);border-radius:12px;padding:1rem .55rem;text-align:center;display:flex;flex-direction:column;gap:.15rem;}
+.pal-tier--deal{border-color:var(--pal-gold);background:rgba(201,162,75,.14);}
+.pal-tier__count{font-size:.78rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:rgba(255,255,255,.88);}
+.pal-tier__price{font-size:clamp(1.7rem,5vw,2.1rem);font-weight:800;color:var(--pal-gold);line-height:1.05;}
+.pal-tier__save{font-size:.72rem;font-weight:700;color:#fff;min-height:1em;}
+@media(max-width:560px){.pal-breakdown__grid{grid-template-columns:repeat(2,1fr);}}
+
 /* instructor */
 .pal-inst{display:grid;grid-template-columns:minmax(0,1fr);gap:1.5rem;align-items:start;max-width:820px;margin:0 auto;}
 .pal-inst--photo{max-width:960px;}
@@ -230,6 +242,31 @@ $pal_donate = trim((string) get_theme_mod('cb_grace_donate_url', ''));
                         </div>
                     </article>
                 <?php endforeach; ?>
+            </div>
+            <div class="pal-breakdown">
+                <p class="pal-breakdown__title">What you&rsquo;ll pay &mdash; <b>$45</b> per module, or <b>$40</b> per module for 3 or more</p>
+                <div class="pal-breakdown__grid">
+                    <div class="pal-tier">
+                        <span class="pal-tier__count">1 module</span>
+                        <span class="pal-tier__price">$45</span>
+                        <span class="pal-tier__save">&nbsp;</span>
+                    </div>
+                    <div class="pal-tier">
+                        <span class="pal-tier__count">2 modules</span>
+                        <span class="pal-tier__price">$90</span>
+                        <span class="pal-tier__save">&nbsp;</span>
+                    </div>
+                    <div class="pal-tier pal-tier--deal">
+                        <span class="pal-tier__count">3 modules</span>
+                        <span class="pal-tier__price">$120</span>
+                        <span class="pal-tier__save">Save $15</span>
+                    </div>
+                    <div class="pal-tier pal-tier--deal">
+                        <span class="pal-tier__count">All 4 modules</span>
+                        <span class="pal-tier__price">$160</span>
+                        <span class="pal-tier__save">Save $20</span>
+                    </div>
+                </div>
             </div>
             <p style="text-align:center;font-style:italic;color:var(--pal-green);font-size:1.15rem;margin-top:2rem;">&ldquo;Hands in the soil. Hope in the future.&rdquo;</p>
         </div>
