@@ -54,8 +54,8 @@ $pal_donate = trim((string) get_theme_mod('cb_grace_donate_url', ''));
 .pal-hero__scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(20,32,16,.42),rgba(20,32,16,.72));}
 .pal-hero__in{position:relative;max-width:900px;margin:0 auto;}
 .pal-hero__eyebrow{display:inline-block;letter-spacing:.28em;text-transform:uppercase;font-size:.72rem;font-weight:600;color:var(--pal-gold);margin-bottom:1rem;}
-.pal-hero h1{font-size:clamp(2.7rem,8vw,5rem);line-height:1.02;margin:0 0 .5rem;font-weight:700;letter-spacing:-.01em;text-shadow:0 2px 24px rgba(0,0,0,.25);}
-.pal-hero__sub{font-size:clamp(1.05rem,2.6vw,1.5rem);font-weight:500;opacity:.96;margin:0 auto;}
+.pal-hero h1{color:#fff;font-size:clamp(2.7rem,8vw,5rem);line-height:1.02;margin:0 0 .5rem;font-weight:700;letter-spacing:-.01em;text-shadow:0 2px 24px rgba(0,0,0,.25);}
+.pal-hero__sub{color:#fff;font-size:clamp(1.05rem,2.6vw,1.5rem);font-weight:500;opacity:.96;margin:0 auto;}
 .pal-hero__rule{display:flex;align-items:center;justify-content:center;gap:.9rem;margin:1.4rem auto 1.1rem;max-width:560px;color:rgba(255,255,255,.55);}
 .pal-hero__rule::before,.pal-hero__rule::after{content:"";height:1px;flex:1;background:var(--pal-line);}
 .pal-hero__meta{font-size:.82rem;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:rgba(255,255,255,.85);}
@@ -68,7 +68,7 @@ $pal_donate = trim((string) get_theme_mod('cb_grace_donate_url', ''));
 .pal-cta__qr img{width:100%;border-radius:6px;}
 .pal-cta__qr span{display:block;color:var(--pal-green);font-size:.62rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;text-align:center;margin-top:.35rem;}
 .pal-cta__copy{max-width:22rem;text-align:left;}
-.pal-cta__copy h2{margin:0 0 .3rem;font-size:1.35rem;font-weight:700;}
+.pal-cta__copy h2{color:#fff;margin:0 0 .3rem;font-size:1.35rem;font-weight:700;}
 .pal-cta__copy p{margin:0;opacity:.85;font-size:.95rem;}
 .pal-btns{display:flex;flex-wrap:wrap;gap:.7rem;justify-content:center;}
 .pal-btn{display:inline-flex;align-items:center;gap:.5rem;border-radius:999px;padding:.85rem 1.6rem;font-weight:700;font-size:1rem;
