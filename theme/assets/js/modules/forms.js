@@ -324,7 +324,22 @@
         .then(function (r) { return r.json(); })
         .then(function (res) {
           if (res && res.success) {
-            done((res.data && res.data.message) || 'Thank you — your registration is confirmed.', true);
+            var d = res.data || {};
+            var redirect = d.redirect || '';
+            done(d.message || 'Thank you — your registration is confirmed.', true);
+            // Registration done — send them on to the donation page (a moment
+            // later so the confirmation is visible first). Inside a partner
+            // iframe, open a new tab instead of navigating the embed away.
+            if (redirect) {
+              if (status) { status.textContent = d.message + ' Taking you to donate…'; }
+              setTimeout(function () {
+                if (window.self !== window.top) {
+                  window.open(redirect, '_blank', 'noopener');
+                } else {
+                  window.location.href = redirect;
+                }
+              }, 1800);
+            }
           } else {
             done((res && res.data && res.data.message) || 'Something went wrong. Please call (325) 944-9559.', false);
           }

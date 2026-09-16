@@ -337,10 +337,16 @@ function cb_handle_event_registration() {
     // throttle per client IP, and cap total stored rows — so a scripted flood can
     // neither bomb an inbox (each accepted request sends two emails) nor grow
     // wp_posts/wp_postmeta without bound.
+    // Where to send the registrant after they submit (the donation page), if set.
+    $donate_redirect = esc_url_raw(trim((string) get_theme_mod('cb_grace_donate_url', '')));
+
     sort($keys);
     $dedup_key = 'cb_evt_dup_' . md5(strtolower($email) . '|' . implode(',', $keys));
     if (get_transient($dedup_key)) {
-        wp_send_json_success(['message' => 'You&rsquo;re already registered — a confirmation is on its way. See you there!']);
+        wp_send_json_success([
+            'message'  => 'You&rsquo;re already registered — a confirmation is on its way. See you there!',
+            'redirect' => $donate_redirect,
+        ]);
     }
     $rl_key = 'cb_evt_rl_' . md5(cb_client_ip());
     $hits   = (int) get_transient($rl_key);
@@ -404,7 +410,10 @@ function cb_handle_event_registration() {
     wp_mail($email, "You're registered — Plant a Legacy workshops", $confirm,
         ['Content-Type: text/plain; charset=UTF-8']);
 
-    wp_send_json_success(['message' => 'Thank you, ' . $name . '! Your registration is confirmed — a confirmation is on its way to your inbox.']);
+    wp_send_json_success([
+        'message'  => 'Thank you, ' . $name . '! Your registration is confirmed — a confirmation is on its way to your inbox.',
+        'redirect' => $donate_redirect,
+    ]);
 }
 add_action('wp_ajax_cb_event_registration', 'cb_handle_event_registration');
 add_action('wp_ajax_nopriv_cb_event_registration', 'cb_handle_event_registration');

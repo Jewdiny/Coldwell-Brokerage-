@@ -32,6 +32,7 @@ $pal_img = function ($base) {
 $pal_main  = $pal_img('main');   // full infographic (optional top banner)
 $pal_hero  = $pal_img('hero');   // hero background photo (optional)
 $pal_qr    = $pal_img('qr');     // exact QR supplied by client (optional)
+$pal_instructor = $pal_img('instructor'); // Carina Corbet-Owen portrait (optional)
 $pal_donate = trim((string) get_theme_mod('cb_grace_donate_url', ''));
 ?>
 <style>
@@ -101,6 +102,11 @@ $pal_donate = trim((string) get_theme_mod('cb_grace_donate_url', ''));
 
 /* instructor */
 .pal-inst{display:grid;grid-template-columns:minmax(0,1fr);gap:1.5rem;align-items:start;max-width:820px;margin:0 auto;}
+.pal-inst--photo{max-width:960px;}
+@media(min-width:760px){.pal-inst--photo{grid-template-columns:minmax(240px,330px) minmax(0,1fr);gap:2rem;}}
+.pal-inst__photo{margin:0;border-radius:18px;overflow:hidden;border:1px solid #e7e3d6;box-shadow:0 12px 30px rgba(30,49,31,.14);background:#fff;}
+.pal-inst__photo img{width:100%;height:auto;display:block;}
+.pal-inst__photo figcaption{padding:.7rem 1rem;font-size:.8rem;font-style:italic;color:#5c5f52;text-align:center;background:var(--pal-cream);}
 .pal-inst__card{background:#fff;border:1px solid #e7e3d6;border-radius:18px;padding:clamp(1.4rem,3.5vw,2.2rem);box-shadow:0 8px 26px rgba(30,49,31,.07);}
 .pal-inst__eyebrow{display:inline-block;background:var(--pal-green);color:#fff;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;padding:.35rem .9rem;border-radius:999px;}
 .pal-inst h3{font-size:clamp(1.6rem,4vw,2.1rem);color:var(--pal-green);margin:.8rem 0 .1rem;font-weight:700;}
@@ -223,7 +229,13 @@ $pal_donate = trim((string) get_theme_mod('cb_grace_donate_url', ''));
     <?php /* INSTRUCTOR — Carina Corbet-Owen (client-supplied bio). */ ?>
     <section class="pal-sec">
         <div class="pal-wrap">
-            <div class="pal-inst">
+            <div class="pal-inst<?php echo $pal_instructor ? ' pal-inst--photo' : ''; ?>">
+                <?php if ($pal_instructor) : ?>
+                    <figure class="pal-inst__photo">
+                        <img src="<?php echo $pal_instructor; ?>" width="1136" height="1744" loading="lazy" alt="Carina Corbet-Owen in the garden at Grace Gardens, holding a bowl of freshly harvested vegetables.">
+                        <figcaption>Carina Corbet-Owen at Grace Gardens</figcaption>
+                    </figure>
+                <?php endif; ?>
                 <div class="pal-inst__card">
                     <span class="pal-inst__eyebrow">Your Instructor</span>
                     <h3>Carina Corbet-Owen</h3>
