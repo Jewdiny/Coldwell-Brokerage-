@@ -118,6 +118,15 @@ $pal_donate = trim((string) get_theme_mod('cb_grace_donate_url', ''));
 .pal-reg .pal-head__eyebrow{color:var(--pal-gold);}
 .pal-reg .pal-head h2{color:#fff;}
 .pal-reg .pal-head p{color:rgba(255,255,255,.8);}
+
+/* pricing — big & bold */
+.pal-price{display:flex;flex-wrap:wrap;gap:1rem;justify-content:center;align-items:stretch;max-width:700px;margin:0 auto clamp(1.6rem,4vw,2.4rem);}
+.pal-price__card{flex:1 1 250px;background:rgba(255,255,255,.05);border:1px solid var(--pal-line);border-radius:16px;padding:1.5rem 1.2rem;text-align:center;display:flex;flex-direction:column;justify-content:center;}
+.pal-price__card--deal{border-color:var(--pal-gold);background:rgba(201,162,75,.14);}
+.pal-price__tag{align-self:center;margin-bottom:.7rem;background:var(--pal-gold);color:#26331c;font-size:.66rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:.3rem .75rem;border-radius:999px;}
+.pal-price__amt{display:block;font-size:clamp(3rem,10vw,4.4rem);font-weight:800;line-height:.95;color:var(--pal-gold);letter-spacing:-.02em;}
+.pal-price__unit{display:block;margin-top:.5rem;font-size:1.05rem;font-weight:700;color:#fff;}
+.pal-reg-note{background:rgba(201,162,75,.16);border:1px solid var(--pal-gold);border-radius:12px;padding:1rem 1.15rem;margin:0 0 1.3rem;font-size:1rem;font-weight:700;line-height:1.45;color:#fff;text-align:center;}
 .pal-event fieldset{border:0;margin:0;padding:0;min-width:0;}
 .pal-event legend{display:block;padding:0;font-weight:600;font-size:.9rem;margin-bottom:.4rem;letter-spacing:.02em;}
 .pal-event legend .pal-legend__note{font-weight:400;opacity:.75;}
@@ -185,7 +194,7 @@ $pal_donate = trim((string) get_theme_mod('cb_grace_donate_url', ''));
             <?php endif; ?>
             <div class="pal-cta__copy">
                 <h2>Reserve your spot</h2>
-                <p>Free, hands-on, and open to the community. Register below &mdash; every workshop supports Grace Gardens.</p>
+                <p>Hands-on, community workshops that support Grace Gardens &mdash; <b>$45 per module</b>, or <b>$40 each when you register for 3 or more</b>. Sign up below.</p>
             </div>
             <div class="pal-btns">
                 <a class="pal-btn pal-btn--book" href="#pal-register">&#128197;&nbsp; Book Your Spot</a>
@@ -255,6 +264,17 @@ $pal_donate = trim((string) get_theme_mod('cb_grace_donate_url', ''));
                 <h2>Save Your Spot</h2>
                 <p>Tell us who&rsquo;s coming and which workshops you&rsquo;d like to attend.</p>
             </div>
+            <div class="pal-price">
+                <div class="pal-price__card">
+                    <span class="pal-price__amt">$45</span>
+                    <span class="pal-price__unit">per module</span>
+                </div>
+                <div class="pal-price__card pal-price__card--deal">
+                    <span class="pal-price__tag">Best value</span>
+                    <span class="pal-price__amt">$40</span>
+                    <span class="pal-price__unit">per module when you register for 3 or more</span>
+                </div>
+            </div>
             <form class="pal-form" id="cb-event-registration-form" novalidate>
                 <div class="pal-field">
                     <label for="pal-name">Full Name</label>
@@ -287,6 +307,7 @@ $pal_donate = trim((string) get_theme_mod('cb_grace_donate_url', ''));
                 <div class="pal-hp" aria-hidden="true">
                     <label>Company<input type="text" name="company" tabindex="-1" autocomplete="off"></label>
                 </div>
+                <p class="pal-reg-note">After registration you will be redirected to the Grace Gardens payment page to complete your workshop registration. This part must be completed to complete your ticket.</p>
                 <button type="submit" class="pal-submit">Register Now</button>
                 <p class="pal-status" id="cb-event-reg-status" role="status" aria-live="polite"></p>
             </form>
