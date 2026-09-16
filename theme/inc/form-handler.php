@@ -239,3 +239,125 @@ function cb_handle_market_report_signup() {
 }
 add_action('wp_ajax_cb_market_report_signup', 'cb_handle_market_report_signup');
 add_action('wp_ajax_nopriv_cb_market_report_signup', 'cb_handle_market_report_signup');
+
+/**
+ * Plant a Legacy workshop series — the four modules.
+ *
+ * ONE source of truth, shared by the registration form (which renders the
+ * checkboxes) and the AJAX handler (which validates the chosen keys and labels
+ * them in the notification email). Change a date or venue here and both the page
+ * and every email update together. Dates/times/venues are from the client's
+ * schedule graphic; Module 2 is Composting (the registration-mockup image
+ * mislabels it "Lasagna Gardening" — corrected here to match the infographic).
+ */
+function cb_event_modules() {
+    return [
+        'm1' => [
+            'n' => 1, 'title' => 'Lasagna Gardening', 'tagline' => 'Build a bed. Wear the story.',
+            'day' => 'Sat', 'date' => 'Oct 10', 'time' => '9:00–10:30 AM',
+            'address' => '1024 N Adams St, San Angelo, TX 76901', 'takehome' => 'An apron & the know-how',
+        ],
+        'm2' => [
+            'n' => 2, 'title' => 'Composting', 'tagline' => 'Make your bin. Take it home.',
+            'day' => 'Tue', 'date' => 'Oct 20', 'time' => '5:30–7:00 PM',
+            'address' => '3017 Knickerbocker Rd, San Angelo, TX 76904', 'takehome' => 'Your own composting bin',
+        ],
+        'm3' => [
+            'n' => 3, 'title' => 'Upcycling & Recycling', 'tagline' => 'Save money. Gift your garden.',
+            'day' => 'Tue', 'date' => 'Nov 10', 'time' => '5:30–7:00 PM',
+            'address' => '3017 Knickerbocker Rd, San Angelo, TX 76904', 'takehome' => 'A handmade project for your garden',
+        ],
+        'm4' => [
+            'n' => 4, 'title' => 'Green Cleaners', 'tagline' => 'Make it. Take the recipes home.',
+            'day' => 'Tue', 'date' => 'Nov 17', 'time' => '5:30–7:00 PM',
+            'address' => '3017 Knickerbocker Rd, San Angelo, TX 76904', 'takehome' => 'Two cleaners plus the recipes',
+        ],
+    ];
+}
+
+/**
+ * Event registration form ("Plant a Legacy" landing at /events/).
+ *
+ * Routes the notification to the events inbox (servicedirector@cbltexas.com by
+ * default; overridable via a cb_events_email theme_mod). EVERY submission is
+ * also written to a cb_registration post first, so the office keeps a durable,
+ * exportable record in wp-admin even if the notification email is ever filtered
+ * as spam by the recipient's server. A hidden honeypot ("company") drops bots
+ * without a captcha. Success is reported on the strength of the saved record,
+ * not the mail server.
+ */
+function cb_handle_event_registration() {
+    check_ajax_referer('wp_rest', 'nonce');
+
+    // Honeypot — real people leave this empty; bots fill every field. Return a
+    // fake success so the bot doesn't learn it was caught.
+    if (!empty($_POST['company'])) {
+        wp_send_json_success(['message' => 'Thank you! Your registration is confirmed.']);
+    }
+
+    $name  = sanitize_text_field($_POST['full_name'] ?? '');
+    $email = sanitize_email($_POST['email'] ?? '');
+    $phone = sanitize_text_field($_POST['phone'] ?? '');
+    $picked = (isset($_POST['modules']) && is_array($_POST['modules']))
+        ? array_map('sanitize_text_field', wp_unslash($_POST['modules'])) : [];
+
+    if (empty($name))                 { wp_send_json_error(['message' => 'Please enter your name.']); }
+    if (!$email || !is_email($email)) { wp_send_json_error(['message' => 'Please enter a valid email address.']); }
+
+    $catalog = cb_event_modules();
+    $chosen  = [];
+    foreach ($picked as $key) {
+        if (isset($catalog[$key])) {
+            $m = $catalog[$key];
+            $chosen[] = sprintf('Module %d — %s (%s %s, %s @ %s)',
+                $m['n'], $m['title'], $m['day'], $m['date'], $m['time'], $m['address']);
+        }
+    }
+    if (empty($chosen)) { wp_send_json_error(['message' => 'Please choose at least one workshop to attend.']); }
+
+    $when = current_time('mysql');
+
+    // 1) Durable admin record first — this is what "success" is judged on.
+    $post_id = wp_insert_post([
+        'post_type'   => 'cb_registration',
+        'post_status' => 'publish',
+        'post_title'  => $name . ' — ' . count($chosen) . ' module(s) — ' . $when,
+    ], true);
+    if ($post_id && !is_wp_error($post_id)) {
+        update_post_meta($post_id, 'reg_name', $name);
+        update_post_meta($post_id, 'reg_email', $email);
+        update_post_meta($post_id, 'reg_phone', $phone);
+        update_post_meta($post_id, 'reg_modules', $chosen);
+        update_post_meta($post_id, 'reg_date', $when);
+    }
+
+    // 2) Notify the events inbox.
+    $to      = cb_lead_recipient('cb_events_email', 'servicedirector@cbltexas.com');
+    $subject = 'Plant a Legacy — New Registration: ' . $name;
+    $body    = "New workshop registration from the Plant a Legacy events page (homes-sanangelo.com/events/).\n\n"
+             . "Name:  {$name}\n"
+             . "Email: {$email}\n"
+             . "Phone: " . ($phone ?: '(not provided)') . "\n\n"
+             . "Registered for:\n  - " . implode("\n  - ", $chosen) . "\n\n"
+             . "Submitted: {$when}\n"
+             . (($post_id && !is_wp_error($post_id)) ? "Admin record: " . admin_url("post.php?post={$post_id}&action=edit") . "\n" : "");
+    $headers = [
+        'Content-Type: text/plain; charset=UTF-8',
+        'Reply-To: ' . $name . ' <' . $email . '>',
+    ];
+    wp_mail($to, $subject, $body, $headers);
+
+    // 3) Best-effort confirmation to the registrant — never blocks success.
+    $confirm = "Hi {$name},\n\n"
+             . "Thank you for registering for Plant a Legacy — a hands-on workshop series from "
+             . "Coldwell Banker Legacy and Grace Gardens.\n\n"
+             . "You're registered for:\n  - " . implode("\n  - ", $chosen) . "\n\n"
+             . "We look forward to seeing you there. Need to change anything? Just reply to this email.\n\n"
+             . "— Coldwell Banker Legacy, San Angelo\n";
+    wp_mail($email, "You're registered — Plant a Legacy workshops", $confirm,
+        ['Content-Type: text/plain; charset=UTF-8']);
+
+    wp_send_json_success(['message' => 'Thank you, ' . $name . '! Your registration is confirmed — a confirmation is on its way to your inbox.']);
+}
+add_action('wp_ajax_cb_event_registration', 'cb_handle_event_registration');
+add_action('wp_ajax_nopriv_cb_event_registration', 'cb_handle_event_registration');

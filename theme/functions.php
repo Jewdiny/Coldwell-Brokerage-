@@ -1001,6 +1001,26 @@ function cb_register_post_types() {
         'supports'     => ['title', 'editor', 'thumbnail', 'excerpt'],
         'show_in_rest' => true,
     ]);
+
+    // Event registrations (admin-only record of every submission from the
+    // /events/ registration form). Non-public so these never surface on the
+    // front end or in search, but show_ui so the office has a durable, exportable
+    // list in wp-admin even if a notification email is ever filtered as spam.
+    register_post_type('cb_registration', [
+        'labels' => [
+            'name'          => __('Event Registrations', 'cb-legacy'),
+            'singular_name' => __('Registration', 'cb-legacy'),
+        ],
+        'public'              => false,
+        'show_ui'             => true,
+        'show_in_menu'        => true,
+        'menu_icon'           => 'dashicons-tickets-alt',
+        'exclude_from_search' => true,
+        'publicly_queryable'  => false,
+        'supports'            => ['title'],
+        'capability_type'     => 'post',
+        'map_meta_cap'        => true,
+    ]);
 }
 add_action('init', 'cb_register_post_types');
 

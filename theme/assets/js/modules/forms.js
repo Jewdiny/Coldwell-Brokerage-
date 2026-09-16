@@ -285,17 +285,69 @@
     });
   }
 
+  /**
+   * Plant a Legacy event registration form (/events/).
+   *
+   * FormData(form) so the module checkboxes (name="modules[]") and honeypot ride
+   * along with no hand-maintained field list. Status goes to a live region under
+   * the button; on success the form resets and a confirmation sentence is shown.
+   */
+  function initEventRegistrationForm() {
+    var form = document.getElementById('cb-event-registration-form');
+    if (!form) return;
+    var status = document.getElementById('cb-event-reg-status');
+
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      var btn = form.querySelector('button[type="submit"]');
+      var originalText = btn.textContent;
+      btn.textContent = 'Registering...';
+      btn.disabled = true;
+      if (status) { status.textContent = ''; status.style.color = ''; }
+
+      var data = new FormData(form);
+      data.append('action', 'cb_event_registration');
+      data.append('nonce', cbLegacy.nonce);
+
+      var done = function (msg, ok) {
+        btn.textContent = originalText;
+        btn.disabled = false;
+        if (status) {
+          status.textContent = msg;
+          status.style.color = ok ? 'var(--cb-navy)' : '#B91C1C';
+        }
+        if (ok) { form.reset(); }
+      };
+
+      fetch(cbLegacy.ajaxUrl, { method: 'POST', body: data })
+        .then(function (r) { return r.json(); })
+        .then(function (res) {
+          if (res && res.success) {
+            done((res.data && res.data.message) || 'Thank you — your registration is confirmed.', true);
+          } else {
+            done((res && res.data && res.data.message) || 'Something went wrong. Please call (325) 944-9559.', false);
+          }
+        })
+        .catch(function () {
+          done('Could not send. Please call (325) 944-9559.', false);
+        });
+    });
+  }
+
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', function () {
       initContactForm();
       initValuationForm();
       initPmForm();
       initMarketReportModal();
+      initEventRegistrationForm();
     });
   } else {
     initContactForm();
     initValuationForm();
     initPmForm();
     initMarketReportModal();
+    initEventRegistrationForm();
   }
 })();
