@@ -170,9 +170,8 @@ $pal_donate = trim((string) get_theme_mod('cb_grace_donate_url', ''));
 /* partner logos strip */
 .pal-logos{background:var(--pal-green-2);color:#fff;text-align:center;padding:2.4rem 1.25rem;}
 .pal-logos__row{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:1.4rem 2.4rem;}
-.pal-logos img{width:auto;display:inline-block;vertical-align:middle;opacity:.97;margin:0;}
-.pal-logos__cb{height:56px;}
-.pal-logos__grace{height:78px;border-radius:8px;}
+.pal-logos img{width:auto;height:56px;display:inline-block;vertical-align:middle;opacity:.97;margin:0;}
+.pal-logos img.pal-logos__grace{height:78px;border-radius:8px;}
 .pal-logos__tag{margin-top:1.2rem;font-style:italic;color:rgba(255,255,255,.72);}
 
 @media (max-width:640px){
