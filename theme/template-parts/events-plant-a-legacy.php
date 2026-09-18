@@ -61,6 +61,11 @@ $pal_donate = trim((string) get_theme_mod('cb_grace_donate_url', ''));
 .pal-hero__rule::before,.pal-hero__rule::after{content:"";height:1px;flex:1;background:var(--pal-line);}
 .pal-hero__meta{font-size:.82rem;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:rgba(255,255,255,.85);}
 .pal-hero__meta b{color:var(--pal-gold);font-weight:700;}
+.pal-hero__sponsor{color:var(--pal-gold);font-size:clamp(1rem,2.6vw,1.3rem);font-weight:700;letter-spacing:.01em;margin:.35rem 0 0;}
+.pal-hero__lead{color:#fff;font-size:clamp(1.05rem,2.5vw,1.32rem);font-weight:500;max-width:640px;margin:0 auto 1.3rem;}
+.pal-hero__mission{margin:0 auto 1.5rem;max-width:680px;border-left:3px solid var(--pal-gold);background:rgba(255,255,255,.07);border-radius:0 12px 12px 0;padding:1.05rem 1.35rem;text-align:left;}
+.pal-hero__mission-label{display:block;color:var(--pal-gold);font-size:.72rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;margin-bottom:.45rem;}
+.pal-hero__mission p{color:#fff;font-style:italic;font-size:clamp(.98rem,2.3vw,1.14rem);margin:0;line-height:1.55;}
 
 /* CTA strip */
 .pal-cta{background:var(--pal-green);color:#fff;}
@@ -93,7 +98,7 @@ $pal_donate = trim((string) get_theme_mod('cb_grace_donate_url', ''));
 .pal-card__badge{background:var(--pal-green);color:var(--pal-gold);font-size:.68rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;padding:.5rem 1rem;}
 .pal-card__body{padding:1.1rem 1.15rem 1.25rem;display:flex;flex-direction:column;gap:.5rem;flex:1;}
 .pal-card h3{margin:0;font-size:1.28rem;color:var(--pal-green);font-weight:700;}
-.pal-card__tag{font-style:italic;color:#6a6d5e;margin:0;}
+.pal-card__tag{color:#3c4034;margin:0;font-size:.95rem;line-height:1.5;}
 .pal-card__meta{margin-top:auto;display:flex;flex-direction:column;gap:.3rem;font-size:.9rem;color:#3c4034;padding-top:.6rem;border-top:1px dashed #e0dccc;}
 .pal-card__meta b{color:var(--pal-green);}
 .pal-card__row{display:flex;gap:.5rem;align-items:flex-start;}
@@ -132,6 +137,7 @@ $pal_donate = trim((string) get_theme_mod('cb_grace_donate_url', ''));
 .pal-reg .pal-head p{color:rgba(255,255,255,.8);}
 
 /* pricing — big & bold */
+.pal-price__label{text-align:center;color:var(--pal-gold);font-weight:800;text-transform:uppercase;letter-spacing:.16em;font-size:.78rem;margin:0 0 .85rem;}
 .pal-price{display:flex;flex-wrap:wrap;gap:1rem;justify-content:center;align-items:stretch;max-width:700px;margin:0 auto clamp(1.6rem,4vw,2.4rem);}
 .pal-price__card{flex:1 1 250px;background:rgba(255,255,255,.05);border:1px solid var(--pal-line);border-radius:16px;padding:1.5rem 1.2rem;text-align:center;display:flex;flex-direction:column;justify-content:center;}
 .pal-price__card--deal{border-color:var(--pal-gold);background:rgba(201,162,75,.14);}
@@ -162,9 +168,12 @@ $pal_donate = trim((string) get_theme_mod('cb_grace_donate_url', ''));
 .pal-status:not(:empty){padding:.7rem 1rem;}
 
 /* partner logos strip */
-.pal-logos{background:var(--pal-green-2);color:#fff;text-align:center;padding:2.2rem 1.25rem;}
-.pal-logos img{height:52px;width:auto;display:inline-block;margin:0 1.2rem;vertical-align:middle;opacity:.95;}
-.pal-logos__tag{margin-top:1rem;font-style:italic;color:rgba(255,255,255,.7);}
+.pal-logos{background:var(--pal-green-2);color:#fff;text-align:center;padding:2.4rem 1.25rem;}
+.pal-logos__row{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:1.4rem 2.4rem;}
+.pal-logos img{width:auto;display:inline-block;vertical-align:middle;opacity:.97;margin:0;}
+.pal-logos__cb{height:56px;}
+.pal-logos__grace{height:78px;border-radius:8px;}
+.pal-logos__tag{margin-top:1.2rem;font-style:italic;color:rgba(255,255,255,.72);}
 
 @media (max-width:640px){
   .pal-row2{grid-template-columns:1fr;}
@@ -177,7 +186,7 @@ $pal_donate = trim((string) get_theme_mod('cb_grace_donate_url', ''));
 
     <?php /* Optional: the full client infographic as a top banner, if uploaded. */ ?>
     <?php if ($pal_main) : ?>
-        <div class="pal-main"><img src="<?php echo $pal_main; ?>" alt="Plant a Legacy — Coldwell Banker Legacy and Grace Gardens: four hands-on workshops, October–November, San Angelo."></div>
+        <div class="pal-main"><img src="<?php echo $pal_main; ?>" alt="Planting a Legacy — sponsored by Coldwell Banker Legacy in support of Grace Gardens: four hands-on workshops, October–November, San Angelo."></div>
     <?php endif; ?>
 
     <?php /* HERO — uses the client hero photo if present, else an on-brand design. */ ?>
@@ -187,35 +196,18 @@ $pal_donate = trim((string) get_theme_mod('cb_grace_donate_url', ''));
             <div class="pal-hero__scrim"></div>
         <?php endif; ?>
         <div class="pal-hero__in">
-            <span class="pal-hero__eyebrow">Grow · Learn · Make a Difference</span>
-            <h1>Plant a Legacy</h1>
-            <p class="pal-hero__sub">Coldwell Banker Legacy&nbsp;&times;&nbsp;Grace Gardens</p>
+            <span class="pal-hero__eyebrow">Welcome to</span>
+            <h1>Planting a Legacy</h1>
+            <p class="pal-hero__sponsor">Sponsored by Coldwell Banker Legacy</p>
             <div class="pal-hero__rule"><span>&#127807;</span></div>
+            <p class="pal-hero__lead">Help us raise funds to support the mission of the non-profit organization, Grace Gardens.</p>
+            <blockquote class="pal-hero__mission">
+                <span class="pal-hero__mission-label">Mission Statement</span>
+                <p>&ldquo;At Grace Gardens, it&rsquo;s our mission to cultivate a welcoming, inclusive gardening space where people of all ages and abilities can grow, thrive, and experience the joy and therapeutic benefits of gardening.&rdquo;</p>
+            </blockquote>
             <p class="pal-hero__meta"><b>Four</b> hands-on workshops &nbsp;&bull;&nbsp; <b>October&ndash;November</b> &nbsp;&bull;&nbsp; San Angelo</p>
         </div>
     </header>
-
-    <?php /* CTA strip: scan-to-register QR + Book + (optional) Donate. */ ?>
-    <section class="pal-cta">
-        <div class="pal-cta__in">
-            <?php if ($pal_qr) : ?>
-                <a class="pal-cta__qr" href="#pal-register" aria-label="Scan or tap to register">
-                    <img src="<?php echo $pal_qr; ?>" alt="QR code — scan to register for Plant a Legacy">
-                    <span>Scan to register</span>
-                </a>
-            <?php endif; ?>
-            <div class="pal-cta__copy">
-                <h2>Reserve your spot</h2>
-                <p>Hands-on, community workshops that support Grace Gardens &mdash; <b>$45 per module</b>, or <b>$40 each when you register for 3 or more</b>. Sign up below.</p>
-            </div>
-            <div class="pal-btns">
-                <a class="pal-btn pal-btn--book" href="#pal-register">&#128197;&nbsp; Book Your Spot</a>
-                <?php if ($pal_donate) : ?>
-                    <a class="pal-btn pal-btn--donate" href="<?php echo esc_url($pal_donate); ?>" target="_blank" rel="noopener">&#10084;&nbsp; Donate</a>
-                <?php endif; ?>
-            </div>
-        </div>
-    </section>
 
     <?php /* WORKSHOP SCHEDULE — the four modules from the single source of truth. */ ?>
     <section class="pal-sec pal-sec--tint">
@@ -243,8 +235,37 @@ $pal_donate = trim((string) get_theme_mod('cb_grace_donate_url', ''));
                     </article>
                 <?php endforeach; ?>
             </div>
+            <p style="text-align:center;font-style:italic;color:var(--pal-green);font-size:1.15rem;margin-top:2rem;">&ldquo;Hands in the soil. Hope in the future.&rdquo;</p>
+        </div>
+    </section>
+
+    <?php /* RESERVE YOUR SPOT — CTA placed between the modules and the suggested-donation info. */ ?>
+    <section class="pal-cta">
+        <div class="pal-cta__in">
+            <?php if ($pal_qr) : ?>
+                <a class="pal-cta__qr" href="#pal-register" aria-label="Scan or tap to reserve your spot">
+                    <img src="<?php echo $pal_qr; ?>" alt="QR code — scan to reserve your spot for Planting a Legacy">
+                    <span>Scan to register</span>
+                </a>
+            <?php endif; ?>
+            <div class="pal-cta__copy">
+                <h2>Reserve your spot</h2>
+                <p>Hands-on community workshops that support Grace Gardens. <b>Suggested donation: $45 per module</b>, or <b>$40 each for 3 or more</b>. Reserve your spot below.</p>
+            </div>
+            <div class="pal-btns">
+                <a class="pal-btn pal-btn--book" href="#pal-register">&#128197;&nbsp; Reserve Your Spot</a>
+                <?php if ($pal_donate) : ?>
+                    <a class="pal-btn pal-btn--donate" href="<?php echo esc_url($pal_donate); ?>" target="_blank" rel="noopener">&#10084;&nbsp; Donate</a>
+                <?php endif; ?>
+            </div>
+        </div>
+    </section>
+
+    <?php /* SUGGESTED DONATION — per-count breakdown. */ ?>
+    <section class="pal-sec pal-sec--tint">
+        <div class="pal-wrap">
             <div class="pal-breakdown">
-                <p class="pal-breakdown__title">What you&rsquo;ll pay &mdash; <b>$45</b> per module, or <b>$40</b> per module for 3 or more</p>
+                <p class="pal-breakdown__title">Suggested donation &mdash; <b>$45</b> per module, or <b>$40</b> per module for 3 or more</p>
                 <div class="pal-breakdown__grid">
                     <div class="pal-tier">
                         <span class="pal-tier__count">1 module</span>
@@ -268,7 +289,6 @@ $pal_donate = trim((string) get_theme_mod('cb_grace_donate_url', ''));
                     </div>
                 </div>
             </div>
-            <p style="text-align:center;font-style:italic;color:var(--pal-green);font-size:1.15rem;margin-top:2rem;">&ldquo;Hands in the soil. Hope in the future.&rdquo;</p>
         </div>
     </section>
 
@@ -298,9 +318,10 @@ $pal_donate = trim((string) get_theme_mod('cb_grace_donate_url', ''));
         <div class="pal-wrap">
             <div class="pal-head">
                 <span class="pal-head__eyebrow">Register</span>
-                <h2>Save Your Spot</h2>
+                <h2>Reserve Your Spot</h2>
                 <p>Tell us who&rsquo;s coming and which workshops you&rsquo;d like to attend.</p>
             </div>
+            <p class="pal-price__label">Suggested Donation</p>
             <div class="pal-price">
                 <div class="pal-price__card">
                     <span class="pal-price__amt">$45</span>
@@ -344,7 +365,7 @@ $pal_donate = trim((string) get_theme_mod('cb_grace_donate_url', ''));
                 <div class="pal-hp" aria-hidden="true">
                     <label>Company<input type="text" name="company" tabindex="-1" autocomplete="off"></label>
                 </div>
-                <p class="pal-reg-note">After registration you will be redirected to the Grace Gardens payment page to complete your workshop registration. This part must be completed to complete your ticket.</p>
+                <p class="pal-reg-note">After registration you will be redirected to the Grace Gardens donation page to complete your workshop registration. This part must be completed to complete your ticket.</p>
                 <button type="submit" class="pal-submit">Register Now</button>
                 <p class="pal-status" id="cb-event-reg-status" role="status" aria-live="polite"></p>
             </form>
@@ -353,9 +374,13 @@ $pal_donate = trim((string) get_theme_mod('cb_grace_donate_url', ''));
 
     <?php /* PARTNER LOGOS. */ ?>
     <div class="pal-logos">
-        <img src="<?php echo esc_url(CB_THEME_URI . '/assets/images/logos/monogram-horizontal-stacked.svg'); ?>" alt="Coldwell Banker Legacy">
-        <?php if ($grace = $pal_img('grace-gardens')) : ?><img src="<?php echo $grace; ?>" alt="Grace Gardens — Nurturing All Abilities in Nature"><?php endif; ?>
-        <p class="pal-logos__tag">Nurturing all abilities in nature.</p>
+        <div class="pal-logos__row">
+            <img class="pal-logos__cb" src="<?php echo esc_url(CB_THEME_URI . '/assets/images/logos/monogram-horizontal-stacked.svg'); ?>" alt="Coldwell Banker Legacy">
+            <?php if ($grace = $pal_img('grace-gardens')) : ?>
+                <img class="pal-logos__grace" src="<?php echo $grace; ?>" alt="Grace Gardens — Nurturing All Abilities in Nature">
+            <?php endif; ?>
+        </div>
+        <p class="pal-logos__tag">Coldwell Banker Legacy in partnership with Grace Gardens.</p>
     </div>
 
 </div>

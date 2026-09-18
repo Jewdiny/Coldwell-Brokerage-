@@ -253,22 +253,22 @@ add_action('wp_ajax_nopriv_cb_market_report_signup', 'cb_handle_market_report_si
 function cb_event_modules() {
     return [
         'm1' => [
-            'n' => 1, 'title' => 'Lasagna Gardening', 'tagline' => 'Build a bed. Wear the story.',
+            'n' => 1, 'title' => 'Lasagna Gardening', 'tagline' => 'Get the knowledge and hands-on know-how to build no-dig lasagna beds that smother weeds.',
             'day' => 'Sat', 'date' => 'Oct 10', 'time' => '9:00–10:30 AM',
             'address' => '1024 N Adams St, San Angelo, TX 76901', 'takehome' => 'An apron & the know-how',
         ],
         'm2' => [
-            'n' => 2, 'title' => 'Composting', 'tagline' => 'Make your bin. Take it home.',
+            'n' => 2, 'title' => 'Composting', 'tagline' => 'Good gardening begins with good soil: turn free scraps into rich soil with no smell or guesswork.',
             'day' => 'Tue', 'date' => 'Oct 20', 'time' => '5:30–7:00 PM',
             'address' => '3017 Knickerbocker Rd, San Angelo, TX 76904', 'takehome' => 'Your own composting bin',
         ],
         'm3' => [
-            'n' => 3, 'title' => 'Upcycling & Recycling', 'tagline' => 'Save money. Gift your garden.',
+            'n' => 3, 'title' => 'Upcycling & Recycling', 'tagline' => 'Turn trash into treasure: upcycle waste into useful, beautiful things, not the landfill.',
             'day' => 'Tue', 'date' => 'Nov 10', 'time' => '5:30–7:00 PM',
             'address' => '3017 Knickerbocker Rd, San Angelo, TX 76904', 'takehome' => 'A handmade project for your garden',
         ],
         'm4' => [
-            'n' => 4, 'title' => 'Green Cleaners', 'tagline' => 'Make it. Take the recipes home.',
+            'n' => 4, 'title' => 'Green Cleaners', 'tagline' => 'Make non-toxic green cleaners: save money, skip chemicals, and protect your family and the planet.',
             'day' => 'Tue', 'date' => 'Nov 17', 'time' => '5:30–7:00 PM',
             'address' => '3017 Knickerbocker Rd, San Angelo, TX 76904', 'takehome' => 'Two cleaners plus the recipes',
         ],
