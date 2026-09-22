@@ -771,7 +771,9 @@ add_action('template_redirect', function () {
     if (!is_post_type_archive('cb_event')) { return; }
     $path = trim((string) parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH), '/');
     if ($path === 'events') { // bare archive -> the canonical campaign URL
-        $embed = (isset($_GET['embed']) && $_GET['embed'] !== '0') ? '?embed=1' : '';
+        $embed = (isset($_GET['embed']) && $_GET['embed'] !== '0')
+            ? '?embed=' . rawurlencode(wp_unslash($_GET['embed']))
+            : '';
         wp_redirect(home_url('/events/plantingalegacy/' . $embed), 301);
         exit;
     }

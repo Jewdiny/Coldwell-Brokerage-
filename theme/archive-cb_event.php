@@ -20,19 +20,26 @@
  * @package CB_Legacy_Luxury
  */
 
-$cb_is_embed = isset($_GET['embed']) && $_GET['embed'] !== '0';
+$cb_embed_mode = isset($_GET['embed']) ? $_GET['embed'] : '';
+$cb_is_embed   = $cb_embed_mode !== '' && $cb_embed_mode !== '0';
 
 if ($cb_is_embed) {
     // Opt THIS view into cross-origin framing. LiteSpeed sets a global
-    // X-Frame-Options: SAMEORIGIN; a matching .htaccess rule unsets it for the
-    // ?embed=1 query, and these PHP headers reinforce it for any layer that
-    // honours PHP-set headers. Kept off the search index — it's an embed, not a
-    // second copy of the page.
+    // X-Frame-Options: SAMEORIGIN; these PHP headers add frame-ancestors *, which
+    // modern browsers honour over XFO. Kept off the search index — it's an embed.
     if (!headers_sent()) {
         header_remove('X-Frame-Options');
         header('Content-Security-Policy: frame-ancestors *');
         header('X-Robots-Tag: noindex, nofollow', true);
     }
+
+    if ($cb_embed_mode === 'flyer') {
+        // Standalone promotional flyer for a partner's website builder — a full
+        // HTML document (no site chrome, no form), so render it and stop.
+        get_template_part('template-parts/events-flyer');
+        return;
+    }
+
     add_action('wp_head', function () {
         echo '<meta name="robots" content="noindex,nofollow">' . "\n";
     });
