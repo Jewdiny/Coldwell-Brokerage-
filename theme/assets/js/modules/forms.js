@@ -325,20 +325,20 @@
         .then(function (res) {
           if (res && res.success) {
             var d = res.data || {};
-            var redirect = d.redirect || '';
+            var inFrame = window.self !== window.top;
             done(d.message || 'Thank you — your registration is confirmed.', true);
-            // Registration done — send them on to the donation page (a moment
-            // later so the confirmation is visible first). Inside a partner
-            // iframe, open a new tab instead of navigating the embed away.
-            if (redirect) {
-              if (status) { status.textContent = d.message + ' Taking you to donate…'; }
+            if (inFrame && d.redirect_embed) {
+              // Embedded on a partner's site: always send the visitor to the real
+              // Planting a Legacy page (top-level, breaking out of the iframe).
+              if (status) { status.textContent = d.message + ' Taking you to the event page…'; }
               setTimeout(function () {
-                if (window.self !== window.top) {
-                  window.open(redirect, '_blank', 'noopener');
-                } else {
-                  window.location.href = redirect;
-                }
-              }, 1800);
+                try { window.top.location.href = d.redirect_embed; }
+                catch (e) { window.location.href = d.redirect_embed; }
+              }, 900);
+            } else if (d.redirect) {
+              // On the page itself: continue to the donation page.
+              if (status) { status.textContent = d.message + ' Taking you to donate…'; }
+              setTimeout(function () { window.location.href = d.redirect; }, 1500);
             }
           } else {
             done((res && res.data && res.data.message) || 'Something went wrong. Please call (325) 944-9559.', false);

@@ -755,6 +755,33 @@ add_action('init', function () {
 });
 
 /* ==========================================================================
+   "Planting a Legacy" pretty URL at /events/plantingalegacy/
+   The cb_event archive owns /events/ (see archive-cb_event.php). This gives the
+   campaign a clean, shareable canonical URL, 301s the bare /events/ onto it, and
+   stops WordPress's own canonical redirect from bouncing the pretty URL back.
+   ========================================================================== */
+add_action('init', function () {
+    add_rewrite_rule('^events/plantingalegacy/?$', 'index.php?post_type=cb_event&pal_page=1', 'top');
+});
+add_filter('query_vars', function ($vars) {
+    $vars[] = 'pal_page';
+    return $vars;
+});
+add_action('template_redirect', function () {
+    if (!is_post_type_archive('cb_event')) { return; }
+    $path = trim((string) parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH), '/');
+    if ($path === 'events') { // bare archive -> the canonical campaign URL
+        $embed = (isset($_GET['embed']) && $_GET['embed'] !== '0') ? '?embed=1' : '';
+        wp_redirect(home_url('/events/plantingalegacy/' . $embed), 301);
+        exit;
+    }
+}, 5);
+add_filter('redirect_canonical', function ($redirect_url) {
+    // Don't let WP "fix" /events/plantingalegacy/ back to the bare archive URL.
+    return get_query_var('pal_page') ? false : $redirect_url;
+});
+
+/* ==========================================================================
    SCHOOL-ZONE LANDING PAGES at /schools/<slug>/
    Targets high-intent queries like "homes in Central HS zone San Angelo".
    ========================================================================== */

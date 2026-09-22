@@ -45,9 +45,9 @@ if ($cb_is_embed) {
 
 if (function_exists('cb_set_seo_meta')) {
     cb_set_seo_meta([
-        'title'       => 'Plant a Legacy — Free Garden Workshops in San Angelo | Coldwell Banker Legacy × Grace Gardens',
-        'description' => 'Plant a Legacy: four free, hands-on gardening workshops (October–November) from Coldwell Banker Legacy and Grace Gardens in San Angelo. Lasagna gardening, composting, upcycling & recycling, and green cleaners. Register free.',
-        'canonical'   => get_post_type_archive_link('cb_event'),
+        'title'       => 'Planting a Legacy — Garden Workshops in San Angelo | Sponsored by Coldwell Banker Legacy',
+        'description' => 'Planting a Legacy: four hands-on gardening workshops (October–November) supporting Grace Gardens in San Angelo, sponsored by Coldwell Banker Legacy. Lasagna gardening, composting, upcycling & recycling, and green cleaners. Register and support the mission.',
+        'canonical'   => home_url('/events/plantingalegacy/'),
     ]);
 }
 
