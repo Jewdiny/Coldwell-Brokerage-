@@ -52,7 +52,7 @@ $pal_donate = trim((string) get_theme_mod('cb_grace_donate_url', ''));
   background:linear-gradient(180deg,#2c4526 0%,#22371f 55%,#18271410 100%),radial-gradient(120% 90% at 50% 0%,#38562f 0%,#22371f 60%);}
 .pal-hero--photo{background:none;}
 .pal-hero__bg{position:absolute;inset:0;background-size:cover;background-position:center;}
-.pal-hero__scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(20,32,16,.42),rgba(20,32,16,.72));}
+.pal-hero__scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(18,28,14,.58),rgba(18,28,14,.82));}
 .pal-hero__in{position:relative;max-width:900px;margin:0 auto;}
 .pal-hero__eyebrow{display:inline-block;letter-spacing:.28em;text-transform:uppercase;font-size:.72rem;font-weight:600;color:var(--pal-gold);margin-bottom:1rem;}
 .pal-hero h1{color:#fff;font-size:clamp(2.7rem,8vw,5rem);line-height:1.02;margin:0 0 .5rem;font-weight:700;letter-spacing:-.01em;text-shadow:0 2px 24px rgba(0,0,0,.25);}
@@ -61,7 +61,8 @@ $pal_donate = trim((string) get_theme_mod('cb_grace_donate_url', ''));
 .pal-hero__rule::before,.pal-hero__rule::after{content:"";height:1px;flex:1;background:var(--pal-line);}
 .pal-hero__meta{font-size:.82rem;letter-spacing:.14em;text-transform:uppercase;font-weight:600;color:rgba(255,255,255,.85);}
 .pal-hero__meta b{color:var(--pal-gold);font-weight:700;}
-.pal-hero__sponsor{color:var(--pal-gold);font-size:clamp(1rem,2.6vw,1.3rem);font-weight:700;letter-spacing:.01em;margin:.35rem 0 0;}
+.pal-hero__sponsor{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:.6rem;color:#fff;font-size:clamp(1rem,2.4vw,1.25rem);font-weight:600;letter-spacing:.01em;margin:.55rem 0 0;}
+.pal-hero img.pal-hero__cb{height:clamp(1.7rem,4.4vw,2.7rem);width:auto;display:inline-block;}
 .pal-hero__lead{color:#fff;font-size:clamp(1.05rem,2.5vw,1.32rem);font-weight:500;max-width:640px;margin:0 auto 1.3rem;}
 .pal-hero__mission{margin:0 auto 1.5rem;max-width:680px;border-left:3px solid var(--pal-gold);background:rgba(255,255,255,.07);border-radius:0 12px 12px 0;padding:1.05rem 1.35rem;text-align:left;}
 .pal-hero__mission-label{display:block;color:var(--pal-gold);font-size:.72rem;font-weight:700;letter-spacing:.16em;text-transform:uppercase;margin-bottom:.45rem;}
@@ -95,6 +96,8 @@ $pal_donate = trim((string) get_theme_mod('cb_grace_donate_url', ''));
 /* module cards */
 .pal-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:1.1rem;}
 .pal-card{background:#fff;border:1px solid #e7e3d6;border-radius:16px;overflow:hidden;box-shadow:0 6px 18px rgba(30,49,31,.06);display:flex;flex-direction:column;}
+.pal-card__image{margin:0;height:190px;overflow:hidden;background:#e7e3d6;}
+.pal-card__image img{width:100%;height:100%;object-fit:cover;display:block;}
 .pal-card__badge{background:var(--pal-green);color:var(--pal-gold);font-size:.68rem;font-weight:800;letter-spacing:.14em;text-transform:uppercase;padding:.5rem 1rem;}
 .pal-card__body{padding:1.1rem 1.15rem 1.25rem;display:flex;flex-direction:column;gap:.5rem;flex:1;}
 .pal-card h3{margin:0;font-size:1.28rem;color:var(--pal-green);font-weight:700;}
@@ -197,14 +200,13 @@ $pal_donate = trim((string) get_theme_mod('cb_grace_donate_url', ''));
         <div class="pal-hero__in">
             <span class="pal-hero__eyebrow">Welcome to</span>
             <h1>Planting a Legacy</h1>
-            <p class="pal-hero__sponsor">Sponsored by Coldwell Banker Legacy</p>
+            <p class="pal-hero__sponsor"><span>Sponsored by</span><img class="pal-hero__cb" src="<?php echo esc_url(CB_THEME_URI . '/assets/images/logos/monogram-horizontal-stacked.svg'); ?>" alt="Coldwell Banker Legacy"></p>
             <div class="pal-hero__rule"><span>&#127807;</span></div>
             <p class="pal-hero__lead">Help us raise funds to support the mission of the non-profit organization, Grace Gardens.</p>
             <blockquote class="pal-hero__mission">
                 <span class="pal-hero__mission-label">Mission Statement</span>
                 <p>&ldquo;At Grace Gardens, it&rsquo;s our mission to cultivate a welcoming, inclusive gardening space where people of all ages and abilities can grow, thrive, and experience the joy and therapeutic benefits of gardening.&rdquo;</p>
             </blockquote>
-            <p class="pal-hero__meta"><b>Four</b> hands-on workshops &nbsp;&bull;&nbsp; <b>October&ndash;November</b> &nbsp;&bull;&nbsp; San Angelo</p>
         </div>
     </header>
 
