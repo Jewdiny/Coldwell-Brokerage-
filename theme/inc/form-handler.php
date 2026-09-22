@@ -406,13 +406,15 @@ function cb_handle_event_registration() {
 
     // 3) Best-effort confirmation to the registrant — never blocks success.
     $confirm = "Hi {$name},\n\n"
-             . "Thank you for registering for Plant a Legacy — a hands-on workshop series from "
-             . "Coldwell Banker Legacy and Grace Gardens.\n\n"
+             . "Thank you for registering for Planting a Legacy — a hands-on workshop series supporting Grace Gardens.\n\n"
              . "You're registered for:\n  - " . implode("\n  - ", $chosen) . "\n\n"
-             . "We look forward to seeing you there. Need to change anything? Just reply to this email.\n\n"
-             . "— Coldwell Banker Legacy, San Angelo\n";
-    wp_mail($email, "You're registered — Plant a Legacy workshops", $confirm,
-        ['Content-Type: text/plain; charset=UTF-8']);
+             . "We look forward to seeing you there. Need to change anything or have questions? "
+             . "Contact Grace Gardens: Martha.register1@gmail.com or call (325) 212-0643.\n\n"
+             . "Thank you,\n"
+             . "Martha Register\n"
+             . "Grace Gardens\n";
+    wp_mail($email, "You're registered — Planting a Legacy workshops", $confirm,
+        ['Content-Type: text/plain; charset=UTF-8', 'Reply-To: Grace Gardens <Martha.register1@gmail.com>']);
 
     wp_send_json_success([
         'message'       => 'Thank you, ' . $name . '! Your registration is confirmed — a confirmation is on its way to your inbox.',
