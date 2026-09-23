@@ -252,7 +252,7 @@ $pal_donate = trim((string) get_theme_mod('cb_grace_donate_url', ''));
             <?php endif; ?>
             <div class="pal-cta__copy">
                 <h2>Reserve your spot</h2>
-                <p>Hands-on community workshops that support Grace Gardens. <b>Suggested donation: $45 per module</b>, or <b>$40 each for 3 or more</b>. Reserve your spot below.</p>
+                <p>Hands-on community workshops that support Grace Gardens. <b>Suggested donation: $35 per module</b>, or <b>$30 each for 3 or more</b>. Reserve your spot below.</p>
             </div>
             <div class="pal-btns">
                 <a class="pal-btn pal-btn--book" href="#pal-register">&#128197;&nbsp; Reserve Your Spot</a>
@@ -267,26 +267,26 @@ $pal_donate = trim((string) get_theme_mod('cb_grace_donate_url', ''));
     <section class="pal-sec pal-sec--tint">
         <div class="pal-wrap">
             <div class="pal-breakdown">
-                <p class="pal-breakdown__title">Suggested donation &mdash; <b>$45</b> per module, or <b>$40</b> per module for 3 or more</p>
+                <p class="pal-breakdown__title">Suggested donation &mdash; <b>$35</b> per module, or <b>$30</b> per module for 3 or more</p>
                 <div class="pal-breakdown__grid">
                     <div class="pal-tier">
                         <span class="pal-tier__count">1 module</span>
-                        <span class="pal-tier__price">$45</span>
+                        <span class="pal-tier__price">$35</span>
                         <span class="pal-tier__save">&nbsp;</span>
                     </div>
                     <div class="pal-tier">
                         <span class="pal-tier__count">2 modules</span>
-                        <span class="pal-tier__price">$90</span>
+                        <span class="pal-tier__price">$70</span>
                         <span class="pal-tier__save">&nbsp;</span>
                     </div>
                     <div class="pal-tier pal-tier--deal">
                         <span class="pal-tier__count">3 modules</span>
-                        <span class="pal-tier__price">$120</span>
+                        <span class="pal-tier__price">$90</span>
                         <span class="pal-tier__save">Save $15</span>
                     </div>
                     <div class="pal-tier pal-tier--deal">
                         <span class="pal-tier__count">All 4 modules</span>
-                        <span class="pal-tier__price">$160</span>
+                        <span class="pal-tier__price">$120</span>
                         <span class="pal-tier__save">Save $20</span>
                     </div>
                 </div>
@@ -326,12 +326,12 @@ $pal_donate = trim((string) get_theme_mod('cb_grace_donate_url', ''));
             <p class="pal-price__label">Suggested Donation</p>
             <div class="pal-price">
                 <div class="pal-price__card">
-                    <span class="pal-price__amt">$45</span>
+                    <span class="pal-price__amt">$35</span>
                     <span class="pal-price__unit">per module</span>
                 </div>
                 <div class="pal-price__card pal-price__card--deal">
                     <span class="pal-price__tag">Best value</span>
-                    <span class="pal-price__amt">$40</span>
+                    <span class="pal-price__amt">$30</span>
                     <span class="pal-price__unit">per module when you register for 3 or more</span>
                 </div>
             </div>

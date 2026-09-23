@@ -127,7 +127,7 @@ $reg = esc_url(home_url('/events/plantingalegacy/'));
                 <td align="center" bgcolor="#22371f" style="background:#22371f;border-radius:12px;padding:20px 18px;font-family:Arial,Helvetica,sans-serif;">
                   <div style="color:#c9a24b;font-size:12px;letter-spacing:2px;text-transform:uppercase;font-weight:bold;margin-bottom:6px;">Suggested Donation</div>
                   <div style="color:#ffffff;font-size:17px;line-height:1.5;">
-                    <strong style="color:#c9a24b;font-size:22px;">$45</strong> per module &nbsp;&mdash;&nbsp; or <strong style="color:#c9a24b;font-size:22px;">$40</strong> per module for 3 or more
+                    <strong style="color:#c9a24b;font-size:22px;">$35</strong> per module &nbsp;&mdash;&nbsp; or <strong style="color:#c9a24b;font-size:22px;">$30</strong> per module for 3 or more
                   </div>
                 </td>
               </tr>
