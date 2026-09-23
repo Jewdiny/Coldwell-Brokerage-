@@ -148,6 +148,7 @@ $pal_donate = trim((string) get_theme_mod('cb_grace_donate_url', ''));
 .pal-price__amt{display:block;font-size:clamp(3rem,10vw,4.4rem);font-weight:800;line-height:.95;color:var(--pal-gold);letter-spacing:-.02em;}
 .pal-price__unit{display:block;margin-top:.5rem;font-size:1.05rem;font-weight:700;color:#fff;}
 .pal-reg-note{background:rgba(201,162,75,.16);border:1px solid var(--pal-gold);border-radius:12px;padding:1rem 1.15rem;margin:0 0 1.3rem;font-size:1rem;font-weight:700;line-height:1.45;color:#fff;text-align:center;}
+.pal-reg-note__warn{display:block;margin-top:.75rem;padding-top:.7rem;border-top:1px solid rgba(201,162,75,.4);text-transform:uppercase;font-weight:800;letter-spacing:.02em;color:var(--pal-gold);}
 .pal-event fieldset{border:0;margin:0;padding:0;min-width:0;}
 .pal-event legend{display:block;padding:0;font-weight:600;font-size:.9rem;margin-bottom:.4rem;letter-spacing:.02em;}
 .pal-event legend .pal-legend__note{font-weight:400;opacity:.75;}
@@ -366,7 +367,7 @@ $pal_donate = trim((string) get_theme_mod('cb_grace_donate_url', ''));
                 <div class="pal-hp" aria-hidden="true">
                     <label>Company<input type="text" name="company" tabindex="-1" autocomplete="off"></label>
                 </div>
-                <p class="pal-reg-note">After registration you will be redirected to the Grace Gardens donation page to complete your workshop registration. This part must be completed to complete your ticket.</p>
+                <p class="pal-reg-note">After registration you will be redirected to the Grace Gardens donation page to complete your workshop registration. This part must be completed to complete your ticket.<strong class="pal-reg-note__warn">Please note the donation platform Zeffy automatically adds a hefty fee to whatever you donate, please change it to whatever you&rsquo;d like before submitting it.</strong></p>
                 <button type="submit" class="pal-submit">Register Now</button>
                 <p class="pal-status" id="cb-event-reg-status" role="status" aria-live="polite"></p>
             </form>
