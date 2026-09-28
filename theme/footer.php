@@ -112,11 +112,11 @@
                  holders must link the Information About Brokerage Services (IABS)
                  and the Consumer Protection Notice. The link text is verbatim per
                  the brokerage's request, and the font is set to 12pt (>= the
-                 "at least 12-point" requirement). The PDFs are the brokerage's own
-                 filed forms, hosted at /wp-content/uploads/trec/. */ ?>
+                 "at least 12-point" requirement). The links are the exact URLs the
+                 brokerage supplied (IABS on Google Drive, CN 1-5 on trec.texas.gov). */ ?>
             <p class="cb-footer__trec" style="margin-top:1.25rem;line-height:2;">
-                <a href="<?php echo esc_url(content_url('/uploads/trec/office-iabs.pdf')); ?>" target="_blank" rel="noopener" style="display:block;font-size:12pt;color:inherit;text-decoration:underline;">Texas Real Estate Commission Information About Brokerage Services</a>
-                <a href="<?php echo esc_url(content_url('/uploads/trec/consumer-protection-notice.pdf')); ?>" target="_blank" rel="noopener" style="display:block;font-size:12pt;color:inherit;text-decoration:underline;">Texas Real Estate Commission Consumer Protection Notice</a>
+                <a href="https://drive.google.com/file/d/1YP9Ignl1JwAXoF4WeT0exPotpNz-ZJLl/view" target="_blank" rel="noopener" style="display:block;font-size:12pt;color:inherit;text-decoration:underline;">Texas Real Estate Commission Information About Brokerage Services</a>
+                <a href="https://www.trec.texas.gov/sites/default/files/pdf-forms/CN%201-5_0.pdf" target="_blank" rel="noopener" style="display:block;font-size:12pt;color:inherit;text-decoration:underline;">Texas Real Estate Commission Consumer Protection Notice</a>
             </p>
         </div>
 

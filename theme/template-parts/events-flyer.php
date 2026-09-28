@@ -89,8 +89,8 @@ $reg = esc_url(home_url('/events/plantingalegacy/'));
 
         <?php
         $mods = [
-            ['module1.jpg', 'Module 1', 'Lasagna Gardening', 'Get the knowledge and hands-on know-how to build no-dig lasagna beds that smother weeds.', 'Sat, Oct 10', '9:00&ndash;10:30 AM', '1024 N Adams St, San Angelo, TX 76901'],
-            ['module2.jpg', 'Module 2', 'Composting', 'Good gardening begins with good soil: turn free scraps into rich soil with no smell or guesswork.', 'Tue, Oct 20', '5:30&ndash;7:00 PM', '3017 Knickerbocker Rd, San Angelo, TX 76904'],
+            ['module1.jpg', 'Module 1', 'Lasagna Gardening', 'Get the knowledge and hands-on know-how to build no-dig lasagna beds that smother weeds.', 'Sat, Oct 24', '9:00&ndash;10:30 AM', '1024 N Adams St, San Angelo, TX 76901'],
+            ['module2.jpg', 'Module 2', 'Composting', 'Good gardening begins with good soil: turn free scraps into rich soil with no smell or guesswork.', 'Tue, Nov 3', '5:30&ndash;7:00 PM', '3017 Knickerbocker Rd, San Angelo, TX 76904'],
             ['module3.jpg', 'Module 3', 'Upcycling &amp; Recycling', 'Turn trash into treasure: upcycle waste into useful, beautiful things, not the landfill.', 'Tue, Nov 10', '5:30&ndash;7:00 PM', '3017 Knickerbocker Rd, San Angelo, TX 76904'],
             ['module4.jpg', 'Module 4', 'Green Cleaners', 'Make non-toxic green cleaners: save money, skip chemicals, and protect your family and the planet.', 'Tue, Nov 17', '5:30&ndash;7:00 PM', '3017 Knickerbocker Rd, San Angelo, TX 76904'],
         ];

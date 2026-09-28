@@ -254,12 +254,12 @@ function cb_event_modules() {
     return [
         'm1' => [
             'n' => 1, 'title' => 'Lasagna Gardening', 'tagline' => 'Get the knowledge and hands-on know-how to build no-dig lasagna beds that smother weeds.',
-            'day' => 'Sat', 'date' => 'Oct 10', 'time' => '9:00–10:30 AM',
+            'day' => 'Sat', 'date' => 'Oct 24', 'time' => '9:00–10:30 AM',
             'address' => '1024 N Adams St, San Angelo, TX 76901', 'takehome' => 'An apron & the know-how',
         ],
         'm2' => [
             'n' => 2, 'title' => 'Composting', 'tagline' => 'Good gardening begins with good soil: turn free scraps into rich soil with no smell or guesswork.',
-            'day' => 'Tue', 'date' => 'Oct 20', 'time' => '5:30–7:00 PM',
+            'day' => 'Tue', 'date' => 'Nov 3', 'time' => '5:30–7:00 PM',
             'address' => '3017 Knickerbocker Rd, San Angelo, TX 76904', 'takehome' => 'Your own composting bin',
         ],
         'm3' => [
