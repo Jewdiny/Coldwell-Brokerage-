@@ -177,6 +177,11 @@ $pal_donate = trim((string) get_theme_mod('cb_grace_donate_url', ''));
 .pal-logos img{width:auto;height:56px;display:inline-block;vertical-align:middle;opacity:.97;margin:0;}
 .pal-logos img.pal-logos__grace{height:78px;border-radius:8px;}
 .pal-logos__tag{margin-top:1.2rem;font-style:italic;color:rgba(255,255,255,.72);}
+.pal-disclaimer{background:var(--pal-green-2);color:rgba(255,255,255,.72);border-top:1px solid var(--pal-line);padding:2rem 1.25rem 2.4rem;}
+.pal-disclaimer__in{max-width:760px;margin:0 auto;text-align:center;font-size:.85rem;line-height:1.6;}
+.pal-disclaimer__title{color:#fff;font-size:.8rem;font-weight:700;letter-spacing:.14em;text-transform:uppercase;margin:0 0 .9rem;}
+.pal-disclaimer p{margin:0 0 .75rem;}
+.pal-disclaimer p:last-child{margin-bottom:0;}
 
 @media (max-width:640px){
   .pal-row2{grid-template-columns:1fr;}
@@ -383,6 +388,17 @@ $pal_donate = trim((string) get_theme_mod('cb_grace_donate_url', ''));
             <?php endif; ?>
         </div>
         <p class="pal-logos__tag">Coldwell Banker Legacy in partnership with Grace Gardens.</p>
+    </div>
+
+    <?php /* WEBSITE DISCLAIMER. Wording verbatim from the client. */ ?>
+    <div class="pal-disclaimer">
+        <div class="pal-disclaimer__in">
+            <h2 class="pal-disclaimer__title">Website Disclaimer</h2>
+            <p>This website has been created by Coldwell Banker Legacy solely for Coldwell Banker Legacy&rsquo;s use in promoting and providing information about this event.</p>
+            <p>All content, graphics, photographs, and materials on this website are the property of Coldwell Banker Legacy or their respective owners and may not be copied, reproduced, or used without prior written permission.</p>
+            <p>Event details are subject to change without notice. This website is provided for informational and promotional purposes only.</p>
+            <p>&copy; 2026 Coldwell Banker Legacy. All rights reserved.</p>
+        </div>
     </div>
 
 </div>
