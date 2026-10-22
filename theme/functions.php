@@ -782,6 +782,86 @@ add_filter('redirect_canonical', function ($redirect_url) {
     // Don't let WP "fix" /events/plantingalegacy/ back to the bare archive URL.
     return get_query_var('pal_page') ? false : $redirect_url;
 });
+add_filter('wpseo_sitemap_entry', function ($url) {
+    // Yoast lists the `events` Page, which the redirect above 301s away. Give search
+    // engines the canonical URL instead of a redirect.
+    if (is_array($url) && isset($url['loc']) && untrailingslashit($url['loc']) === home_url('/events')) {
+        $url['loc'] = home_url('/events/plantingalegacy/');
+    }
+    return $url;
+});
+
+/**
+ * schema.org Event JSON-LD for the Planting a Legacy modules, built from
+ * cb_event_modules() so the markup can't drift from the schedule on the page.
+ * Modules that have already ended are left out.
+ */
+function cb_event_schema_head() {
+    if (!function_exists('cb_event_modules')) { return; }
+
+    $tz    = new DateTimeZone('America/Chicago');
+    $now   = new DateTime('now', $tz);
+    $year  = '2026'; // cb_event_modules() dates ("Oct 24") carry no year
+    $url   = home_url('/events/plantingalegacy/');
+    $image = get_template_directory_uri() . '/assets/images/events/share.jpg';
+
+    $events = [];
+    foreach (cb_event_modules() as $m) {
+        // "9:00–10:30 AM": only the end time carries AM/PM, so the start borrows it.
+        $times = preg_split('/\s*(?:–|&ndash;|-)\s*/u', $m['time']);
+        if (count($times) !== 2) { continue; }
+        $meridiem = substr($times[1], -2);
+        $start = DateTime::createFromFormat('!M j Y g:i A', "{$m['date']} $year {$times[0]} $meridiem", $tz);
+        $end   = DateTime::createFromFormat('!M j Y g:i A', "{$m['date']} $year {$times[1]}", $tz);
+        if (!$start || !$end || $end < $now) { continue; }
+
+        // "1024 N Adams St, San Angelo, TX 76901"
+        $addr = array_map('trim', explode(',', $m['address']));
+        if (count($addr) !== 3) { continue; }
+        list($region, $zip) = array_pad(explode(' ', $addr[2], 2), 2, '');
+        $is_office = stripos($addr[0], 'Knickerbocker') !== false;
+
+        $events[] = [
+            '@type'               => 'Event',
+            'name'                => 'Planting a Legacy — Module ' . $m['n'] . ': ' . $m['title'],
+            'description'         => $m['tagline'] . ' You’ll take home: ' . $m['takehome'] . '.',
+            'startDate'           => $start->format('c'),
+            'endDate'             => $end->format('c'),
+            'eventStatus'         => 'https://schema.org/EventScheduled',
+            'eventAttendanceMode' => 'https://schema.org/OfflineEventAttendanceMode',
+            'location'            => [
+                '@type'   => 'Place',
+                'name'    => $is_office ? 'Coldwell Banker Legacy' : $addr[0],
+                'address' => [
+                    '@type'           => 'PostalAddress',
+                    'streetAddress'   => $addr[0],
+                    'addressLocality' => $addr[1],
+                    'addressRegion'   => $region,
+                    'postalCode'      => $zip,
+                    'addressCountry'  => 'US',
+                ],
+            ],
+            'image'     => [$image],
+            'url'       => $url,
+            'organizer' => ['@type' => 'Organization', 'name' => 'Grace Gardens'],
+            'sponsor'   => ['@type' => 'Organization', 'name' => 'Coldwell Banker Legacy', 'url' => home_url('/')],
+            'performer' => ['@type' => 'Person', 'name' => 'Carina Corbet-Owen'],
+            'offers'    => [
+                '@type'         => 'Offer',
+                'name'          => 'Suggested donation',
+                'price'         => '35',
+                'priceCurrency' => 'USD',
+                'availability'  => 'https://schema.org/InStock',
+                'url'           => $url,
+            ],
+        ];
+    }
+    if (!$events) { return; }
+
+    echo '<script type="application/ld+json">'
+        . wp_json_encode(['@context' => 'https://schema.org', '@graph' => $events], JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE)
+        . "</script>\n";
+}
 
 /* ==========================================================================
    SCHOOL-ZONE LANDING PAGES at /schools/<slug>/

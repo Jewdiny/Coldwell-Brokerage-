@@ -50,13 +50,31 @@ if ($cb_is_embed) {
     return;
 }
 
+// 1200x630 crop of the hero, sized for Facebook/iMessage link previews.
+$cb_event_share = get_template_directory_uri() . '/assets/images/events/share.jpg';
+
 if (function_exists('cb_set_seo_meta')) {
     cb_set_seo_meta([
         'title'       => 'Planting a Legacy — Garden Workshops in San Angelo | Sponsored by Coldwell Banker Legacy',
         'description' => 'Planting a Legacy: four hands-on gardening workshops (October–November) supporting Grace Gardens in San Angelo, sponsored by Coldwell Banker Legacy. Lasagna gardening, composting, upcycling & recycling, and green cleaners. Register and support the mission.',
         'canonical'   => home_url('/events/plantingalegacy/'),
+        'og_image'    => $cb_event_share,
     ]);
 }
+
+// Yoast's wpseo_opengraph_image filter (used by cb_set_seo_meta) only rewrites an
+// image Yoast already found, and it finds none on a post-type archive, so links to
+// this page were shared with no picture. Hand the image to Yoast's container instead.
+add_action('wpseo_add_opengraph_images', function ($images) use ($cb_event_share) {
+    if (method_exists($images, 'add_image_by_url')) {
+        $images->add_image_by_url($cb_event_share);
+    } else {
+        $images->add_image($cb_event_share);
+    }
+});
+
+// schema.org Event markup, so search engines can list each workshop as an event.
+add_action('wp_head', 'cb_event_schema_head');
 
 get_header();
 get_template_part('template-parts/events-plant-a-legacy');
