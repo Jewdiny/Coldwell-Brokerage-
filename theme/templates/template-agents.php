@@ -7,7 +7,7 @@
 
 cb_set_seo_meta([
     'title'       => 'San Angelo Real Estate Agents | Coldwell Banker Legacy Team',
-    'description' => 'Meet the Coldwell Banker Legacy team — 30+ experienced San Angelo real estate agents specializing in luxury homes, ranches, first-time buyers, and the entire Concho Valley.',
+    'description' => 'Meet the Coldwell Banker Legacy team: experienced San Angelo real estate agents for luxury homes, ranches, first-time buyers and the whole Concho Valley.',
     'canonical'   => get_permalink(),
 ]);
 

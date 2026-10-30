@@ -10,8 +10,8 @@
  */
 
 cb_set_seo_meta([
-    'title'       => 'Recently Sold Homes in San Angelo, TX | Last 90 Days | Coldwell Banker Legacy',
-    'description' => 'Browse homes recently sold in San Angelo over the last 90 days. Real sale prices and close dates from the San Angelo MLS — useful for buyers and sellers researching values.',
+    'title'       => 'San Angelo Recently Sold Homes | Coldwell Banker Legacy',
+    'description' => 'Homes sold in San Angelo in the last 90 days, with real sale prices and close dates from the San Angelo MLS, for buyers and sellers researching values.',
     'canonical'   => home_url('/recently-sold/'),
 ]);
 

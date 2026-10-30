@@ -11,7 +11,7 @@ $email   = get_theme_mod('cb_email', 'information@cbltexas.com');
 
 cb_set_seo_meta([
     'title'       => 'Contact Coldwell Banker Legacy San Angelo | ' . $phone,
-    'description' => "Contact Coldwell Banker Legacy at $phone or visit us at $address. San Angelo's premier real estate brokerage — luxury homes, MLS search, and expert local agents.",
+    'description' => "Call Coldwell Banker Legacy at $phone or visit $address. Local agents for buying, selling and luxury homes.",
     'canonical'   => get_permalink(),
 ]);
 

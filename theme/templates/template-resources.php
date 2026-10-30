@@ -6,7 +6,7 @@
  */
 
 cb_set_seo_meta([
-    'title'       => 'San Angelo Home Buyer & Seller Resources | Coldwell Banker Legacy',
+    'title'       => 'San Angelo Buyer & Seller Guides | Coldwell Banker Legacy',
     'description' => 'San Angelo real estate guides — first-time home buyer steps, selling tips, home loan advice, the quarterly market report, and FAQs from Coldwell Banker Legacy.',
     'canonical'   => get_permalink(),
 ]);

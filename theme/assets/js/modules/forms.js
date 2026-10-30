@@ -7,6 +7,15 @@
   'use strict';
 
   /**
+   * Report a successful form to GA4. Does nothing until the GA4 tag is on the page.
+   */
+  function trackLead(formName) {
+    if (typeof window.gtag === 'function') {
+      window.gtag('event', 'generate_lead', { form_name: formName });
+    }
+  }
+
+  /**
    * Contact Form
    */
   function initContactForm() {
@@ -35,6 +44,7 @@
         .then(function (r) { return r.json(); })
         .then(function (res) {
           if (res.success) {
+            trackLead('contact');
             btn.textContent = 'Message Sent!';
             btn.style.background = 'var(--cb-navy)';
             form.reset();
@@ -97,6 +107,7 @@
         .then(function (r) { return r.json(); })
         .then(function (res) {
           if (res.success) {
+            trackLead('home_value');
             btn.innerHTML = '&#10003; Report Requested!';
             btn.style.background = 'var(--cb-navy)';
           } else {
@@ -164,6 +175,7 @@
         .then(function (r) { return r.json(); })
         .then(function (res) {
           if (res && res.success) {
+            trackLead('property_management');
             done((res.data && res.data.message) || 'Thank you — we will be in touch.', true);
           } else {
             done((res && res.data && res.data.message) || 'Something went wrong. Please call (325) 944-9559.', false);
@@ -258,6 +270,7 @@
         .then(function (r) { return r.json(); })
         .then(function (res) {
           if (res && res.success) {
+            trackLead('market_report');
             remember();
             form.style.display = 'none';
             if (status) {
@@ -324,6 +337,7 @@
         .then(function (r) { return r.json(); })
         .then(function (res) {
           if (res && res.success) {
+            trackLead('event_registration');
             var d = res.data || {};
             var inFrame = window.self !== window.top;
             done(d.message || 'Thank you — your registration is confirmed.', true);

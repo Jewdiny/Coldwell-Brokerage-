@@ -451,6 +451,16 @@ function cb_set_seo_meta($args) {
         if ($args['description']) { add_filter('wpseo_twitter_description', function () use ($args) { return $args['description']; }, 99); }
         if ($args['og_image'])    { add_filter('wpseo_twitter_image',   function () use ($args) { return $args['og_image']; }, 99); }
         add_filter('wpseo_robots', function () use ($args) { return $args['robots']; }, 99);
+        cb_add_og_image($args['og_image']);
+        cb_seo_schema_webpage($args['title'], $args['description'], $args['canonical']);
+        if ($args['og_image']) {
+            // The image filter above swaps the URL but Yoast keeps the old image's
+            // size (an agent's 400x500 headshot was announced as 1136 wide). Give
+            // the real size for theme images; otherwise leave it for Facebook to read.
+            $size = cb_theme_image_size($args['og_image']);
+            add_filter('wpseo_opengraph_image_width',  function () use ($size) { return $size ? $size[0] : 0; }, 99);
+            add_filter('wpseo_opengraph_image_height', function () use ($size) { return $size ? $size[1] : 0; }, 99);
+        }
     }
 
     // Always set the WP document title (works whether or not Yoast is active).
@@ -478,6 +488,195 @@ function cb_set_seo_meta($args) {
     }
 }
 
+/**
+ * Fit a page title to the ~60 characters Google shows. The brand goes on only
+ * when it fits; Google prints the site name above each result anyway.
+ */
+function cb_seo_title($main) {
+    $full = $main . ' | Coldwell Banker Legacy';
+    return mb_strlen($full) <= 60 ? $full : $main;
+}
+
+/**
+ * Plain-text meta description, cut at a word boundary so Google doesn't
+ * truncate it mid-word (or mid-entity, as with "&hel" from an excerpt's &hellip;).
+ */
+function cb_seo_excerpt($text, $max = 155) {
+    $text = html_entity_decode(wp_strip_all_tags(strip_shortcodes((string) $text)), ENT_QUOTES | ENT_HTML5, 'UTF-8');
+    $text = trim(preg_replace('/\s+/u', ' ', $text));
+    if (mb_strlen($text) <= $max) { return $text; }
+    $cut   = mb_substr($text, 0, $max - 1);
+    $space = mb_strrpos($cut, ' ');
+    if ($space !== false && $space > $max * 0.6) { $cut = mb_substr($cut, 0, $space); }
+    return rtrim($cut, " ,;:.\u{2014}\u{2013}-") . "\u{2026}";
+}
+
+/**
+ * Give Yoast an og:image when the page has none of its own. Yoast's
+ * wpseo_opengraph_image filter only rewrites an image that already exists, so
+ * pages with no featured image (archives, listings, communities) shared with
+ * no picture. Theme images get their real width/height so Facebook can render
+ * the preview on the first share.
+ */
+function cb_add_og_image($url, $priority = 10) {
+    if (!$url) { return; }
+    $image = ['url' => $url];
+    $size  = cb_theme_image_size($url);
+    if ($size) { $image['width'] = $size[0]; $image['height'] = $size[1]; }
+    add_filter('wpseo_add_opengraph_additional_images', function ($images) use ($image) {
+        if (is_object($images) && method_exists($images, 'has_images') && !$images->has_images()) {
+            $images->add_image($image);
+        }
+        return $images;
+    }, $priority);
+}
+
+/**
+ * [width, height] of an image that lives in this theme, or null for anything else.
+ */
+function cb_theme_image_size($url) {
+    if (strpos((string) $url, CB_THEME_URI . '/') !== 0) { return null; }
+    $size = @getimagesize(CB_THEME_DIR . substr($url, strlen(CB_THEME_URI)));
+    return $size ? [$size[0], $size[1]] : null;
+}
+
+/**
+ * Keep Yoast's WebPage schema in step with the title/description we set, so
+ * Google doesn't read "Home - Homes San Angelo" or an archive URL that redirects.
+ */
+function cb_seo_schema_webpage($title, $description = '', $url = '') {
+    add_filter('wpseo_schema_webpage', function ($data) use ($title, $description, $url) {
+        if ($title)       { $data['name'] = $title; }
+        if ($description) { $data['description'] = $description; }
+        if ($url)         { $data['url'] = $url; }
+        return $data;
+    }, 99);
+}
+
+/* ==========================================================================
+   SITE-WIDE SEO DEFAULTS
+   Head tags and structured data only; nothing here prints in the page body.
+   ========================================================================== */
+
+// Yoast falls back to the WordPress site name, "Homes San Angelo", for title
+// suffixes, share previews and structured data. Use the brokerage's name there
+// without changing the site-name setting itself.
+add_filter('wpseo_replacements', function ($replacements) {
+    if (isset($replacements['%%sitename%%'])) {
+        $replacements['%%sitename%%'] = 'Coldwell Banker Legacy';
+    }
+    return $replacements;
+});
+add_filter('wpseo_opengraph_site_name', function () { return 'Coldwell Banker Legacy'; });
+add_filter('wpseo_schema_website', function ($data) {
+    $data['name']          = 'Coldwell Banker Legacy';
+    $data['alternateName'] = 'Homes San Angelo';
+    return $data;
+});
+add_filter('wpseo_schema_organization', function ($data) {
+    $data['name'] = 'Coldwell Banker Legacy';
+    return $data;
+});
+
+// Every page gets a share picture: anything that didn't set its own falls back
+// to the 1200x630 hallway image from the homepage.
+add_action('wp', function () {
+    cb_add_og_image(CB_THEME_URI . '/assets/images/share/default.jpg', 20);
+});
+
+// Pages that are plain WordPress content (no theme template sets their meta).
+function cb_seo_page_meta() {
+    return [
+        '/getting-a-home-loan/'  => [
+            'Getting a Home Loan in San Angelo',
+            'How to finance a San Angelo home: check your credit, get pre-qualified and compare Conventional, FHA, VA and USDA loans, plus what not to do before closing.',
+        ],
+        '/corporate-relocation/' => [
+            'Relocating to San Angelo, TX',
+            'Moving to San Angelo for work, family or retirement? Our relocation specialists offer area tours, neighborhood guides and temporary housing help.',
+        ],
+        '/blog/'                 => [
+            'San Angelo Real Estate Blog',
+            'Local guides from Coldwell Banker Legacy: San Angelo neighborhoods, first-time home buying in West Texas, and the spots only San Angelo locals know.',
+        ],
+    ];
+}
+add_action('wp', function () {
+    if (is_admin()) { return; }
+    $path = '/' . trim((string) parse_url($_SERVER['REQUEST_URI'] ?? '', PHP_URL_PATH), '/') . '/';
+    $map  = cb_seo_page_meta();
+    if (!isset($map[$path])) { return; }
+    cb_set_seo_meta([
+        'title'       => cb_seo_title($map[$path][0]),
+        'description' => $map[$path][1],
+        'canonical'   => home_url($path),
+    ]);
+});
+
+// Blog posts: keep the title inside Google's ~60 characters, and when a post
+// has no description of its own, use the opening of the post.
+add_filter('wpseo_title', function ($title) {
+    return is_singular('post') ? cb_seo_title(get_post_field('post_title', get_queried_object_id())) : $title;
+}, 20);
+add_filter('wpseo_metadesc', function ($desc) {
+    if ($desc || !is_singular()) { return $desc; }
+    $post = get_queried_object();
+    if (!$post instanceof WP_Post) { return $desc; }
+    return cb_seo_excerpt(has_excerpt($post) ? $post->post_excerpt : $post->post_content);
+}, 20);
+
+// Archives that only duplicate real pages: the bare agent archive (/agents/,
+// the team lives at /our-team/) and "Uncategorized", which holds every post the
+// blog already lists. Keep them crawlable but out of Google's index.
+add_filter('wpseo_robots', function ($robots) {
+    return (is_post_type_archive('cb_agent') || is_category('uncategorized')) ? 'noindex, follow' : $robots;
+}, 20);
+
+// The communities, school zones and listings are virtual pages, so Yoast thinks
+// they are the blog and adds a "Blog" breadcrumb. Their templates print the
+// right breadcrumb themselves.
+function cb_is_virtual_page() {
+    return (bool) (get_query_var('cb_community_slug') || get_query_var('cb_school_slug') || get_query_var('cb_listing_id'));
+}
+add_filter('wpseo_schema_needs_breadcrumb', function ($needed) {
+    return cb_is_virtual_page() ? false : $needed;
+});
+// Same cause: their WebPage node was the blog's (id, type, dates). Once the
+// template has set the real URL (cb_seo_schema_webpage), make the node about it.
+add_filter('wpseo_schema_webpage', function ($data) {
+    if (!cb_is_virtual_page() || empty($data['url'])) { return $data; }
+    $data['@type']           = 'WebPage';
+    $data['@id']             = $data['url'];
+    $data['potentialAction'] = [['@type' => 'ReadAction', 'target' => [$data['url']]]];
+    unset($data['breadcrumb'], $data['datePublished'], $data['dateModified'], $data['primaryImageOfPage'], $data['image'], $data['thumbnailUrl']);
+    return $data;
+}, 100);
+
+// Sitemap hygiene. Yoast lists every cb_community post, but the theme only
+// serves the communities in cb_get_communities() (the rest are 404s), and it
+// lists noindex preview pages and the duplicate archives above. Drop those.
+add_filter('wpseo_sitemap_entry', function ($url, $type = '', $object = null) {
+    if (!is_array($url) || empty($url['loc'])) { return $url; }
+    $path = (string) parse_url($url['loc'], PHP_URL_PATH);
+    if (preg_match('#^/communities/([a-z0-9-]+)/?$#', $path, $m) && !array_key_exists($m[1], cb_get_communities())) {
+        return false;
+    }
+    if ($object instanceof WP_Post && $object->post_type === 'page' && (int) $object->ID !== (int) get_option('page_on_front')) {
+        $template = (string) get_page_template_slug($object->ID);
+        if (preg_match('#template-home(2|3|4|5|7|8|9|10)-|template-saved-homes#', $template)) { return false; }
+    }
+    if ($object instanceof WP_Term && $object->slug === 'uncategorized') { return false; }
+    return $url;
+}, 10, 3);
+add_filter('wpseo_sitemap_post_type_archive_link', function ($link, $post_type) {
+    return $post_type === 'cb_agent' ? false : $link;
+}, 10, 2);
+// The listings sitemap (1,400+ listings, plus every community and school zone)
+// wasn't linked from the sitemap index, so search engines had no way to find it.
+add_filter('wpseo_sitemap_index', function ($xml) {
+    return $xml . '<sitemap><loc>' . esc_url(home_url('/cb-listings.xml')) . '</loc><lastmod>' . esc_html(gmdate('c')) . '</lastmod></sitemap>' . "\n";
+});
+
 /* ==========================================================================
    GOOGLE ANALYTICS / GTM / SEARCH CONSOLE
    Set these constants in wp-config or via the customizer once you have IDs.
@@ -496,6 +695,10 @@ function cb_analytics_head() {
         $id = esc_js($ga4);
         echo "<script async src=\"https://www.googletagmanager.com/gtag/js?id=$id\"></script>\n";
         echo "<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','$id');</script>\n";
+        // Calls, emails and directions are the leads that never touch a form. GA4's
+        // enhanced measurement already records other outbound clicks (Donate, MLS
+        // links); form successes are sent from forms.js as generate_lead.
+        echo "<script>document.addEventListener('click',function(e){var a=e.target&&e.target.closest?e.target.closest('a[href]'):null;if(!a)return;var h=a.getAttribute('href')||'';if(h.indexOf('tel:')===0){gtag('event','phone_click',{link_url:h});}else if(h.indexOf('mailto:')===0){gtag('event','email_click',{link_url:h});}else if(h.indexOf('google.com/maps')>-1||h.indexOf('maps.google.')>-1||h.indexOf('maps.apple.com')>-1){gtag('event','directions_click',{link_url:h});}},true);</script>\n";
     }
 }
 add_action('wp_head', 'cb_analytics_head', 1);
@@ -977,6 +1180,10 @@ add_action('init', function () {
 add_filter('query_vars', function ($vars) {
     $vars[] = 'cb_listings_sitemap';
     return $vars;
+});
+add_filter('redirect_canonical', function ($redirect_url) {
+    // Serve /cb-listings.xml as-is instead of 301ing it to /cb-listings.xml/.
+    return get_query_var('cb_listings_sitemap') ? false : $redirect_url;
 });
 add_action('template_redirect', function () {
     if (!get_query_var('cb_listings_sitemap')) { return; }

@@ -6,7 +6,7 @@
  */
 
 cb_set_seo_meta([
-    'title'       => 'San Angelo MLS Search — Live Homes for Sale | Coldwell Banker Legacy',
+    'title'       => 'San Angelo MLS Home Search | Coldwell Banker Legacy',
     'description' => 'Search the live San Angelo MLS for homes, ranches, and luxury properties. Filter by neighborhood, price, and beds. Real-time listings with map view.',
     'canonical'   => get_permalink(),
 ]);

@@ -6,8 +6,8 @@
  */
 
 cb_set_seo_meta([
-    'title'       => 'San Angelo Property Management & Rentals | Coldwell Banker Legacy',
-    'description' => 'Full-service property management and rental homes in San Angelo, TX. Tenant screening, rent collection, maintenance, and luxury rentals across the Concho Valley.',
+    'title'       => 'San Angelo Property Management | Coldwell Banker Legacy',
+    'description' => 'Property management and rental homes in San Angelo, TX: tenant screening, rent collection, maintenance and luxury rentals across the Concho Valley.',
     'canonical'   => get_permalink(),
 ]);
 

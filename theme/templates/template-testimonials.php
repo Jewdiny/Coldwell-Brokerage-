@@ -9,7 +9,7 @@
  */
 
 cb_set_seo_meta([
-    'title'       => 'Client Reviews & Testimonials | Coldwell Banker Legacy San Angelo',
+    'title'       => 'Client Reviews | Coldwell Banker Legacy San Angelo',
     'description' => 'Read verified client reviews of Coldwell Banker Legacy San Angelo real estate agents. Real stories from buyers and sellers across the Concho Valley.',
     'canonical'   => get_permalink(),
 ]);

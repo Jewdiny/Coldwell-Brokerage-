@@ -13,10 +13,10 @@ $cb_schools = cb_get_schools();
 
 // Index — list all school zones.
 if ($cb_slug === 'index') {
-    $cb_index_title = 'San Angelo School Zones — Find Homes by School District | Coldwell Banker Legacy';
+    $cb_index_title = 'San Angelo Homes by School Zone | Coldwell Banker Legacy';
     cb_set_seo_meta([
         'title'       => $cb_index_title,
-        'description' => 'Search San Angelo homes for sale by school zone — Central HS, Lake View HS, Grape Creek, Wall, Christoval. Find homes inside the school attendance zone you want.',
+        'description' => 'Search San Angelo homes for sale by school zone: Central, Lake View, Grape Creek, Wall and Christoval. Find homes inside the attendance zone you want.',
         'canonical'   => home_url('/schools/'),
     ]);
 
@@ -69,8 +69,8 @@ if (!isset($cb_schools[$cb_slug])) {
 
 $s             = $cb_schools[$cb_slug];
 $cb_canonical  = home_url('/schools/' . $cb_slug . '/');
-$cb_page_title = "Homes for Sale in {$s['name']} Zone, San Angelo TX | Coldwell Banker Legacy";
-$cb_meta_desc  = mb_substr(trim(preg_replace('/\s+/', ' ', $s['description'])), 0, 155);
+$cb_page_title = cb_seo_title("{$s['name']} Zone Homes for Sale, San Angelo TX");
+$cb_meta_desc  = cb_seo_excerpt($s['description']);
 
 cb_set_seo_meta([
     'title'       => $cb_page_title,

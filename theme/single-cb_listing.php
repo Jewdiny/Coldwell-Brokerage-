@@ -97,12 +97,19 @@ $cb_h2_schools  = 'Schools Near ' . $cb_address;
 $cb_h2_schedule = 'Schedule a Showing in ' . trim($cb_city . ($cb_zip ? ", $cb_state $cb_zip" : ''), ', ');
 $cb_h2_related  = 'More ' . ($cb_city ?: 'San Angelo') . ' Homes for Sale';
 
-$cb_meta_desc = $cb_remarks
-    ? mb_substr(trim(preg_replace('/\s+/', ' ', $cb_remarks)), 0, 155)
-    : trim("$cb_address. $cb_beds bed, $cb_baths bath home in $cb_city, $cb_state.");
-if (mb_strlen($cb_meta_desc) === 155) { $cb_meta_desc .= '…'; }
+// Price and size first (what searchers compare), then the agent's remarks.
+$cb_desc_facts = array_filter([
+    $cb_price ? $cb_price_display : '',
+    is_numeric($cb_beds)  ? $cb_beds . ' bed' : '',
+    is_numeric($cb_baths) ? $cb_baths . ' bath' : '',
+    is_numeric($cb_sqft) && $cb_sqft > 0 ? number_format((float) $cb_sqft) . ' sq ft' : '',
+]);
+$cb_meta_desc = cb_seo_excerpt(
+    ($cb_desc_facts ? implode(', ', $cb_desc_facts) . '. ' : '')
+    . ($cb_remarks ?: "$cb_address.")
+);
 
-$cb_page_title = trim($cb_address . ' | Coldwell Banker Legacy San Angelo');
+$cb_page_title = trim(cb_seo_title($cb_address));
 
 // Yoast SEO compatibility — if Yoast is active it owns title/description/OG.
 // We feed it our values via its filters; otherwise we emit them directly below.
@@ -119,6 +126,8 @@ if ($cb_has_yoast) {
     add_filter('wpseo_twitter_title',   function () use ($cb_page_title) { return $cb_page_title; }, 99);
     add_filter('wpseo_twitter_description', function () use ($cb_meta_desc) { return $cb_meta_desc; }, 99);
     add_filter('wpseo_twitter_image',   function () use ($cb_hero_photo) { return $cb_hero_photo; }, 99);
+    cb_add_og_image($cb_hero_photo); // the filter above can't add an image Yoast doesn't have
+    cb_seo_schema_webpage($cb_page_title, $cb_meta_desc, $cb_canonical);
     add_filter('wpseo_robots',          function ($robots) use ($cb_is_active) {
         return $cb_is_active ? 'index, follow, max-image-preview:large' : 'noindex, follow';
     }, 99);

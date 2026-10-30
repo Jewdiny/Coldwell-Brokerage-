@@ -18,12 +18,17 @@ if (have_posts()) {
     $cb_agent_bio    = wp_strip_all_tags(get_the_excerpt() ?: get_the_content());
     $cb_agent_url    = get_permalink($cb_agent_id);
 
-    $cb_agent_seo_desc = $cb_agent_bio
-        ? mb_substr(trim(preg_replace('/\s+/', ' ', $cb_agent_bio)), 0, 155)
-        : trim("$cb_agent_name — $cb_agent_title at Coldwell Banker Legacy San Angelo. Call $cb_agent_phone.");
+    // Lead with who the agent is: several bios open with the same shared
+    // paragraph, which gave those agents identical descriptions in Google.
+    $cb_agent_role     = $cb_agent_title ?: 'Real Estate Agent';
+    $cb_agent_text     = wp_strip_all_tags(get_the_content()) ?: $cb_agent_bio;
+    $cb_agent_seo_desc = cb_seo_excerpt(
+        "$cb_agent_name, $cb_agent_role with Coldwell Banker Legacy in San Angelo, TX. "
+        . ($cb_agent_text ?: "Call $cb_agent_phone.")
+    );
 
     cb_set_seo_meta([
-        'title'       => "$cb_agent_name | San Angelo Real Estate Agent | Coldwell Banker Legacy",
+        'title'       => cb_seo_title("$cb_agent_name, San Angelo $cb_agent_role"),
         'description' => $cb_agent_seo_desc,
         'canonical'   => $cb_agent_url,
         'og_image'    => $cb_agent_photo,

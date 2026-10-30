@@ -9,9 +9,11 @@ $phone   = get_theme_mod('cb_phone', '(325) 944-9559');
 $address = get_theme_mod('cb_address', '3017 Knickerbocker, San Angelo, TX 76904');
 
 cb_set_seo_meta([
-    'title'       => "About Coldwell Banker Legacy | San Angelo's Premier Real Estate Brokerage",
-    'description' => 'Learn about Coldwell Banker Legacy — locally owned, globally connected. 30+ agents serving San Angelo, Bentwood, Lake Nasworthy, Christoval, and the entire Concho Valley.',
-    'canonical'   => get_permalink(),
+    'title'       => 'About Coldwell Banker Legacy | San Angelo Real Estate',
+    'description' => 'Coldwell Banker Legacy is locally owned and globally connected, with agents serving San Angelo, Bentwood, Lake Nasworthy, Christoval and the Concho Valley.',
+    // /about/ and /office/ both use this template and show the same page, so
+    // both point Google at /about/ rather than splitting it into duplicates.
+    'canonical'   => home_url('/about/'),
 ]);
 
 get_header();

@@ -6,8 +6,8 @@
  */
 
 cb_set_seo_meta([
-    'title'       => 'Real Estate Careers in San Angelo | Join Coldwell Banker Legacy',
-    'description' => 'Now hiring San Angelo real estate agents. Join Coldwell Banker Legacy — competitive splits, luxury training, marketing support, and the strongest brand in the Concho Valley.',
+    'title'       => 'Real Estate Careers in San Angelo | Coldwell Banker Legacy',
+    'description' => 'Now hiring San Angelo real estate agents: competitive splits, luxury training, marketing support and the strongest brand in the Concho Valley.',
     'canonical'   => get_permalink(),
 ]);
 

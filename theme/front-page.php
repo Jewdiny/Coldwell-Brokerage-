@@ -38,13 +38,13 @@
  */
 
 cb_set_seo_meta([
-    'title'       => 'San Angelo Real Estate | Coldwell Banker Legacy — Homes for Sale in the Concho Valley',
+    'title'       => 'San Angelo, TX Real Estate & Homes | Coldwell Banker Legacy',
     // "since 2000" was wrong here too, and this string is the description Google
     // shows under the result. Their own office page says "For over 35 years";
     // third-party listings give 1980. Matches the Legacy section's eyebrow.
-    'description' => 'Search live San Angelo MLS listings, luxury homes, and Concho Valley real estate. Coldwell Banker Legacy — serving the Concho Valley for over 40 years. (325) 944-9559.',
+    'description' => 'Search live San Angelo MLS listings, luxury homes and Concho Valley real estate with Coldwell Banker Legacy, serving the Concho Valley for over 40 years.',
     'canonical'   => home_url('/'),
-    'og_image'    => CB_THEME_URI . '/assets/images/home10/01-hall.jpg',
+    'og_image'    => CB_THEME_URI . '/assets/images/share/default.jpg', // 1200x630 crop of home10/01-hall.jpg
 ]);
 
 get_header();

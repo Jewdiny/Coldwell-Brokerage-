@@ -6,7 +6,7 @@
  */
 
 cb_set_seo_meta([
-    'title'       => 'San Angelo Real Estate Market Report ' . date('Y') . ' | Coldwell Banker Legacy',
+    'title'       => 'San Angelo Real Estate Market ' . date('Y') . ' | Coldwell Banker Legacy',
     'description' => 'Live San Angelo housing market data — median sale price, days on market, inventory, and neighborhood trends. Updated continuously from the SAARMLS.',
     'canonical'   => get_permalink(),
 ]);

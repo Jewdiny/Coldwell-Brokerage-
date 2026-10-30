@@ -14,9 +14,13 @@ $cb_communities = cb_get_communities();
 
 // Index page: /communities/ — show all areas as a grid of cards.
 if ($cb_slug === 'index') {
-    $cb_index_title = 'San Angelo Neighborhoods & Communities | Coldwell Banker Legacy';
-    add_filter('wpseo_title',           function () use ($cb_index_title) { return $cb_index_title; }, 99);
-    add_filter('pre_get_document_title', function () use ($cb_index_title) { return $cb_index_title; }, 99);
+    // Without its own canonical, Yoast treated this virtual page as the blog and
+    // told Google /communities/ was a copy of /blog/.
+    cb_set_seo_meta([
+        'title'       => 'San Angelo Neighborhoods | Coldwell Banker Legacy',
+        'description' => 'From historic downtown San Angelo to lakefront retreats and country acreage, explore Concho Valley neighborhoods and the homes for sale in each.',
+        'canonical'   => home_url('/communities/'),
+    ]);
 
     get_header();
     ?>
@@ -71,8 +75,17 @@ if (!isset($cb_communities[$cb_slug])) {
 $cb         = $cb_communities[$cb_slug];
 $cb_name    = $cb['name'];
 $cb_canonical = home_url('/communities/' . $cb_slug . '/');
-$cb_page_title = $cb_name . ' Homes for Sale, San Angelo TX | Coldwell Banker Legacy';
-$cb_meta_desc  = mb_substr(trim(preg_replace('/\s+/', ' ', $cb['description'])), 0, 155);
+// Neighborhoods inside San Angelo carry the city name; nearby towns stand alone.
+if ($cb_slug === 'san-angelo') {
+    $cb_place = 'San Angelo, TX Homes for Sale';
+} elseif (in_array($cb_slug, ['bentwood', 'college-hills', 'lake-nasworthy'], true)) {
+    $cb_place = $cb_name . ' Homes for Sale, San Angelo TX';
+} else {
+    $cb_place = $cb_name . ', TX Homes for Sale';
+}
+$cb_page_title = cb_seo_title($cb_place);
+$cb_meta_desc  = cb_seo_excerpt($cb['description']);
+$cb_share_img  = 'assets/images/share/community-' . $cb_slug . '.jpg';
 
 // Yoast filters (if Yoast is active) so it serves our values.
 $cb_has_yoast = defined('WPSEO_VERSION');
@@ -83,17 +96,20 @@ if ($cb_has_yoast) {
     add_filter('wpseo_opengraph_title', function () use ($cb_page_title) { return $cb_page_title; }, 99);
     add_filter('wpseo_opengraph_desc',  function () use ($cb_meta_desc) { return $cb_meta_desc; }, 99);
     add_filter('wpseo_opengraph_url',   function () use ($cb_canonical) { return $cb_canonical; }, 99);
+    // 1200x630 crop of the community photo; communities without one get the site default.
+    if (file_exists(CB_THEME_DIR . '/' . $cb_share_img)) { cb_add_og_image(CB_THEME_URI . '/' . $cb_share_img); }
+    cb_seo_schema_webpage($cb_page_title, $cb_meta_desc, $cb_canonical);
 }
 
 add_filter('pre_get_document_title', function () use ($cb_page_title) { return $cb_page_title; }, 99);
 
 // JSON-LD Place schema for the community + breadcrumbs.
-add_action('wp_head', function () use ($cb, $cb_name, $cb_canonical, $cb_meta_desc, $cb_has_yoast) {
+add_action('wp_head', function () use ($cb, $cb_name, $cb_canonical, $cb_meta_desc, $cb_has_yoast, $cb_page_title) {
     if (!$cb_has_yoast) {
         echo "\n";
         echo '<link rel="canonical" href="' . esc_url($cb_canonical) . '">' . "\n";
         echo '<meta name="description" content="' . esc_attr($cb_meta_desc) . '">' . "\n";
-        echo '<meta property="og:title" content="' . esc_attr($cb_name . ' Homes for Sale, San Angelo TX | Coldwell Banker Legacy') . '">' . "\n";
+        echo '<meta property="og:title" content="' . esc_attr($cb_page_title) . '">' . "\n";
         echo '<meta property="og:description" content="' . esc_attr($cb_meta_desc) . '">' . "\n";
     }
     $schema = [

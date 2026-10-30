@@ -6,8 +6,8 @@
  */
 
 cb_set_seo_meta([
-    'title'       => 'Luxury Homes for Sale in San Angelo, TX | $500K+ Properties | Coldwell Banker Legacy',
-    'description' => 'Browse San Angelo luxury real estate $500,000 and up. Estate homes, waterfront properties, and gated communities — represented by Coldwell Banker Global Luxury specialists.',
+    'title'       => 'San Angelo Luxury Homes for Sale | Coldwell Banker Legacy',
+    'description' => 'San Angelo luxury homes from $500,000: estate homes, waterfront properties and gated communities, with Coldwell Banker Global Luxury specialists.',
     'canonical'   => get_permalink(),
 ]);
 
